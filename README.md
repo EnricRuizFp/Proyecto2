@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Requisitos
 Se recomienda usar Laragon
 
@@ -87,3 +88,7 @@ php artisan serve
 ```bash
 npm run build or yarn build
 ```
+=======
+# Proyecto2
+Hundir la flota.
+>>>>>>> 68f96d9c4acf28fd9e79e5425482f3b77c61d1bf
