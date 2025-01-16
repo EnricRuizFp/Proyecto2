@@ -40,6 +40,12 @@ class NoteController extends Controller
 
     public function destroy ($id): JsonResponse
     {
+        if (!Note::find($id)) 
+        return response()->json([
+            'success' => false,
+            'message' => 'Note not found'
+        ], 404);
+
         $note = Note::find($id);
         $note -> delete();
         return response()->json([
