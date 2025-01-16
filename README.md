@@ -92,6 +92,8 @@ npm run build or yarn build
 Hundir la flota.
 >>>>>>> 68f96d9c4acf28fd9e79e5425482f3b77c61d1bf
 
-Integrar cambios realizados por el compañero
+Integrar cambios realizados por el compañero:
+```bash
 git pull origin main
+```
 * (main o rama deseada)
