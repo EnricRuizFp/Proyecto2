@@ -40,4 +40,8 @@ class AuthorController extends Controller
         $author->delete();
         return response()->json(['status' => 405, 'susccess' => true, 'data'=> '']);
     }
+    
+    public function show(Author $author){
+        return response()->json(['status'=> 405, ''=> true, 'data' => $author]);
+    }
 }

@@ -270,27 +270,27 @@ export default [
                         path: "",
                         component: () =>
                             import("../views/admin/authors/index.vue"),
-                        meta: { breadCrumb: "Autores" },
-                        // },
-                        // {
-                        //     name: "authors.create",
-                        //     path: "create",
-                        //     component: () =>
-                        //         import("../views/admin/authors/Create.vue"),
-                        //     meta: {
-                        //         breadCrumb: "Create Autor",
-                        //         linked: false,
-                        //     },
-                        // },
-                        // {
-                        //     name: "authors.edit",
-                        //     path: "edit/:id",
-                        //     component: () =>
-                        //         import("../views/admin/authors/Edit.vue"),
-                        //     meta: {
-                        //         breadCrumb: "Autor Edit",
-                        //         linked: false,
-                        //     },
+                        meta: { breadCrumb: "Listado Autores" },
+                    },
+                    // {
+                    //     name: "authors.create",
+                    //     path: "create",
+                    //     component: () =>
+                    //         import("../views/admin/authors/Create.vue"),
+                    //     meta: {
+                    //         breadCrumb: "Create Autor",
+                    //         linked: false,
+                    //     },
+                    // },
+                    {
+                        name: "authors.edit",
+                        path: "edit/:id",
+                        component: () =>
+                            import("../views/admin/authors/edit.vue"),
+                        meta: {
+                            breadCrumb: "Autor Edit",
+                            linked: false,
+                        },
                     },
                 ],
             },
