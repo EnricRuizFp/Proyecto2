@@ -269,7 +269,7 @@ export default [
                         name: "authors.index",
                         path: "",
                         component: () =>
-                            import("../views/admin/authors/index.vue"),
+                            import("../views/admin/authors/Index.vue"),
                         meta: { breadCrumb: "Listado Autores" },
                     },
                     // {
@@ -286,7 +286,7 @@ export default [
                         name: "authors.edit",
                         path: "edit/:id",
                         component: () =>
-                            import("../views/admin/authors/edit.vue"),
+                            import("../views/admin/authors/Edit.vue"),
                         meta: {
                             breadCrumb: "Autor Edit",
                             linked: false,

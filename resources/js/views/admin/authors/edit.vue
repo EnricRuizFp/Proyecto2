@@ -56,18 +56,34 @@
             </div>
         </div>
     </div>
+    <Toast />
 </template>
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
+import { useToast } from "primevue/useToast";
 
+const toast = useToast();
 const route = useRoute();
 const author = ref({});
 
+const schema = yup.object({
+    id: yup.number().required(),
+    name: yup.string().required().max(10),
+    surname: yup.string().min(3),
+    email: yup.string().email(),
+});
+
 onMounted(() => {
     console.log("route.params.id");
-    axiox.get("api/author/" + route.params.id).then((response) => {
+    axio.get("api/author/" + route.params.id).then((response) => {
         author.value = response.data.data;
     });
 });
+
+const updateAuthor = async () => {
+    axio.put("api/author/" + route.params.id, author.value).then((response) => {
+        author.value = response.data.data;
+    });
+};
 </script>
