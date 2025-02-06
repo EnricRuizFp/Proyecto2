@@ -9,24 +9,24 @@ class Chat extends Model
 {
     use HasFactory;
 
-    protected $table = 'chat';
+    protected $table = 'chats';
 
     protected $fillable = [
-        'partida_id',
-        'usuario_id',
-        'mensaje',
-        'fecha',
+        'game_id',
+        'user_id',
+        'message',
+        'date',
     ];
 
     // Relaciones
 
-    public function partida()
+    public function game()
     {
-        return $this->belongsTo(Partida::class, 'partida_id');
+        return $this->belongsTo(Game::class, foreignKey: 'game_id');
     }
 
-    public function usuario()
+    public function user()
     {
-        return $this->belongsTo(Usuario::class, 'usuario_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
