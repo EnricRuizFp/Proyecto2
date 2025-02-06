@@ -286,7 +286,7 @@ export default [
                         name: "authors.edit",
                         path: "edit/:id",
                         component: () =>
-                            import("../views/admin/authors/Edit.vue"),
+                            import("../views/admin/authors/edit.vue"),
                         meta: {
                             breadCrumb: "Autor Edit",
                             linked: false,
@@ -294,6 +294,156 @@ export default [
                     },
                 ],
             },
+
+
+
+            /* ----- ROUTES FOR DATABASE TAGS ----- */
+
+            // Avatars
+            {
+                name: "avatars",
+                path: "avatars",
+                meta: { breadCrumb: "Avatars" },
+                children: [
+                    {
+                        name: "avatar.index",
+                        path: "",
+                        component: () =>
+                            import("../views/admin/avatars/Index.vue"),
+                        meta: { breadCrumb: "Avatars" },
+                    },
+                    {
+                        name: "avatar.create",
+                        path: "create",
+                        component: () =>
+                            import("../views/admin/avatars/Create.vue"),
+                        meta: {
+                            breadCrumb: "Create Avatar",
+                            linked: false,
+                        },
+                    },
+                    {
+                        name: "avatar.edit",
+                        path: "edit/:id",
+                        component: () =>
+                            import("../views/admin/avatars/Edit.vue"),
+                        meta: {
+                            breadCrumb: "Edit Avatar",
+                            linked: false,
+                        },
+                    },
+
+                ],
+            },
+            // Ships
+            {
+                name: "ships",
+                path: "ships",
+                meta: { breadCrumb: "Ships" },
+                children: [
+                    {
+                        name: "ship.index",
+                        path: "",
+                        component: () =>
+                            import("../views/admin/ships/Index.vue"),
+                        meta: { breadCrumb: "Ships" },
+                    },
+                    {
+                        name: "ship.create",
+                        path: "create",
+                        component: () =>
+                            import("../views/admin/ships/Create.vue"),
+                        meta: {
+                            breadCrumb: "Create Ship",
+                            linked: false,
+                        },
+                    },
+                    {
+                        name: "ship.edit",
+                        path: "edit/:id",
+                        component: () =>
+                            import("../views/admin/ships/Edit.vue"),
+                        meta: {
+                            breadCrumb: "Edit Ship",
+                            linked: false,
+                        },
+                    },
+                ],
+            },
+            // Games
+            {
+                name: "games",
+                path: "games",
+                meta: { breadCrumb: "Games" },
+                children: [
+                    {
+                        name: "game.index",
+                        path: "",
+                        component: () =>
+                            import("../views/admin/games/Index.vue"),
+                        meta: { breadCrumb: "Games" },
+                    },
+                    {
+                        name: "game.create",
+                        path: "create",
+                        component: () =>
+                            import("../views/admin/games/Create.vue"),
+                        meta: {
+                            breadCrumb: "Create Game",
+                            linked: false,
+                        },
+                    },
+                    {
+                        name: "game.edit",
+                        path: "edit/:id",
+                        component: () =>
+                            import("../views/admin/games/Edit.vue"),
+                        meta: {
+                            breadCrumb: "Edit Game",
+                            linked: false,
+                        },
+                    },
+                ],
+            },
+            // Rankings
+            {
+                name: "rankings",
+                path: "rankings",
+                meta: { breadCrumb: "Rankings" },
+                children: [
+                    {
+                        name: "ranking.index",
+                        path: "",
+                        component: () =>
+                            import("../views/admin/rankings/Index.vue"),
+                        meta: { breadCrumb: "Rankings" },
+                    },
+                    {
+                        name: "ranking.create",
+                        path: "create",
+                        component: () =>
+                            import("../views/admin/rankings/Create.vue"),
+                        meta: {
+                            breadCrumb: "Create Ranking",
+                            linked: false,
+                        },
+                    },
+                    {
+                        name: "ranking.edit",
+                        path: "edit/:id",
+                        component: () =>
+                            import("../views/admin/rankings/Edit.vue"),
+                        meta: {
+                            breadCrumb: "Edit Ranking",
+                            linked: false,
+                        },
+                    },
+                ],
+            },
+
+
+
+
 
             //TODO Organizar rutas
             {

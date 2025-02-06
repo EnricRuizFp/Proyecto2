@@ -15,8 +15,8 @@ return new class extends Migration
             // Ojo: si NO quieres username separado y decides unificarlo con alias,
             // omite este campo y deja 'alias' como único "username".
 
-            $table->string('nacionalidad')->nullable();
-            $table->date('fecha_registro')->nullable();
+            $table->string('nationality')->nullable();
+            $table->date('register_date')->nullable();
         });
     }
 
@@ -24,8 +24,8 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('username');
-            $table->dropColumn('nacionalidad');
-            $table->dropColumn('fecha_registro');
+            $table->dropColumn('nationality');
+            $table->dropColumn('register_date');
         });
     }
 };

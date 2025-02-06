@@ -61,7 +61,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { useToast } from "primevue/useToast";
+import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
 const route = useRoute();

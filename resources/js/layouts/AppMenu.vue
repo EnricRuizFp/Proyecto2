@@ -54,11 +54,11 @@ const model = ref([
     {
         label: 'Database',
         items: [
-            { label: 'Avatares', icon: 'pi pi-fw pi-id-card', to: '/admin/avatars', permision: 'avatar-list' },
-            { label: 'Barcos', icon: 'pi pi-fw pi-id-card', to: '/admin/ships', permision: 'ship-list' },
+            { label: 'Avatars', icon: 'pi pi-fw pi-id-card', to: '/admin/avatars', permision: 'avatar-list' },
+            { label: 'Ships', icon: 'pi pi-fw pi-id-card', to: '/admin/ships', permision: 'ship-list' },
             // Para acceder a los chats y los movimientos, primero se debe acceder a la partida en concreto
-            { label: 'Partidas', icon: 'pi pi-fw pi-id-card', to: '/admin/matchs', permision: 'match-list'},
-            { label: 'Rankings', icon: 'pi pi-fw pi-id-card', to: '/admin/ranking', permision: 'ranking-list'}
+            { label: 'Games', icon: 'pi pi-fw pi-id-card', to: '/admin/games', permision: 'game-list'},
+            { label: 'Rankings', icon: 'pi pi-fw pi-id-card', to: '/admin/rankings', permision: 'ranking-list'}
 
         ]
     }
