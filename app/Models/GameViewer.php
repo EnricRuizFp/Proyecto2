@@ -4,21 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Chat extends Model
+class GameViewer extends Model
 {
-    protected $table = 'chats';
+    protected $table = 'game_viewers';
     protected $primaryKey = 'id';
     public $timestamps = false;
 
     protected $fillable = [
         'game_id',
         'user_id',
-        'message',
-        'date',
+        'joined',
     ];
 
     /**
-     * Relación: Un Chat pertenece a un Game.
+     * Relación: Un GameObserver pertenece a un Game.
      */
     public function game()
     {
@@ -26,7 +25,7 @@ class Chat extends Model
     }
 
     /**
-     * Relación: Un Chat pertenece a un User.
+     * Relación: Un GameObserver pertenece a un User.
      */
     public function user()
     {

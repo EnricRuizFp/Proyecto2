@@ -2,32 +2,31 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class UserAvatar extends Model
 {
-    use HasFactory;
-
-    // Ahora la tabla pivot se llama "user_avatars"
     protected $table = 'user_avatars';
+    protected $primaryKey = 'id';
+    public $timestamps = false;
 
-    // Columns renombradas en la migración
     protected $fillable = [
         'user_id',
         'avatar_id',
-        'actualizado',
+        'updated',
     ];
 
-    // Relaciones
-
-    // belongsTo "User" con 'user_id'
+    /**
+     * Relación: Un UserAvatar pertenece a un User.
+     */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // belongsTo "Avatar" con 'avatar_id'
+    /**
+     * Relación: Un UserAvatar pertenece a un Avatar.
+     */
     public function avatar()
     {
         return $this->belongsTo(Avatar::class, 'avatar_id');

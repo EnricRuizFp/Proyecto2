@@ -2,24 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Ship extends Model
 {
-    use HasFactory;
-
     protected $table = 'ships';
+    protected $primaryKey = 'id';
+    public $timestamps = false;
 
     protected $fillable = [
         'name',
         'size',
     ];
-
-    // Relaciones
-
-    public function shipsPositions()
-    {
-        return $this->hasMany(ShipsPosition::class, 'type_id');
-    }
 }
