@@ -2,31 +2,24 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Avatar extends Model
 {
-    use HasFactory;
-
     protected $table = 'avatars';
+    protected $primaryKey = 'id';
+    public $timestamps = false;
 
     protected $fillable = [
         'name',
         'image_path',
     ];
 
-    // Relaciones
-
-    public function usuariosAvatares()
+    /**
+     * Ejemplo de relación: un Avatar puede estar asociado a muchos UserAvatars.
+     */
+    public function userAvatars()
     {
         return $this->hasMany(UserAvatar::class, 'avatar_id');
-    }
-
-    public function usuarios()
-    {
-        return $this->belongsToMany(User::class, 'user_avatars', 'avatar_id', 'user_id')
-                    ->withTimestamps()
-                    ->withPivot('actualizado');
     }
 }

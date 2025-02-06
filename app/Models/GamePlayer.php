@@ -4,21 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Chat extends Model
+class GamePlayer extends Model
 {
-    protected $table = 'chats';
+    protected $table = 'game_players';
     protected $primaryKey = 'id';
     public $timestamps = false;
 
     protected $fillable = [
         'game_id',
         'user_id',
-        'message',
-        'date',
+        'joined',
     ];
 
     /**
-     * Relación: Un Chat pertenece a un Game.
+     * Relación: Un GamePlayer pertenece a un Game.
      */
     public function game()
     {
@@ -26,10 +25,18 @@ class Chat extends Model
     }
 
     /**
-     * Relación: Un Chat pertenece a un User.
+     * Relación: Un GamePlayer pertenece a un User.
      */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Relación: Un GamePlayer tiene muchos Movements.
+     */
+    public function moves()
+    {
+        return $this->hasMany(Move::class, 'game_player_id');
     }
 }

@@ -12,6 +12,11 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * Modelo User de tu proyecto, con cambios para:
+ *  - 'Moves' (antes Movements)
+ *  - 'GameViewers' (antes GameObservers)
+ */
 class User extends Authenticatable implements HasMedia
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles, InteractsWithMedia;
@@ -19,17 +24,15 @@ class User extends Authenticatable implements HasMedia
     protected $table = 'users';
 
     protected $fillable = [
-        // Campos originales de 'users'
         'name',
         'surname1',
         'surname2',
         'alias',
         'email',
         'password',
-        // Campos que vienen de 'Usuario.php'
-        'username',        // si quieres conservarlo separado de alias
-        'nacionalidad',
-        'fecha_registro',
+        'username',
+        'nationality',
+        'register_date',
     ];
 
     protected $hidden = [
@@ -42,17 +45,11 @@ class User extends Authenticatable implements HasMedia
     ];
 
     /**
-     * Métodos importantes del antiguo User
+     * Método para notificación de reset de contraseña personalizado
      */
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new UserResetPasswordNotification($token));
-    }
-
-    // Relación que ya existía en User
-    public function assignaments()
-    {
-        return $this->hasMany(UserAssignment::class, 'user_id');
     }
 
     /**
@@ -76,55 +73,93 @@ class User extends Authenticatable implements HasMedia
 
     /*
      |---------------------------------------------------------
-     | Relaciones heredadas de "Usuario.php"
+     | Relations with User
      |---------------------------------------------------------
-     | Suponiendo que renombraste las tablas/columns a user_id,
-     | o ajustaste la FK en tus otras tablas.
      */
 
-    // Ejemplo: en 'partidas' la FK es 'creada_por' (no user_id/usuario_id)
+    public function assignaments()
+    {
+        return $this->hasMany(UserAssignment::class, 'user_id');
+    }
+
+    //  Relation with games
+
     public function partidasCreadas()
     {
-        return $this->hasMany(Partida::class, 'creada_por');
+        // Ajusta nombres si estás en inglés
+        return $this->hasMany(Game::class, 'created_by');
     }
 
-    // Ejemplo: en 'jugador_partidas' renombraste la FK a 'user_id'
-    public function jugadorPartidas()
+    //  Relation with game_players
+    
+    public function gamePlayers()
     {
-        return $this->hasMany(JugadorPartida::class, 'user_id');
+        return $this->hasMany(GamePlayer::class, 'user_id');
     }
 
-    public function observadorPartidas()
+    //  Relation with game_viewers
+
+    public function gameViewers()
     {
-        return $this->hasMany(ObservadorPartida::class, 'user_id');
+        return $this->hasMany(GameViewer::class, 'user_id');
     }
+
+    // Si además quieres "los Games en los que el User es viewer":
+    public function viewedGames()
+    {
+        // belongsToMany, asumiendo 'game_viewers' es tu tabla intermedia
+        // con 'game_id' y 'user_id' como FKs:
+        return $this->belongsToMany(
+            Game::class,
+            'game_viewers',
+            'user_id',
+            'game_id'
+        );
+    }
+
+    // Relation with chats
 
     public function chats()
     {
         return $this->hasMany(Chat::class, 'user_id');
     }
 
+    // Relation with rankings
+
     public function rankings()
     {
         return $this->hasMany(Ranking::class, 'user_id');
     }
 
-    // Ejemplo: relación con la pivot "user_avatars"
-    public function userAvatars() 
+    //  Relation with moves
+
+    public function moves()
+    {
+        return $this->hasManyThrough(
+            Move::class,          // Modelo final
+            GamePlayer::class,    // Modelo intermedio
+            'user_id',            // FK en 'game_players'
+            'game_player_id',     // FK en 'moves'
+            'id',                 // PK local en 'users' (por defecto 'id')
+            'id'                  // PK local en 'game_players' (por defecto 'id')
+        );
+    }
+
+    //  Relation with user_avatars
+
+    public function userAvatars()
     {
         return $this->hasMany(UserAvatar::class, 'user_id');
     }
 
     public function avatares()
     {
-        // belongsToMany con la pivot "user_avatars"
         return $this->belongsToMany(
             Avatar::class,
-            'user_avatars',  // tabla pivot renombrada
-            'user_id',       // clave local en pivot
-            'avatar_id'      // clave de la otra tabla
+            'user_avatars',  
+            'user_id',       
+            'avatar_id'
         )
-        ->withTimestamps()
-        ->withPivot('actualizado');
+        ->withPivot('updated'); // si deseas acceder a la columna 'updated'
     }
 }

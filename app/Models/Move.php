@@ -2,32 +2,34 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Move extends Model
 {
-    use HasFactory;
-
     protected $table = 'moves';
+    protected $primaryKey = 'id';
+    public $timestamps = false;
 
     protected $fillable = [
         'game_id',
-        'player_game_id',
-        'coordenada',
-        'resultado',
-        'realizado_en',
+        'game_player_id',
+        'coordinate',
+        'result',
     ];
 
-    // Relaciones
-
-    public function partida()
+    /**
+     * Relación: Un Movement pertenece a un Game.
+     */
+    public function game()
     {
-        return $this->belongsTo(Partida::class, 'partida_id');
+        return $this->belongsTo(Game::class, 'game_id');
     }
 
-    public function jugadorPartida()
+    /**
+     * Relación: Un Movement pertenece a un GamePlayer.
+     */
+    public function gamePlayer()
     {
-        return $this->belongsTo(JugadorPartida::class, 'jugador_partida_id');
+        return $this->belongsTo(GamePlayer::class, 'game_player_id');
     }
 }
