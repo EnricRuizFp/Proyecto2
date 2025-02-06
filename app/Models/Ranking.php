@@ -9,22 +9,22 @@ class Ranking extends Model
 {
     use HasFactory;
 
-    protected $table = 'ranking';
+    protected $table = 'rankings';
 
     protected $fillable = [
-        'usuario_id',
-        'tipo',
-        'partidas_ganadas',
-        'partidas_perdidas',
-        'partidas_empatadas',
-        'puntos',
-        'actualizado_en',
+        'game_id',
+        'type',
+        'wins',
+        'losses',
+        'draws',
+        'points',
+        'updated_at',
     ];
 
     // Relaciones
 
-    public function usuario()
+    public function user()
     {
-        return $this->belongsTo(Usuario::class, 'usuario_id');
+        return $this->belongsTo(User::class, foreignKey: 'user_id');
     }
 }

@@ -5,15 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Movimiento extends Model
+class Move extends Model
 {
     use HasFactory;
 
-    protected $table = 'movimientos';
+    protected $table = 'moves';
 
     protected $fillable = [
-        'partida_id',
-        'jugador_partida_id',
+        'game_id',
+        'player_game_id',
         'coordenada',
         'resultado',
         'realizado_en',

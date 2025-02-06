@@ -9,23 +9,23 @@ class Avatar extends Model
 {
     use HasFactory;
 
-    protected $table = 'avatares';
+    protected $table = 'avatars';
 
     protected $fillable = [
-        'nombre',
-        'ruta_imagen',
+        'name',
+        'image_path',
     ];
 
     // Relaciones
 
     public function usuariosAvatares()
     {
-        return $this->hasMany(UsuarioAvatar::class, 'avatar_id');
+        return $this->hasMany(UserAvatar::class, 'avatar_id');
     }
 
     public function usuarios()
     {
-        return $this->belongsToMany(Usuario::class, 'usuarios_avatares', 'avatar_id', 'usuario_id')
+        return $this->belongsToMany(User::class, 'user_avatars', 'avatar_id', 'user_id')
                     ->withTimestamps()
                     ->withPivot('actualizado');
     }

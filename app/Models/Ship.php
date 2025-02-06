@@ -5,21 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Barco extends Model
+class Ship extends Model
 {
     use HasFactory;
 
-    protected $table = 'barcos';
+    protected $table = 'ships';
 
     protected $fillable = [
-        'nombre',
-        'tamaño',
+        'name',
+        'size',
     ];
 
     // Relaciones
 
-    public function barcosPosiciones()
+    public function shipsPositions()
     {
-        return $this->hasMany(BarcosPosicion::class, 'tipo_id');
+        return $this->hasMany(ShipsPosition::class, 'type_id');
     }
 }
