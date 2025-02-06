@@ -1,0 +1,179 @@
+import { ref, inject } from "vue";
+import { useRouter } from "vue-router";
+
+export default function useShips() {
+    const ships = ref([]);
+    const ship = ref({
+        name: "",
+        size: "",
+    });
+
+    const router = useRouter();
+    const validationErrors = ref({});
+    const isLoading = ref(false);
+    const swal = inject("$swal");
+
+    /**
+     * Obtiene la lista de barcos de la API,
+     * soportando paginación o filtros adicionales si los necesitas
+     */
+    const getShips = async (
+        page = 1,
+        search_global = "",
+        order_column = "created_at",
+        order_direction = "desc"
+    ) => {
+        axios
+            .get(
+                "/api/ships?page=" +
+                    page +
+                    "&search_global=" +
+                    search_global +
+                    "&order_column=" +
+                    order_column +
+                    "&order_direction=" +
+                    order_direction
+            )
+            .then((response) => {
+                // asumiendo que tu endpoint devuelve la lista con meta de paginación
+                // en un atributo "data" (ajusta a tu respuesta real)
+                ships.value = response.data;
+            })
+            .catch((error) => {
+                console.error("Error al obtener barcos:", error);
+            });
+    };
+
+    /**
+     * Obtiene datos de un solo barco por ID.
+     */
+    const getShip = async (id) => {
+        axios
+            .get("/api/ships/" + id)
+            .then((response) => {
+                ship.value = response.data.data;
+            })
+            .catch((error) => {
+                console.error("Error al obtener el barco:", error);
+            });
+    };
+
+    /**
+     * Crea un nuevo barco enviando un POST a la API.
+     */
+    const storeShip = async (shipData) => {
+        if (isLoading.value) return;
+
+        isLoading.value = true;
+        validationErrors.value = {};
+
+        // Si necesitas enviar archivos (por ejemplo, la imagen),
+        // conviertes shipData en FormData. Si no, puedes hacer un JSON normal.
+        let serializedPost = new FormData();
+        for (let item in shipData) {
+            if (shipData.hasOwnProperty(item)) {
+                serializedPost.append(item, shipData[item]);
+            }
+        }
+
+        axios
+            .post("/api/ships", serializedPost)
+            .then((response) => {
+                router.push({ name: "ships.index" });
+                swal({
+                    icon: "success",
+                    title: "Barco creado exitosamente",
+                });
+            })
+            .catch((error) => {
+                if (error.response?.data?.errors) {
+                    validationErrors.value = error.response.data.errors;
+                }
+            })
+            .finally(() => {
+                isLoading.value = false;
+            });
+    };
+
+    /**
+     * Actualiza un barco existente por ID.
+     */
+    const updateShip = async (shipData) => {
+        if (isLoading.value) return;
+
+        isLoading.value = true;
+        validationErrors.value = {};
+
+        // Si actualizas también archivo (imagen), utiliza FormData;
+        // en caso contrario, un JSON es suficiente
+        // Ejemplo con JSON:
+        axios
+            .put("/api/ships/" + shipData.id, shipData)
+            .then((response) => {
+                // router.push({ name: 'avatars.index' })
+                swal({
+                    icon: "success",
+                    title: "Barco actualizado exitosamente",
+                });
+            })
+            .catch((error) => {
+                if (error.response?.data?.errors) {
+                    validationErrors.value = error.response.data.errors;
+                }
+            })
+            .finally(() => {
+                isLoading.value = false;
+            });
+    };
+
+    /**
+     * Elimina un barco existente por ID, con confirmación.
+     */
+    const deleteShip = async (id, index) => {
+        swal({
+            title: "¿Estás seguro?",
+            text: "¡No podrás revertir esta acción!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar",
+            confirmButtonColor: "#ef4444",
+            timer: 20000,
+            timerProgressBar: true,
+            reverseButtons: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios
+                    .delete("/api/ships/" + id)
+                    .then((response) => {
+                        // Si estás usando paginación y la respuesta está en ships.value.data
+                        // y deseas quitar el registro de la lista directamente, haz:
+                        if (ships.value.data) {
+                            ships.value.data.splice(index, 1);
+                        }
+                        swal({
+                            icon: "success",
+                            title: "Barco eliminado exitosamente",
+                        });
+                    })
+                    .catch((error) => {
+                        swal({
+                            icon: "error",
+                            title: "Ocurrió un error al eliminar el barco",
+                        });
+                    });
+            }
+        });
+    };
+
+    return {
+        ships,
+        ship,
+        getShips,
+        getShip,
+        storeShip,
+        updateShip,
+        deleteShip,
+        validationErrors,
+        isLoading,
+    };
+}
