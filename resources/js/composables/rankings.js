@@ -1,11 +1,16 @@
 import { ref, inject } from "vue";
 import { useRouter } from "vue-router";
 
-export default function useShips() {
-    const ships = ref([]);
-    const ship = ref({
-        name: "",
-        size: "",
+export default function useRankings() {
+    const rankings = ref([]);
+    const ranking = ref({
+        user_id: "",
+        type: "",
+        wins: "",
+        losses: "",
+        draws: "",
+        points: "",
+        updated_at: ""
     });
 
     const router = useRouter();
@@ -14,18 +19,18 @@ export default function useShips() {
     const swal = inject("$swal");
 
     /**
-     * Obtiene la lista de barcos de la API,
+     * Obtiene la lista de rankings de la API,
      * soportando paginación o filtros adicionales si los necesitas
      */
-    const getShips = async (
+    const getRankings = async (
         page = 1,
         search_global = "",
-        order_column = "created_at",
+        order_column = "updated_at",
         order_direction = "desc"
     ) => {
         axios
             .get(
-                "/api/ships?page=" +
+                "/api/rankings?page=" +
                     page +
                     "&search_global=" +
                     search_global +
@@ -37,52 +42,52 @@ export default function useShips() {
             .then((response) => {
                 // asumiendo que tu endpoint devuelve la lista con meta de paginación
                 // en un atributo "data" (ajusta a tu respuesta real)
-                ships.value = response.data;
+                rankings.value = response.data;
             })
             .catch((error) => {
-                console.error("Error at getting ships:", error);
+                console.error("Error at getting rankings:", error);
             });
     };
 
     /**
-     * Obtiene datos de un solo barco por ID.
+     * Obtiene datos de un solo avatar por ID.
      */
-    const getShip = async (id) => {
+    const getRanking = async (id) => {
         axios
-            .get("/api/ships/" + id)
+            .get("/api/rankings/" + id)
             .then((response) => {
-                ship.value = response.data.data;
+                ranking.value = response.data.data;
             })
             .catch((error) => {
-                console.error("Error at getting the ship:", error);
+                console.error("Error at getting the ranking:", error);
             });
     };
 
     /**
-     * Crea un nuevo barco enviando un POST a la API.
+     * Crea un nuevo avatar enviando un POST a la API.
      */
-    const storeShip = async (shipData) => {
+    const storeRanking = async (rankingData) => {
         if (isLoading.value) return;
 
         isLoading.value = true;
         validationErrors.value = {};
 
         // Si necesitas enviar archivos (por ejemplo, la imagen),
-        // conviertes shipData en FormData. Si no, puedes hacer un JSON normal.
+        // conviertes avatarData en FormData. Si no, puedes hacer un JSON normal.
         let serializedPost = new FormData();
-        for (let item in shipData) {
-            if (shipData.hasOwnProperty(item)) {
-                serializedPost.append(item, shipData[item]);
+        for (let item in rankingData) {
+            if (rankingData.hasOwnProperty(item)) {
+                serializedPost.append(item, rankingData[item]);
             }
         }
 
         axios
-            .post("/api/ships", serializedPost)
+            .post("/api/rankings", serializedPost)
             .then((response) => {
-                router.push({ name: "ships.index" });
+                router.push({ name: "ranking.index" });
                 swal({
                     icon: "success",
-                    title: "Ship successfuly created.",
+                    title: "Ranking successfuly created",
                 });
             })
             .catch((error) => {
@@ -96,9 +101,9 @@ export default function useShips() {
     };
 
     /**
-     * Actualiza un barco existente por ID.
+     * Actualiza un ranking existente por ID.
      */
-    const updateShip = async (shipData) => {
+    const updateRanking = async (rankingData) => {
         if (isLoading.value) return;
 
         isLoading.value = true;
@@ -108,12 +113,12 @@ export default function useShips() {
         // en caso contrario, un JSON es suficiente
         // Ejemplo con JSON:
         axios
-            .put("/api/ships/" + shipData.id, shipData)
+            .put("/api/rankings/" + rankingData.id, rankingData)
             .then((response) => {
                 // router.push({ name: 'avatars.index' })
                 swal({
                     icon: "success",
-                    title: "Ship updated successfuly.",
+                    title: "Ranking updated successfuly",
                 });
             })
             .catch((error) => {
@@ -127,9 +132,9 @@ export default function useShips() {
     };
 
     /**
-     * Elimina un barco existente por ID, con confirmación.
+     * Elimina un ranking existente por ID, con confirmación.
      */
-    const deleteShip = async (id, index) => {
+    const deleteRanking = async (id, index) => {
         swal({
             title: "Are you sure?",
             text: "This action cannot be reverted!",
@@ -143,22 +148,22 @@ export default function useShips() {
         }).then((result) => {
             if (result.isConfirmed) {
                 axios
-                    .delete("/api/ships/" + id)
+                    .delete("/api/rankings/" + id)
                     .then((response) => {
-                        // Si estás usando paginación y la respuesta está en ships.value.data
+                        // Si estás usando paginación y la respuesta está en avatars.value.data
                         // y deseas quitar el registro de la lista directamente, haz:
-                        if (ships.value.data) {
-                            ships.value.data.splice(index, 1);
+                        if (rankings.value.data) {
+                            rankings.value.data.splice(index, 1);
                         }
                         swal({
                             icon: "success",
-                            title: "Ship successfuly deleted.",
+                            title: "Ranking successfuly deleted.",
                         });
                     })
                     .catch((error) => {
                         swal({
                             icon: "error",
-                            title: "An error ocured while deleting the ship.",
+                            title: "An error ocured while deleteing the ranking.",
                         });
                     });
             }
@@ -166,13 +171,13 @@ export default function useShips() {
     };
 
     return {
-        ships,
-        ship,
-        getShips,
-        getShip,
-        storeShip,
-        updateShip,
-        deleteShip,
+        rankings,
+        ranking,
+        getRankings,
+        getRanking,
+        storeRanking,
+        updateRanking,
+        deleteRanking,
         validationErrors,
         isLoading,
     };

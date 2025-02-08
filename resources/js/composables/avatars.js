@@ -40,7 +40,7 @@ export default function useAvatars() {
                 avatars.value = response.data;
             })
             .catch((error) => {
-                console.error("Error al obtener avatares:", error);
+                console.error("Error at getting avatars:", error);
             });
     };
 
@@ -54,7 +54,7 @@ export default function useAvatars() {
                 avatar.value = response.data.data;
             })
             .catch((error) => {
-                console.error("Error al obtener el avatar:", error);
+                console.error("Error at getting the avatar:", error);
             });
     };
 
@@ -79,10 +79,10 @@ export default function useAvatars() {
         axios
             .post("/api/avatars", serializedPost)
             .then((response) => {
-                router.push({ name: "avatars.index" });
+                router.push({ name: "avatar.index" });
                 swal({
                     icon: "success",
-                    title: "Avatar creado exitosamente",
+                    title: "Avatar successfuly created",
                 });
             })
             .catch((error) => {
@@ -113,7 +113,7 @@ export default function useAvatars() {
                 // router.push({ name: 'avatars.index' })
                 swal({
                     icon: "success",
-                    title: "Avatar actualizado exitosamente",
+                    title: "Avatar updated successfuly",
                 });
             })
             .catch((error) => {
@@ -131,11 +131,11 @@ export default function useAvatars() {
      */
     const deleteAvatar = async (id, index) => {
         swal({
-            title: "¿Estás seguro?",
-            text: "¡No podrás revertir esta acción!",
+            title: "Are you sure?",
+            text: "This action cannot be reverted!",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Sí, eliminar",
+            confirmButtonText: "Yes, delete",
             confirmButtonColor: "#ef4444",
             timer: 20000,
             timerProgressBar: true,
@@ -152,13 +152,13 @@ export default function useAvatars() {
                         }
                         swal({
                             icon: "success",
-                            title: "Avatar eliminado exitosamente",
+                            title: "Avatar successfuly deleted.",
                         });
                     })
                     .catch((error) => {
                         swal({
                             icon: "error",
-                            title: "Ocurrió un error al eliminar el avatar",
+                            title: "An error ocured while deleteing the avatar.",
                         });
                     });
             }

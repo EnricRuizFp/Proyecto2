@@ -3,22 +3,26 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-transparent ps-0 pe-0">
-                    <h5 class="float-start mb-0">Avatars</h5>
+                    <h5 class="float-start mb-0">Rankings</h5>
                 </div>
 
                 <DataTable
                     v-model:filters="filters"
-                    :value="avatars.data"
+                    :value="rankings.data"
                     paginator
                     :rows="5"
                     :globalFilterFields="[
-                        'id',
-                        'nombre',
-                        'ruta_imagen',
-                        'created_at',
+                        'ranking_id',
+                        'user_id',
+                        'type',
+                        'wins',
+                        'losses',
+                        'draws',
+                        'points',
+                        'updated_at'
                     ]"
                     stripedRows
-                    dataKey="id"
+                    dataKey="ranking_id"
                     size="small"
                 >
                     <template #header>
@@ -45,17 +49,17 @@
                                     icon="pi pi-refresh"
                                     class="h-100 ml-1"
                                     outlined
-                                    @click="getAvatars"
+                                    @click="getRankings"
                                 />
                             </template>
 
                             <template #end>
                                 <Button
-                                    v-if="can('avatar-create')"
+                                    v-if="can('ranking-create')"
                                     icon="pi pi-external-link"
-                                    label="Create Avatar"
+                                    label="Create ranking"
                                     @click="
-                                        $router.push({ name: 'avatar.create' })
+                                        $router.push({ name: 'ranking.create' })
                                     "
                                     class="float-end"
                                 />
@@ -63,20 +67,24 @@
                         </Toolbar>
                     </template>
 
-                    <template #empty> No avatars where found. </template>
+                    <template #empty> No rankings where found. </template>
 
-                    <Column field="id" header="ID" sortable />
-                    <Column field="name" header="Name" sortable />
-                    <Column field="image_route" header="Image route" sortable />
-                    <Column field="created_at" header="Created at" sortable />
+                    <Column field="ranking_id" header="ID" sortable />
+                    <Column field="user_id" header="User ID" sortable />
+                    <Column field="type" header="Rank type" sortable />
+                    <Column field="wins" header="Wins" sortable />
+                    <Column field="losses" header="Losses" sortable />
+                    <Column field="draws" header="Draws" sortable />
+                    <Column field="points" header="Points" sortable />
+                    <Column field="updated_at" header="Updated at" sortable />
 
                     <Column class="pe-0 me-0 icon-column-2">
                         <template #body="slotProps">
                             <router-link
-                                v-if="can('avatar-edit')"
+                                v-if="can('ranking-edit')"
                                 :to="{
-                                    name: 'avatar.edit',
-                                    params: { id: slotProps.data.id },
+                                    name: 'ranking.edit',
+                                    params: { id: slotProps.data.ranking_id },
                                 }"
                             >
                                 <Button
@@ -90,10 +98,10 @@
                             <Button
                                 icon="pi pi-trash"
                                 severity="danger"
-                                v-if="can('avatar-delete')"
+                                v-if="can('ranking-delete')"
                                 @click.prevent="
-                                    deleteAvatar(
-                                        slotProps.data.id,
+                                    deleteRanking(
+                                        slotProps.data.ranking_id,
                                         slotProps.index
                                     )
                                 "
@@ -113,10 +121,10 @@ import { useAbility } from "@casl/vue";
 import { FilterMatchMode, FilterService } from "@primevue/core/api";
 
 // Importa tu composable para avatares (ajusta la ruta si es necesario)
-import useAvatars from "@/composables/avatars.js";
+import useRankings from "@/composables/rankings.js";
 
 // Desestructura las funciones que necesitas de tu composable
-const { avatars, getAvatars, deleteAvatar } = useAvatars();
+const { rankings, getRankings, deleteRanking } = useRankings();
 
 const { can } = useAbility();
 
@@ -134,7 +142,7 @@ const initFilters = () => {
 
 // Al montar el componente, cargamos la lista de avatares
 onMounted(() => {
-    getAvatars();
+    getRankings();
 });
 </script>
 

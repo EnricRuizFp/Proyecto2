@@ -3,12 +3,12 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-transparent ps-0 pe-0">
-                    <h5 class="float-start mb-0">Barcos</h5>
+                    <h5 class="float-start mb-0">Ships</h5>
                 </div>
 
                 <DataTable
                     v-model:filters="filters"
-                    :value="avatars.data"
+                    :value="ships.data"
                     paginator
                     :rows="5"
                     :globalFilterFields="[
@@ -27,14 +27,14 @@
                                     <InputIcon class="pi pi-search" />
                                     <InputText
                                         v-model="filters['global'].value"
-                                        placeholder="Buscar"
+                                        placeholder="Search"
                                     />
                                 </IconField>
 
                                 <Button
                                     type="button"
                                     icon="pi pi-filter-slash"
-                                    label="Limpiar"
+                                    label="Clear"
                                     class="ml-1"
                                     outlined
                                     @click="initFilters"
@@ -44,7 +44,7 @@
                                     icon="pi pi-refresh"
                                     class="h-100 ml-1"
                                     outlined
-                                    @click="getAvatars"
+                                    @click="getShips"
                                 />
                             </template>
 
@@ -52,7 +52,7 @@
                                 <Button
                                     v-if="can('ship-create')"
                                     icon="pi pi-external-link"
-                                    label="Crear Avatar"
+                                    label="Create Ship"
                                     @click="
                                         $router.push({ name: 'ship.create' })
                                     "
@@ -62,7 +62,7 @@
                         </Toolbar>
                     </template>
 
-                    <template #empty> No se encontraron barcos. </template>
+                    <template #empty> No ships where found. </template>
 
                     <Column field="id" header="ID" sortable />
                     <Column field="name" header="Name" sortable />
@@ -90,7 +90,7 @@
                                 severity="danger"
                                 v-if="can('ship-delete')"
                                 @click.prevent="
-                                    deleteAvatar(
+                                    deleteShip(
                                         slotProps.data.id,
                                         slotProps.index
                                     )
@@ -108,7 +108,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useAbility } from "@casl/vue";
-import { FilterMatchMode } from "@primevue/api";
+import { FilterMatchMode, FilterService } from "@primevue/core/api";
 
 // Importa tu composable para avatares (ajusta la ruta si es necesario)
 import useShips from "@/composables/ships.js";
