@@ -143,7 +143,7 @@ const initFilters = () => {
 
 // Función para hacer imágenes accesibles
 const getImageUrl = (path) => {
-    return path ? `/seeders/${path}` : "/seeders/avatars/default.webp";
+    return path ? `/seeders/${path}` : "/storage/1/default.webp";
 };
 
 // Al montar el componente, cargamos la lista de avatares

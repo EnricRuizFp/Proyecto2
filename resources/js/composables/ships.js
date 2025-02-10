@@ -64,6 +64,8 @@ export default function useShips() {
     const storeShip = async (shipData) => {
         if (isLoading.value) return;
 
+        console.log("Storing...");
+
         isLoading.value = true;
         validationErrors.value = {};
 

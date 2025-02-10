@@ -5,25 +5,25 @@
                 <div class="card-body">
                     <form @submit.prevent="submitForm">
                         <div class="mb-3">
-                            <label for="ship_name" class="form-label">Ship name</label>
-                            <input v-model="post.ship_name" id="ship_name" type="text" class="form-control">
+                            <label for="name" class="form-label">Name</label>
+                            <input v-model="post.name" id="name" type="text" class="form-control">
                             <div class="text-danger mt-1">
-                                {{ errors.ship_name }}
+                                {{ errors.name }}
                             </div>
                             <div class="text-danger mt-1">
-                                <div v-for="message in validationErrors?.ship_name">
+                                <div v-for="message in validationErrors?.name">
                                     {{ message }}
                                 </div>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="ship_size" class="form-label">Size</label>
-                            <input v-model="post.ship_size" id="ship_size" type="number" class="form-control">
+                            <label for="size" class="form-label">Size</label>
+                            <input v-model="post.size" id="size" type="number" class="form-control">
                             <div class="text-danger mt-1">
-                                {{ errors.ship_size }}
+                                {{ errors.size }}
                             </div>
                             <div class="text-danger mt-1">
-                                <div v-for="message in validationErrors?.ship_size">
+                                <div v-for="message in validationErrors?.size">
                                     {{ message }}
                                 </div>
                             </div>
@@ -55,27 +55,20 @@
 
     // Define a validation schema
     const schema = {
-        ship_name: 'required',
-        ship_size: 'required|min:1|max:5',
+        name: 'required',
+        size: 'required|min:1',
     }
     // Create a form context with the validation schema
     const { validate, errors } = useForm({ validationSchema: schema })
     // Define actual fields for validation
     const { value: name } = useField('name', null, { initialValue: '' });
-    const { value: email } = useField('email', null, { initialValue: '' });
-    const { value: password } = useField('password', null, { initialValue: '' });
-    const { value: role_id } = useField('role_id', null, { initialValue: '', label: 'role' });
+    const { value: size } = useField('size', null, { initialValue: '' });
 
     const post = reactive({
         name,
-        email,
-        password,
-        role_id,
+        size,
     })
     function submitForm() {
-        validate().then(form => { if (form.valid) storeUser(post) })
+        validate().then(form => { if (form.valid) storeShip(post) })
     }
-    onMounted(() => {
-        getRoleList()
-    })
 </script>
