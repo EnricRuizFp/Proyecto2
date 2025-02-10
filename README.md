@@ -97,3 +97,8 @@ Integrar cambios realizados por el compañero:
 git pull origin main
 ```
 * (main o rama deseada)
+
+Crear link para poder acceder a las imágenes
+```bash
+php artisan storage:link
+```

@@ -15,7 +15,7 @@
                         'id',
                         'nombre',
                         'ruta_imagen',
-                        'created_at',
+                        'created_at'
                     ]"
                     stripedRows
                     dataKey="id"
@@ -67,7 +67,16 @@
 
                     <Column field="id" header="ID" sortable />
                     <Column field="name" header="Name" sortable />
-                    <Column field="image_route" header="Image route" sortable />
+                    <Column header="Image">
+                        <template #body="slotProps">
+                            <img
+                                :src="getImageUrl(slotProps.data.image_route)"
+                                alt="Avatar image"
+                                class="avatar-img"
+                            />
+                        </template>
+                    </Column>
+                    <Column field="image_route" header="File route" sortable />
                     <Column field="created_at" header="Created at" sortable />
 
                     <Column class="pe-0 me-0 icon-column-2">
@@ -132,12 +141,27 @@ const initFilters = () => {
     };
 };
 
+// Función para hacer imágenes accesibles
+const getImageUrl = (path) => {
+    return path ? `/seeders/${path}` : "/seeders/avatars/default.webp";
+};
+
 // Al montar el componente, cargamos la lista de avatares
 onMounted(() => {
     getAvatars();
 });
+
 </script>
 
 <style scoped>
 /* Añade estilos personalizados si lo requieres */
+
+/* -- Estilo para imágenes -- */
+.avatar-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
 </style>
