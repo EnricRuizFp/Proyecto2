@@ -11,6 +11,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class Avatar extends Model implements HasMedia
 {
     use InteractsWithMedia;
+
     protected $table = 'avatars';
     protected $primaryKey = 'id';
     public $timestamps = false;
@@ -19,6 +20,9 @@ class Avatar extends Model implements HasMedia
     protected $fillable = [
         'name',
     ];
+
+    // Agrega el atributo 'image_route' a la serialización del modelo
+    protected $appends = ['image_route'];
 
     /**
      * Si el avatar tiene alguna relación, como con UserAvatar, la defines aquí.
@@ -46,5 +50,13 @@ class Avatar extends Model implements HasMedia
         $this->addMediaConversion('thumb')
             ->width(100)
             ->height(100);
+    }
+
+    /**
+     * Accessor para obtener la URL de la imagen del avatar.
+     */
+    public function getImageRouteAttribute()
+    {
+        return $this->getFirstMediaUrl('avatars') ?: asset('images/avatar-placeholder.jpg');
     }
 }
