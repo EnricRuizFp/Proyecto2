@@ -71,6 +71,7 @@
                             />
                         </template>
                     </Column>
+
                     <Column field="image_route" header="File route" sortable />
                     <Column class="pe-0 me-0 icon-column-2">
                         <template #body="slotProps">

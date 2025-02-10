@@ -57,6 +57,6 @@ class Avatar extends Model implements HasMedia
      */
     public function getImageRouteAttribute()
     {
-        return $this->getFirstMediaUrl('avatars') ?: asset('images/avatar-placeholder.jpg');
+        return $this->getFirstMediaUrl('avatars', 'thumb') ?: asset('images/avatar-placeholder.jpg');
     }
 }
