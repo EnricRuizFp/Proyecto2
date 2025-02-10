@@ -11,12 +11,7 @@
                     :value="avatars.data"
                     paginator
                     :rows="5"
-                    :globalFilterFields="[
-                        'id',
-                        'nombre',
-                        'ruta_imagen',
-                        'created_at'
-                    ]"
+                    :globalFilterFields="['id', 'name', 'image_route']"
                     stripedRows
                     dataKey="id"
                     size="small"
@@ -63,22 +58,20 @@
                         </Toolbar>
                     </template>
 
-                    <template #empty> No avatars where found. </template>
+                    <template #empty> No avatars were found. </template>
 
                     <Column field="id" header="ID" sortable />
                     <Column field="name" header="Name" sortable />
                     <Column header="Image">
                         <template #body="slotProps">
                             <img
-                                :src="getImageUrl(slotProps.data.image_route)"
+                                :src="slotProps.data.image_route"
                                 alt="Avatar image"
                                 class="avatar-img"
                             />
                         </template>
                     </Column>
                     <Column field="image_route" header="File route" sortable />
-                    <Column field="created_at" header="Created at" sortable />
-
                     <Column class="pe-0 me-0 icon-column-2">
                         <template #body="slotProps">
                             <router-link
@@ -119,49 +112,32 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useAbility } from "@casl/vue";
-import { FilterMatchMode, FilterService } from "@primevue/core/api";
-
-// Importa tu composable para avatares (ajusta la ruta si es necesario)
+import { FilterMatchMode } from "@primevue/core/api";
 import useAvatars from "@/composables/avatars.js";
 
-// Desestructura las funciones que necesitas de tu composable
 const { avatars, getAvatars, deleteAvatar } = useAvatars();
-
 const { can } = useAbility();
 
-// Configuración de filtros
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 
-// Función para reiniciar los filtros
 const initFilters = () => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
 };
 
-// Función para hacer imágenes accesibles
-const getImageUrl = (path) => {
-    return path ? `/seeders/${path}` : "/seeders/avatars/default.webp";
-};
-
-// Al montar el componente, cargamos la lista de avatares
 onMounted(() => {
     getAvatars();
 });
-
 </script>
 
 <style scoped>
-/* Añade estilos personalizados si lo requieres */
-
-/* -- Estilo para imágenes -- */
 .avatar-img {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
 }
-
 </style>

@@ -12,6 +12,8 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NoteController;
+use App\Http\Controllers\Api\AvatarController;
+
 
 Route::post('forget-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('forget.password.post');
 Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');
@@ -66,3 +68,4 @@ Route::delete('authors/{author}', [AuthorController::class, 'destroy'])->name('a
 Route::get('authors/{author}', [AuthorController::class, 'show'])->name('authors.show');
 Route::put('authors/{author}', [AuthorController::class, 'update'])->name('authors.update');
 
+Route::apiResource('avatars', AvatarController::class);
