@@ -32,7 +32,16 @@ class PermissionTableSeeder extends Seeder
             'post-create',
             'post-edit',
             'post-all',
-            'post-delete'
+            'post-delete',
+
+            // Other permissions
+            'avatar-list','avatar-create','avatar-edit','avatar-delete',
+            'ship-list','ship-create','ship-edit','ship-delete',
+            'game-list','game-create','game-edit','game-delete',
+            'move-list','move-create','move-edit','move-delete',
+            'ranking-list','ranking-create','ranking-edit','ranking-delete',
+            'chat-list','chat-create','chat-edit','chat-delete',
+            
         ];
 
         foreach ($permissions as $permission) {

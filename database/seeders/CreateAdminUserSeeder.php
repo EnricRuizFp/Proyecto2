@@ -30,11 +30,19 @@ class CreateAdminUserSeeder extends Seeder
         $role = Role::create(['name' => 'admin']);
         $role2 = Role::create(['name' => 'user']);
         $permissions = [
-            'post-list',
-            'post-create',
-            'post-edit',
-            'post-delete',
-            'post-list'
+            'post-list','post-create','post-edit','post-delete',
+            'role-list','role-create','role-edit','role-delete',
+            'permission-list','permission-create','permission-edit','permission-delete',
+            'user-list','user-create','user-edit','user-delete',
+
+            // Other permissions
+            'avatar-list','avatar-create','avatar-edit','avatar-delete',
+            'ship-list','ship-create','ship-edit','ship-delete',
+            'game-list','game-create','game-edit','game-delete',
+            'move-list','move-create','move-edit','move-delete',
+            'ranking-list','ranking-create','ranking-edit','ranking-delete',
+            'chat-list','chat-create','chat-edit','chat-delete',
+
         ];
         $role2->syncPermissions($permissions);
 
