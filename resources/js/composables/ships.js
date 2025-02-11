@@ -52,18 +52,14 @@ export default function useShips() {
     };
 
     /**
-     * Crea un nuevo barco enviando un POST a la API.
+     * Creation of a new ship using POST to the API
      */
     const storeShip = async (shipData) => {
 
         if (isLoading.value) return;
 
-        console.log("Storing...");
-
         isLoading.value = true;
         validationErrors.value = {};
-
-        console.log("A");
 
         // Si necesitas enviar archivos (por ejemplo, la imagen),
         // conviertes shipData en FormData. Si no, puedes hacer un JSON normal.
@@ -74,8 +70,7 @@ export default function useShips() {
             }
         }
 
-        console.log(serializedPost);
-
+        // API request to store a ship
         axios
             .post("/api/ships", serializedPost)
             .then((response) => {
@@ -93,8 +88,6 @@ export default function useShips() {
             .finally(() => {
                 isLoading.value = false;
             });
-
-        console.log("C");
     };
 
     /**
