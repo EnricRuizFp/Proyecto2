@@ -20,7 +20,7 @@ export default function useShips() {
     const getShips = async (
         page = 1,
         search_global = "",
-        order_column = "created_at",
+        order_column = "id",
         order_direction = "desc"
     ) => {
         axios
