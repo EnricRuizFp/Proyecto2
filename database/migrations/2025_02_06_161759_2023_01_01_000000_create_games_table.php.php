@@ -10,11 +10,14 @@ return new class extends Migration
     public function up()
     {
         Schema::create('games', function (Blueprint $table) {
-            $table->id(); 
-            $table->date('creation_date')->default(DB::raw('(CURDATE())'));
+            $table->id();
+            // Campo para el código de 4 caracteres, único.
+            $table->char('code', 4)->unique();
+            // Usamos CURRENT_TIMESTAMP para que sea datetime.
+            $table->dateTime('creation_date')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->boolean('is_public')->default(true);
             $table->boolean('is_finished')->default(false);
-            $table->date('end_date')->nullable();
+            $table->dateTime('end_date')->nullable();
             $table->unsignedBigInteger('created_by');
             
             $table->foreign('created_by')->references('id')->on('users');
