@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Api\AvatarController;
+use App\Http\Controllers\Api\ShipController;
 
 
 Route::post('forget-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('forget.password.post');
@@ -73,5 +74,10 @@ Route::put('authors/{author}', [AuthorController::class, 'update'])->name('autho
 // Avatars
 Route::apiResource('avatars', AvatarController::class);
 
+
 // Ships
+Route::get('ships', [ShipController::class, 'index'])->name('ship.index');
 Route::post('ships', [ShipController::class, 'store'])->name('ship.store');
+Route::get('ships/{id}', [ShipController::class])->name('ship.show');
+Route::put('ships/{id}', [ShipController::class])->name('ship.update');
+Route::delete('ships/{id}', [ShipController::class])->name('ship.delete');
