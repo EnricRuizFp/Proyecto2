@@ -68,4 +68,10 @@ Route::delete('authors/{author}', [AuthorController::class, 'destroy'])->name('a
 Route::get('authors/{author}', [AuthorController::class, 'show'])->name('authors.show');
 Route::put('authors/{author}', [AuthorController::class, 'update'])->name('authors.update');
 
+/* -- APP ROUTES -- */
+
+// Avatars
 Route::apiResource('avatars', AvatarController::class);
+
+// Ships
+Route::post('ships', [ShipController::class, 'store'])->name('ship.store');

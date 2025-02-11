@@ -25,14 +25,7 @@ export default function useShips() {
     ) => {
         axios
             .get(
-                "/api/ships?page=" +
-                    page +
-                    "&search_global=" +
-                    search_global +
-                    "&order_column=" +
-                    order_column +
-                    "&order_direction=" +
-                    order_direction
+                "/api/ships?page=" + page + "&search_global=" + search_global + "&order_column=" + order_column + "&order_direction=" + order_direction
             )
             .then((response) => {
                 // asumiendo que tu endpoint devuelve la lista con meta de paginación
@@ -62,12 +55,15 @@ export default function useShips() {
      * Crea un nuevo barco enviando un POST a la API.
      */
     const storeShip = async (shipData) => {
+
         if (isLoading.value) return;
 
         console.log("Storing...");
 
         isLoading.value = true;
         validationErrors.value = {};
+
+        console.log("A");
 
         // Si necesitas enviar archivos (por ejemplo, la imagen),
         // conviertes shipData en FormData. Si no, puedes hacer un JSON normal.
@@ -78,10 +74,12 @@ export default function useShips() {
             }
         }
 
+        console.log(serializedPost);
+
         axios
             .post("/api/ships", serializedPost)
             .then((response) => {
-                router.push({ name: "ships.index" });
+                router.push({ name: "ship.index" });
                 swal({
                     icon: "success",
                     title: "Ship successfuly created.",
@@ -95,6 +93,8 @@ export default function useShips() {
             .finally(() => {
                 isLoading.value = false;
             });
+
+        console.log("C");
     };
 
     /**
