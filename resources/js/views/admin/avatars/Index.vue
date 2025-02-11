@@ -71,6 +71,7 @@
                             />
                         </template>
                     </Column>
+
                     <Column field="image_route" header="File route" sortable />
                     <Column class="pe-0 me-0 icon-column-2">
                         <template #body="slotProps">
@@ -128,15 +129,7 @@ const initFilters = () => {
     };
 };
 
-<<<<<<< HEAD
-// Función para hacer imágenes accesibles
-const getImageUrl = (path) => {
-    return path ? `/seeders/${path}` : "/storage/1/default.webp";
-};
-
 // Al montar el componente, cargamos la lista de avatares
-=======
->>>>>>> cf74802294fa2379ebf082ade614ea58c8a35e79
 onMounted(() => {
     getAvatars();
 });
