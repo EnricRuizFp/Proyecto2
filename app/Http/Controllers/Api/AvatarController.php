@@ -17,6 +17,12 @@ class AvatarController extends Controller
         return response()->json($avatars);
     }
 
+    public function show($id)
+    {
+        $avatar = Avatar::findOrFail($id);
+        return response()->json($avatar);
+    }
+
     /**
      * Almacena un nuevo avatar.
      */
@@ -46,5 +52,45 @@ class AvatarController extends Controller
         ], 201);
     }
 
-    // Aquí podrías definir show, update y destroy según sea necesario.
+    public function update(Request $request, $id)
+    {
+        $avatar = Avatar::findOrFail($id);
+
+        // Validamos: la imagen es opcional en actualización
+        $request->validate([
+            'name'  => 'required|string|max:50',
+            'image' => 'nullable|image|mimes:webp,png,jpeg'
+        ]);
+
+        // Actualizamos el nombre
+        $avatar->update([
+            'name' => $request->name,
+        ]);
+
+        // Si se envía una nueva imagen, borramos la anterior y la agregamos
+        if ($request->hasFile('image')) {
+            // Opcional: eliminar los medios existentes en la colección 'avatars'
+            $avatar->clearMediaCollection('avatars');
+
+            $avatar->addMediaFromRequest('image')
+                ->preservingOriginal()
+                ->toMediaCollection('avatars');
+        }
+
+        return response()->json([
+            'message' => 'Avatar updated successfully',
+            'data'    => $avatar,
+        ]);
+    }
+    public function destroy($id)
+    {
+        $avatar = Avatar::findOrFail($id);
+        $avatar->delete(); // Esto elimina el registro y, por configuración, los medios asociados
+
+        return response()->json([
+            'message' => 'Avatar deleted successfully'
+        ]);
+    }
+
+
 }

@@ -48,13 +48,16 @@ export default function useAvatars() {
      * Obtiene datos de un solo avatar por ID.
      */
     const getAvatar = async (id) => {
-        axios
+        return axios
             .get("/api/avatars/" + id)
             .then((response) => {
-                avatar.value = response.data.data;
+                // Si el método show retorna directamente el objeto avatar:
+                avatar.value = response.data;
+                return response.data;
             })
             .catch((error) => {
                 console.error("Error at getting the avatar:", error);
+                throw error;
             });
     };
 
@@ -98,20 +101,27 @@ export default function useAvatars() {
      */
     const updateAvatar = async (avatarData) => {
         if (isLoading.value) return;
-
         isLoading.value = true;
         validationErrors.value = {};
 
-        // Si actualizas también archivo (imagen), utiliza FormData;
-        // en caso contrario, un JSON es suficiente
-        // Ejemplo con JSON:
+        let serializedPost = new FormData();
+        for (let key in avatarData) {
+            if (avatarData.hasOwnProperty(key)) {
+                serializedPost.append(key, avatarData[key]);
+            }
+        }
+
+        // Debido a que axios no admite PUT con FormData de forma directa en algunos casos,
+        // podemos usar el método POST junto con el parámetro _method=PUT.
         axios
-            .put("/api/avatars/" + avatarData.id, avatarData)
+            .post(
+                "/api/avatars/" + avatarData.id + "?_method=PUT",
+                serializedPost
+            )
             .then((response) => {
-                // router.push({ name: 'avatars.index' })
                 swal({
                     icon: "success",
-                    title: "Avatar updated successfuly",
+                    title: "Avatar updated successfully",
                 });
             })
             .catch((error) => {
@@ -143,20 +153,17 @@ export default function useAvatars() {
                 axios
                     .delete("/api/avatars/" + id)
                     .then((response) => {
-                        // Si estás usando paginación y la respuesta está en avatars.value.data
-                        // y deseas quitar el registro de la lista directamente, haz:
-                        if (avatars.value.data) {
-                            avatars.value.data.splice(index, 1);
-                        }
                         swal({
                             icon: "success",
-                            title: "Avatar successfuly deleted.",
+                            title: "Avatar successfully deleted.",
                         });
+                        // En lugar de eliminar manualmente con splice, recargamos la lista
+                        getAvatars();
                     })
                     .catch((error) => {
                         swal({
                             icon: "error",
-                            title: "An error ocured while deleteing the avatar.",
+                            title: "An error occurred while deleting the avatar.",
                         });
                     });
             }
