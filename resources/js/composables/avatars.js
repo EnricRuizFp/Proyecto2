@@ -67,8 +67,6 @@ export default function useAvatars() {
         isLoading.value = true;
         validationErrors.value = {};
 
-        // Si necesitas enviar archivos (por ejemplo, la imagen),
-        // conviertes avatarData en FormData. Si no, puedes hacer un JSON normal.
         let serializedPost = new FormData();
         for (let item in avatarData) {
             if (avatarData.hasOwnProperty(item)) {

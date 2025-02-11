@@ -4,61 +4,66 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <form @submit.prevent="submitForm">
+                        <!-- Campo para el nombre del avatar -->
                         <div class="mb-3">
-                            <label for="post-title" class="form-label">Name</label>
-                            <input v-model="post.name" id="post-title" type="text" class="form-control">
+                            <label for="avatar-name" class="form-label"
+                                >Name</label
+                            >
+                            <input
+                                v-model="avatar.name"
+                                id="avatar-name"
+                                type="text"
+                                class="form-control"
+                            />
                             <div class="text-danger mt-1">
-                                {{ errors.name }}
-                            </div>
-                            <div class="text-danger mt-1">
-                                <div v-for="message in validationErrors?.name">
+                                <div
+                                    v-for="message in validationErrors?.name"
+                                    :key="message"
+                                >
                                     {{ message }}
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Campo para seleccionar la imagen -->
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input v-model="post.email" id="email" type="email" class="form-control">
+                            <label for="avatar-image" class="form-label"
+                                >Image</label
+                            >
+                            <input
+                                id="avatar-image"
+                                type="file"
+                                class="form-control"
+                                @change="handleFileChange"
+                                accept="image/*"
+                            />
                             <div class="text-danger mt-1">
-                                {{ errors.email }}
-                            </div>
-                            <div class="text-danger mt-1">
-                                <div v-for="message in validationErrors?.email">
+                                <div
+                                    v-for="message in validationErrors?.image"
+                                    :key="message"
+                                >
                                     {{ message }}
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input v-model="post.password" id="password" type="password" class="form-control">
-                            <div class="text-danger mt-1">
-                                {{ errors.password }}
-                            </div>
-                            <div class="text-danger mt-1">
-                                <div v-for="message in validationErrors?.password">
-                                    {{ message }}
-                                </div>
-                            </div>
+
+                        <!-- Vista previa de la imagen -->
+                        <div class="mb-3" v-if="previewUrl">
+                            <p>Image Preview:</p>
+                            <img
+                                :src="previewUrl"
+                                alt="Avatar preview"
+                                class="avatar-img"
+                            />
                         </div>
-                        <!-- Role -->
-                        <div class="mb-3">
-                            <label for="post-category" class="form-label">
-                                Role
-                            </label>
-                            <!-- <v-select multiple v-model="post.role_id" :options="roleList" :reduce="role => role.id" label="name" class="form-control" /> -->
-                            <div class="text-danger mt-1">
-                                {{ errors.role_id }}
-                            </div>
-                            <div class="text-danger mt-1">
-                                <div v-for="message in validationErrors?.role_id">
-                                    {{ message }}
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Buttons -->
+
+                        <!-- Botón para enviar el formulario -->
                         <div class="mt-4">
-                            <button :disabled="isLoading" class="btn btn-primary">
-                                <div v-show="isLoading" class=""></div>
+                            <button
+                                type="submit"
+                                :disabled="isLoading"
+                                class="btn btn-primary"
+                            >
                                 <span v-if="isLoading">Processing...</span>
                                 <span v-else>Save</span>
                             </button>
@@ -69,43 +74,72 @@
         </div>
     </div>
 </template>
+
 <script setup>
-    import { onMounted, reactive } from "vue";
-    import useRoles from "@/composables/roles";
-    import useUsers from "@/composables/users";
+import { reactive, ref } from "vue";
+import { useForm, useField, defineRule } from "vee-validate";
+import { required } from "@/validation/rules";
+defineRule("required", required);
 
-    const { roleList, getRoleList } = useRoles();
-    const { storeUser, validationErrors, isLoading } = useUsers();
+// Definimos un esquema de validación simple para 'name' y 'image'
+const schema = {
+    name: "required",
+};
 
-    import { useForm, useField, defineRule } from "vee-validate";
-    import { required, min } from "@/validation/rules";
-    defineRule('required', required);
-    defineRule('min', min);
+// Creamos el contexto del formulario con vee-validate
+const { validate, errors } = useForm({ validationSchema: schema });
 
-    // Define a validation schema
-    const schema = {
-        name: 'required',
-        email: 'required',
-        password: 'required|min:8',
+// Usamos useField para el campo name (la imagen la manejaremos manualmente)
+const { value: name } = useField("name", "required", { initialValue: "" });
+
+// Creamos un objeto reactivo para el avatar
+const avatar = reactive({
+    name: name,
+});
+
+// Referencia para el archivo de imagen y vista previa
+const imageFile = ref(null);
+const previewUrl = ref("");
+
+// Función para capturar el archivo seleccionado
+function handleFileChange(event) {
+    const file = event.target.files[0];
+    if (file) {
+        imageFile.value = file;
+        previewUrl.value = URL.createObjectURL(file);
+    } else {
+        imageFile.value = null;
+        previewUrl.value = "";
     }
-    // Create a form context with the validation schema
-    const { validate, errors } = useForm({ validationSchema: schema })
-    // Define actual fields for validation
-    const { value: name } = useField('name', null, { initialValue: '' });
-    const { value: email } = useField('email', null, { initialValue: '' });
-    const { value: password } = useField('password', null, { initialValue: '' });
-    const { value: role_id } = useField('role_id', null, { initialValue: '', label: 'role' });
+}
 
-    const post = reactive({
-        name,
-        email,
-        password,
-        role_id,
-    })
-    function submitForm() {
-        validate().then(form => { if (form.valid) storeUser(post) })
-    }
-    onMounted(() => {
-        getRoleList()
-    })
+// Importamos storeAvatar, validationErrors y isLoading desde el composable de avatares
+import useAvatars from "@/composables/avatars.js";
+const { storeAvatar, validationErrors, isLoading } = useAvatars();
+
+function submitForm() {
+    console.log("submitForm triggered");
+    validate().then((result) => {
+        if (result.valid && imageFile.value) {
+            const avatarData = {
+                name: avatar.name,
+                image: imageFile.value,
+            };
+            console.log("Submitting avatar:", avatarData);
+            storeAvatar(avatarData);
+        } else {
+            console.log("Validation failed or no image selected");
+        }
+    });
+}
 </script>
+
+<style scoped>
+.avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-top: 10px;
+}
+</style>

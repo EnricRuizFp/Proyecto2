@@ -13,13 +13,38 @@ class AvatarController extends Controller
      */
     public function index(Request $request)
     {
-        // Obtiene 10 avatares por página. Ajusta según tus necesidades.
         $avatars = Avatar::paginate(10);
-
-        // Retorna la respuesta en formato JSON. Laravel incluirá el atributo "image_route" 
-        // gracias al accessor y a la propiedad $appends en el modelo.
         return response()->json($avatars);
     }
 
-    // Puedes definir los demás métodos (store, show, update, destroy) si los necesitas.
+    /**
+     * Almacena un nuevo avatar.
+     */
+    public function store(Request $request)
+    {
+        // Validamos que se envíen el nombre y la imagen
+        $request->validate([
+            'name'  => 'required|string|max:50',
+            'image' => 'required|image|mimes:webp,png,jpeg'
+        ]);
+
+        // Creamos el registro del avatar (sin campo image_path, ya que Spatie gestiona la imagen)
+        $avatar = Avatar::create([
+            'name' => $request->name,
+        ]);
+
+        // Si se envía un archivo, se adjunta a la colección 'avatars'
+        if ($request->hasFile('image')) {
+            $avatar->addMediaFromRequest('image')
+                   ->preservingOriginal()
+                   ->toMediaCollection('avatars');
+        }
+
+        return response()->json([
+            'message' => 'Avatar created successfully',
+            'data'    => $avatar,
+        ], 201);
+    }
+
+    // Aquí podrías definir show, update y destroy según sea necesario.
 }
