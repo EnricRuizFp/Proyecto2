@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -18,8 +19,10 @@ return new class extends Migration
             $table->string('name');
             $table->string('surname1');
             $table->string('surname2')->nullable();
-            $table->string('alias')->unique()->nullable();
+            $table->string('username')->unique()->nullable();
             $table->string('email')->unique();
+            $table->string('nationality')->nullable();
+            $table->datetime('register_date')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

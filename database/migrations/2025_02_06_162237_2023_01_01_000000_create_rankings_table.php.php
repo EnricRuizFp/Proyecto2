@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('rankings', function (Blueprint $table) {
             $table->id('ranking_id');
             $table->unsignedBigInteger('user_id');
-            $table->enum('type', ['global', 'nacional'])->default('global');
+            $table->string('nationality');
             $table->integer('wins')->default(0);
             $table->integer('losses')->default(0);
             $table->integer('draws')->default(0);
