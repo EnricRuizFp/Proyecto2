@@ -3,6 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str; // Importación necesaria
+// Importa los demás modelos según corresponda
+use App\Models\User;
+use App\Models\GamePlayer;
+use App\Models\GameViewer;
+use App\Models\Move;
+use App\Models\Chat;
 
 class Game extends Model
 {
@@ -17,16 +24,33 @@ class Game extends Model
 
     // Campos asignables masivamente
     protected $fillable = [
+        'code',
         'creation_date',
         'is_public',
         'is_finished',
         'end_date',
-        'created_by',
+        'created_by'
     ];
 
     /**
+     * Al crear un juego, se genera automáticamente un código
+     * único de 4 caracteres (números y letras mayúsculas).
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($game) {
+            do {
+                $code = strtoupper(Str::random(4));
+            } while (self::where('code', $code)->exists());
+
+            $game->code = $code;
+        });
+    }
+
+    /**
      * Relación: Un Game "pertenece" (belongsTo) a un usuario "creador".
-     * Ajusta si tu modelo de usuario está en otro namespace.
      */
     public function creator()
     {

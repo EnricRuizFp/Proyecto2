@@ -12,6 +12,7 @@
                     :rows="10"
                     :globalFilterFields="[
                         'id',
+                        'code', // <-- Campo agregado
                         'creation_date',
                         'is_public',
                         'is_finished',
@@ -43,6 +44,8 @@
                     </template>
 
                     <Column field="id" header="ID" sortable />
+                    <Column field="code" header="Code" sortable />
+                    <!-- Nueva columna -->
                     <Column
                         field="creation_date"
                         header="Creation Date"
@@ -53,7 +56,7 @@
                     <Column field="end_date" header="End Date" sortable />
                     <Column field="created_by" header="Created By" sortable />
 
-                    <!-- Puedes agregar una columna de acciones, por ejemplo para editar/eliminar -->
+                    <!-- Columna de acciones -->
                     <Column header="Actions">
                         <template #body="slotProps">
                             <router-link
@@ -92,7 +95,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import useGames from "@/composables/game.js";
-import { useRouter } from "vue-router";
 
 const { games, getGames, deleteGame } = useGames();
 const globalFilter = ref("");
