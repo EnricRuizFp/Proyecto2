@@ -45,17 +45,41 @@
 
                     <Column field="id" header="ID" sortable />
                     <Column field="code" header="Code" sortable />
-                    <!-- Nueva columna -->
                     <Column
                         field="creation_date"
                         header="Creation Date"
                         sortable
                     />
-                    <Column field="is_public" header="Public" sortable />
-                    <Column field="is_finished" header="Finished" sortable />
-                    <Column field="end_date" header="End Date" sortable />
-                    <Column field="created_by" header="Created By" sortable />
+                    <!-- Columna Public: muestra PUBLIC si true y PRIVATE si false -->
+                    <Column header="Public" sortable>
+                        <template #body="slotProps">
+                            <span v-if="slotProps.data.is_public">PUBLIC</span>
+                            <span v-else>PRIVATE</span>
+                        </template>
+                    </Column>
+                    <Column header="Finished" sortable>
+                        <template #body="slotProps">
+                            <span v-if="slotProps.data.is_finished"
+                                >FINISHED</span
+                            >
+                            <span v-else>NOT FINISHED</span>
+                        </template>
+                    </Column>
 
+                    <Column field="end_date" header="End Date" sortable />
+                    <!-- Columna Created By: muestra el alias del creador -->
+                    <Column header="Created By" sortable>
+                        <template #body="slotProps">
+                            <span>
+                                {{
+                                    slotProps.data.creator &&
+                                    slotProps.data.creator.alias
+                                        ? slotProps.data.creator.alias
+                                        : "N/A"
+                                }}
+                            </span>
+                        </template>
+                    </Column>
                     <!-- Columna de acciones -->
                     <Column header="Actions">
                         <template #body="slotProps">
