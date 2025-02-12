@@ -18,6 +18,13 @@ class GameController extends Controller
         return response()->json($games);
     }
 
+    public function show($id)
+    {
+        $game = Game::findOrFail($id);
+        return response()->json($game);
+    }
+
+
     public function store(Request $request)
     {
         $request->validate([
@@ -40,4 +47,33 @@ class GameController extends Controller
             'data'    => $game,
         ], 201);
     }
+    public function update(Request $request, $id)
+    {
+        $game = Game::findOrFail($id);
+
+        // Validación (en este ejemplo, solo se actualiza is_public)
+        $request->validate([
+            'is_public' => 'required|boolean'
+        ]);
+
+        $game->update([
+            'is_public' => $request->is_public,
+            // Puedes actualizar otros campos si fuese necesario.
+        ]);
+
+        return response()->json([
+            'message' => 'Game updated successfully',
+            'data'    => $game,
+        ]);
+    }
+    public function destroy($id)
+    {
+        $game = Game::findOrFail($id);
+        $game->delete();
+
+        return response()->json([
+            'message' => 'Game deleted successfully'
+        ]);
+    }
+
 }

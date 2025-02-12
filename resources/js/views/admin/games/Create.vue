@@ -7,16 +7,20 @@
                     <form @submit.prevent="submitForm">
                         <!-- Campo para definir si la partida es pública -->
                         <div class="mb-3">
+                            <!-- Label en una línea superior -->
                             <label for="is_public" class="form-label"
                                 >Public Game?</label
                             >
-                            <input
-                                id="is_public"
-                                type="checkbox"
-                                v-model="game.is_public"
-                                class="form-check-input"
-                            />
-                            <!-- Puedes mostrar un mensaje de error si fuese necesario -->
+                            <!-- Switch debajo del label -->
+                            <div class="form-check form-switch">
+                                <input
+                                    id="is_public"
+                                    type="checkbox"
+                                    v-model="game.is_public"
+                                    class="form-check-input bigger-switch"
+                                />
+                            </div>
+                            <!-- Mensajes de error, si existiesen -->
                             <div class="text-danger mt-1">
                                 <div
                                     v-for="message in validationErrors?.is_public"
@@ -47,23 +51,25 @@
 
 <script setup>
 import { reactive } from "vue";
-import useGames from "@/composables/game.js";
+import useGames from "@/composables/games.js";
 
 const { storeGame, validationErrors, isLoading } = useGames();
 
-// Creamos un objeto reactivo para el game. Establecemos valores por defecto.
+// Creamos un objeto reactivo para el game.
 const game = reactive({
-    is_public: false, // por defecto, la partida es privada (false). Cambia según tus necesidades.
-    // Los demás campos (creation_date, is_finished, end_date, created_by) se asignarán en el backend.
+    is_public: false, // Por defecto, la partida es privada.
 });
 
 function submitForm() {
-    // En este caso, no es necesario convertir a FormData porque solo se envía un dato booleano.
-    // Si se agregan otros campos (por ejemplo, archivos), habría que convertirlo a FormData.
     storeGame(game);
 }
 </script>
 
 <style scoped>
-/* Puedes ajustar los estilos según tu proyecto */
+/* Clase para agrandar el switch */
+.bigger-switch {
+    transform: scale(1.5);
+    /* Ajusta el margen superior o inferior si es necesario */
+    margin-top: 0.5rem;
+}
 </style>

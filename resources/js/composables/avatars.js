@@ -157,7 +157,6 @@ export default function useAvatars() {
                             icon: "success",
                             title: "Avatar successfully deleted.",
                         });
-                        // En lugar de eliminar manualmente con splice, recargamos la lista
                         getAvatars();
                     })
                     .catch((error) => {

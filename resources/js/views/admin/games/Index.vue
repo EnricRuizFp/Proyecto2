@@ -12,7 +12,7 @@
                     :rows="10"
                     :globalFilterFields="[
                         'id',
-                        'code', // <-- Campo agregado
+                        'code',
                         'creation_date',
                         'is_public',
                         'is_finished',
@@ -98,7 +98,6 @@
                             </router-link>
                             <Button
                                 icon="pi pi-trash"
-                                severity="danger"
                                 class="p-button-danger"
                                 @click="
                                     deleteGame(
@@ -118,7 +117,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import useGames from "@/composables/game.js";
+import useGames from "@/composables/games.js";
 
 const { games, getGames, deleteGame } = useGames();
 const globalFilter = ref("");

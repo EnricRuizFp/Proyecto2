@@ -48,7 +48,10 @@ class Game extends Model
             $game->code = $code;
         });
     }
-
+    protected $casts = [
+        'is_public' => 'boolean',
+        'is_finished' => 'boolean',
+    ];
     /**
      * Relación: Un Game "pertenece" (belongsTo) a un usuario "creador".
      */
