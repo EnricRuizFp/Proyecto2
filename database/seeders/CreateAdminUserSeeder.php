@@ -8,6 +8,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Faker\Factory as Faker;
 
 class CreateAdminUserSeeder extends Seeder
 {
@@ -28,8 +29,8 @@ class CreateAdminUserSeeder extends Seeder
             'nationality' => 'spain'
         ]);
 
-        $role = Role::create(['name' => 'admin']);
-        $role2 = Role::create(['name' => 'user']);
+        $admin_role = Role::create(['name' => 'admin']);
+        $user_role = Role::create(['name' => 'user']);
         $permissions = [
             'post-list','post-create','post-edit','post-delete',
             'role-list','role-create','role-edit','role-delete',
@@ -45,13 +46,13 @@ class CreateAdminUserSeeder extends Seeder
             'chat-list','chat-create','chat-edit','chat-delete',
 
         ];
-        $role2->syncPermissions($permissions);
+        $user_role->syncPermissions($permissions);
 
         $permissions = Permission::pluck('id','id')->all();
 
-        $role->syncPermissions($permissions);
+        $admin_role->syncPermissions($permissions);
 
-        $user->assignRole([$role->id]);
+        $user->assignRole([$admin_role->id]);
 
         $user = User::create([
             'id' => 2,
@@ -62,7 +63,52 @@ class CreateAdminUserSeeder extends Seeder
             'password' => bcrypt('12345678'),
             'nationality' => 'portugal'
         ]);
-        $user->assignRole([$role2->id]);
+        $user->assignRole([$user_role->id]);
+
+
+
+        /* -- GENERATE MASS USERS -- */
+
+        $userQuantity = 50;
+        $faker = Faker::create();
+
+        $countries = [
+            'Europe', 'America', 'Asia', 'Africa', 'Oceania'
+        ];
+
+        $usedUsernames = []; // Almacena usernames generados para evitar duplicados
+
+        for ($i = 0; $i < $userQuantity; $i++) {
+            $name = $faker->firstName;
+            $surname1 = $faker->lastName;
+            $surname2 = $faker->lastName;
+            $baseUsername = strtolower(substr($name, 0, 1)) . ucfirst($surname1);
+            $username = $baseUsername;
+            $counter = 1;
+
+            // Asegurar que el username sea único
+            while (in_array($username, $usedUsernames) || User::where('username', $username)->exists()) {
+                $username = $baseUsername . $counter;
+                $counter++;
+            }
+
+            $usedUsernames[] = $username; // Guardar el username para evitar duplicados
+
+            $email = strtolower($username) . '@debattleship.com';
+            $nationality = $faker->randomElement($countries);
+
+            $user = User::create([
+                'name' => $name,
+                'surname1' => $surname1,
+                'surname2' => $surname2,
+                'username' => $username,
+                'email' => $email,
+                'password' => bcrypt('Asdqwe!23'),
+                'nationality' => strtolower($nationality)
+            ]);
+
+            $user->assignRole([$user_role->id]);
+        }
 
     }
 }

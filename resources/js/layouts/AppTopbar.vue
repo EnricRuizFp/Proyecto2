@@ -1,7 +1,7 @@
 <template>
     <div class="layout-topbar">
         <router-link to="/" class="layout-topbar-logo">
-            <img src="/images/logo.svg" alt="logo" />
+            <img src="/images/logo-whiteTheme.svg" alt="logo" />
             <span></span>
         </router-link>
 
@@ -41,7 +41,7 @@
                 </ul>
 
                 <span class="nav-link dropdown-toggle ms-3 me-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Hola, {{ authStore().user.name }}
+                    Hi, {{ authStore().user.name }}
                 </span>
             </button>
         </div>

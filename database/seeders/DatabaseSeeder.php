@@ -9,6 +9,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(CategoryTableSeeder::class);
         $this->call(PermissionTableSeeder::class);
+
+        // Creates Admin, User and 50 more random users
         $this->call(CreateAdminUserSeeder::class);
         $this->call(AvatarSeeder::class);
         $this->call(ShipSeeder::class);
