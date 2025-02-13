@@ -34,7 +34,7 @@
                             <template #end>
                                 <Button
                                     label="Create Game"
-                                    icon="pi pi-plus"
+                                    icon="pi pi-external-link"
                                     @click="
                                         $router.push({ name: 'game.create' })
                                     "
@@ -73,8 +73,8 @@
                             <span>
                                 {{
                                     slotProps.data.creator &&
-                                    slotProps.data.creator.alias
-                                        ? slotProps.data.creator.alias
+                                    slotProps.data.creator.username
+                                        ? slotProps.data.creator.username
                                         : "N/A"
                                 }}
                             </span>

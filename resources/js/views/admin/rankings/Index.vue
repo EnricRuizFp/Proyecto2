@@ -14,12 +14,11 @@
                     :globalFilterFields="[
                         'ranking_id',
                         'user_id',
-                        'type',
                         'wins',
                         'losses',
                         'draws',
                         'points',
-                        'updated_at'
+                        'updated_at',
                     ]"
                     stripedRows
                     dataKey="ranking_id"
@@ -70,8 +69,15 @@
                     <template #empty> No rankings where found. </template>
 
                     <Column field="ranking_id" header="ID" sortable />
-                    <Column field="user_id" header="User ID" sortable />
-                    <Column field="type" header="Rank type" sortable />
+                    <Column header="User" sortable>
+                        <template #body="slotProps">
+                            <span>{{
+                                slotProps.data.user
+                                    ? slotProps.data.user.username
+                                    : "N/A"
+                            }}</span>
+                        </template>
+                    </Column>
                     <Column field="wins" header="Wins" sortable />
                     <Column field="losses" header="Losses" sortable />
                     <Column field="draws" header="Draws" sortable />
