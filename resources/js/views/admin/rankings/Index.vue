@@ -10,7 +10,7 @@
                     v-model:filters="filters"
                     :value="rankings.data"
                     paginator
-                    :rows="5"
+                    :rows="10"
                     :globalFilterFields="[
                         'ranking_id',
                         'user_id',

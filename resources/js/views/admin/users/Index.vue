@@ -6,16 +6,36 @@
                     <h5 class="float-start mb-0">Users</h5>
                 </div>
 
-                    <DataTable v-model:filters="filters" :value="users.data" paginator :rows="10"
-                               :globalFilterFields="['id','alias', 'name','surname1','surname2','email','created_at','type.name']" stripedRows dataKey="id" size="small">
-
-                        <template #header>
-                            <Toolbar pt:root:class="toolbar-table">
-                                <template #start>
-                                    <IconField >
-                                        <InputIcon class="pi pi-search"> </InputIcon>
-                                        <InputText v-model="filters['global'].value" placeholder="Buscar" />
-                                    </IconField>
+                <DataTable
+                    v-model:filters="filters"
+                    :value="users.data"
+                    paginator
+                    :rows="10"
+                    :globalFilterFields="[
+                        'id',
+                        'username',
+                        'name',
+                        'surname1',
+                        'surname2',
+                        'email',
+                        'created_at',
+                        'type.name',
+                    ]"
+                    stripedRows
+                    dataKey="id"
+                    size="small"
+                >
+                    <template #header>
+                        <Toolbar pt:root:class="toolbar-table">
+                            <template #start>
+                                <IconField>
+                                    <InputIcon class="pi pi-search">
+                                    </InputIcon>
+                                    <InputText
+                                        v-model="filters['global'].value"
+                                        placeholder="Buscar"
+                                    />
+                                </IconField>
 
                                     <Button type="button" icon="pi pi-filter-slash" label="Clear" class="ml-1" outlined @click="initFilters()" />
                                     <Button type="button" icon="pi pi-refresh" class="h-100 ml-1" outlined @click="getUsers()" />

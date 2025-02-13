@@ -10,7 +10,7 @@
                     v-model:filters="filters"
                     :value="avatars.data"
                     paginator
-                    :rows="5"
+                    :rows="10"
                     :globalFilterFields="['id', 'name', 'image_route']"
                     stripedRows
                     dataKey="id"
