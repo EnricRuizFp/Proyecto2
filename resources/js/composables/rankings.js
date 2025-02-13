@@ -10,7 +10,7 @@ export default function useRankings() {
         losses: "",
         draws: "",
         points: "",
-        updated_at: ""
+        updated_at: "",
     });
 
     const router = useRouter();
@@ -53,13 +53,15 @@ export default function useRankings() {
      * Obtiene datos de un solo avatar por ID.
      */
     const getRanking = async (id) => {
-        axios
+        return axios
             .get("/api/rankings/" + id)
             .then((response) => {
-                ranking.value = response.data.data;
+                ranking.value = response.data; // NO response.data.data
+                return response.data;
             })
             .catch((error) => {
                 console.error("Error at getting the ranking:", error);
+                throw error;
             });
     };
 
@@ -105,26 +107,23 @@ export default function useRankings() {
      */
     const updateRanking = async (rankingData) => {
         if (isLoading.value) return;
-
         isLoading.value = true;
         validationErrors.value = {};
 
-        // Si actualizas también archivo (imagen), utiliza FormData;
-        // en caso contrario, un JSON es suficiente
-        // Ejemplo con JSON:
         axios
-            .put("/api/rankings/" + rankingData.id, rankingData)
+            .put("/api/rankings/" + rankingData.ranking_id, rankingData)
             .then((response) => {
-                // router.push({ name: 'avatars.index' })
-                swal({
+                swal.fire({
                     icon: "success",
-                    title: "Ranking updated successfuly",
+                    title: "Ranking updated successfully",
                 });
+                router.push({ name: "ranking.index" });
             })
             .catch((error) => {
                 if (error.response?.data?.errors) {
                     validationErrors.value = error.response.data.errors;
                 }
+                console.error("Error at updating ranking:", error);
             })
             .finally(() => {
                 isLoading.value = false;

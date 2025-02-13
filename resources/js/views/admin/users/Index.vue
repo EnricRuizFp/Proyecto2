@@ -10,7 +10,7 @@
                     v-model:filters="filters"
                     :value="users.data"
                     paginator
-                    :rows="5"
+                    :rows="10"
                     :globalFilterFields="[
                         'id',
                         'username',

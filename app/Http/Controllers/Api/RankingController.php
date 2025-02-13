@@ -60,8 +60,10 @@ class RankingController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Buscar el ranking usando la clave primaria (ranking_id)
         $ranking = Ranking::findOrFail($id);
 
+        // Validamos los datos
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'wins'    => 'required|integer|min:0',
@@ -70,6 +72,7 @@ class RankingController extends Controller
             'points'  => 'required|numeric',
         ]);
 
+        // Actualizamos los campos
         $ranking->update([
             'user_id'    => $request->user_id,
             'wins'       => $request->wins,
