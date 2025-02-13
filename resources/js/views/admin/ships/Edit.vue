@@ -3,6 +3,7 @@
         <div class="col">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
+                    <h2>Edit ship</h2>
                     <form @submit.prevent="submitForm">
 
                         <!-- SHIP NAME -->
@@ -42,8 +43,7 @@
                         </div>
 
                         <div class="mt-4">
-                            <button :disabled="isLoading" class="btn btn-primary">
-                                <div v-show="isLoading" class=""></div>
+                            <button type="submit" :disabled="isLoading" class="btn btn-primary">
                                 <span v-if="isLoading">Processing...</span>
                                 <span v-else>Update</span>
                             </button>
@@ -139,22 +139,16 @@ function getDifference(array1, array2) {
 
 <script setup>
 
-    console.log("A");
-
     import { reactive, ref, onMounted, watchEffect } from 'vue';
     import { useRoute } from 'vue-router';
     import { useToast } from 'primevue/usetoast';
     import { useForm, useField, defineRule } from 'vee-validate';
     import { required, min } from "@/validation/rules";
-    import { useShips } from "@/composables/ships";
-
-    console.log("AA");
+    import useShips from "@/composables/ships";
 
     // Definir reglas de validación
     defineRule('required', required);
     defineRule('min', min);
-
-    console.log("AB");
 
     // Esquema de validación
     const schema = {
@@ -162,46 +156,31 @@ function getDifference(array1, array2) {
         size: 'required|min:1'
     };
 
-    console.log("AC");
-
     // Create a form context with the validation schema
     const { validate, errors, resetForm } = useForm({ validationSchema: schema });
 
-    console.log("ACA");
-
     // Campos para el formulario
     const { value: name } = useField('name', null, {initialValue: ''});
-    console.log("ACB");
     const { value: size } = useField('size', null, {initialValue: ''});
-    console.log("ACC");
     const { ship: shipData, getShip, updateShip, validationErrors, isLoading } = useShips();
-    console.log("ACD");
     // Estado reactivo para los datos del barco
     const ship = reactive({
         name: name,
         size: size
     });
 
-    console.log("AD");
-
     // Obtener el barco desde la API
     const route = useRoute();
-
-    console.log("B");
 
     // Submit the form
     function submitForm() {
         validate().then(form => { if (form.valid) updateShip(ship)})
     }
 
-    console.log("C");
-
     // Cargar detalles del barco cuando el componente se monta
     onMounted(() => {
-    getShip(route.params.id);
+        getShip(route.params.id);
     });
-
-    console.log("D");
 
     // https://vuejs.org/api/reactivity-core.html#watcheffect
     watchEffect(() => {
@@ -209,8 +188,6 @@ function getDifference(array1, array2) {
         ship.name = shipData.value.name
         ship.size = shipData.value.size
     });
-
-    console.log("E");
 
 </script>
 

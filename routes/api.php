@@ -80,8 +80,4 @@ Route::apiResource('avatars', AvatarController::class);
 Route::apiResource('games', GameController::class);
 
 // Ships
-Route::get('ships', [ShipController::class, 'index'])->name('ship.index');
-Route::post('ships', [ShipController::class, 'store'])->name('ship.store');
-Route::get('ships/{id}', [ShipController::class])->name('ship.show');
-Route::put('ships/{id}', [ShipController::class])->name('ship.update');
-Route::delete('ships/{id}', [ShipController::class])->name('ship.delete');
+Route::apiResource('ships', ShipController::class);

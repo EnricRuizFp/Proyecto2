@@ -3,6 +3,7 @@
         <div class="col-md-10">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
+                    <h2>Create ship</h2>
                     <form @submit.prevent="submitForm">
                         <div class="mb-3">
                             <label for="name" class="form-label">Name</label>
