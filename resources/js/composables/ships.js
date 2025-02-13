@@ -17,37 +17,31 @@ export default function useShips() {
      * Obtiene la lista de barcos de la API,
      * soportando paginación o filtros adicionales si los necesitas
      */
-    const getShips = async (
-        page = 1,
-        search_global = "",
-        order_column = "id",
-        order_direction = "desc"
-    ) => {
-        axios
-            .get(
-                "/api/ships?page=" + page + "&search_global=" + search_global + "&order_column=" + order_column + "&order_direction=" + order_direction
-            )
-            .then((response) => {
-                // asumiendo que tu endpoint devuelve la lista con meta de paginación
-                // en un atributo "data" (ajusta a tu respuesta real)
-                ships.value = response.data;
-            })
-            .catch((error) => {
-                console.error("Error at getting ships:", error);
-            });
+    const getShips = async (page = 1) => {
+        isLoading.value = true;
+        try {
+            const response = await axios.get(`/api/ships?page=${page}`);
+            ships.value = response.data;
+        } catch (error) {
+            console.error("Error at getting ships: ", error);
+        } finally {
+            isLoading.value = false;
+        }
     };
 
     /**
      * Obtiene datos de un solo barco por ID.
      */
     const getShip = async (id) => {
-        axios
+        return axios
             .get("/api/ships/" + id)
             .then((response) => {
                 ship.value = response.data.data;
+                return ship.value;
             })
             .catch((error) => {
                 console.error("Error at getting the ship:", error);
+                throw error;
             });
     };
 
@@ -79,6 +73,7 @@ export default function useShips() {
                     icon: "success",
                     title: "Ship successfuly created.",
                 });
+                getShips();
             })
             .catch((error) => {
                 if (error.response?.data?.errors) {
@@ -105,11 +100,11 @@ export default function useShips() {
         axios
             .put("/api/ships/" + shipData.id, shipData)
             .then((response) => {
-                // router.push({ name: 'avatars.index' })
                 swal({
                     icon: "success",
                     title: "Ship updated successfuly.",
                 });
+                router.push({ name: 'ship.index' })
             })
             .catch((error) => {
                 if (error.response?.data?.errors) {
