@@ -2,7 +2,6 @@
     <div class="grid">
         <div class="col-12">
             <div class="card">
-
                 <div class="card-header bg-transparent ps-0 pe-0">
                     <h5 class="float-start mb-0">Users</h5>
                 </div>
@@ -36,61 +35,95 @@
 
                             </div>
                             -->
+                    </template>
+
+                    <template #empty> No customers found. </template>
+
+                    <Column field="id" header="ID" sortable></Column>
+                    <Column
+                        field="username"
+                        header="Username"
+                        sortable
+                    ></Column>
+                    <Column field="name" header="Nombre" sortable></Column>
+                    <Column
+                        field="surname1"
+                        header="Apellido1"
+                        sortable
+                    ></Column>
+                    <Column
+                        field="surname2"
+                        header="Apellido2"
+                        sortable
+                    ></Column>
+                    <Column field="email" header="Email" sortable></Column>
+                    <Column
+                        field="created_at"
+                        header="Creado el"
+                        sortable
+                    ></Column>
+
+                    <!--                        <Column header="categories" sortable-->
+                    <!--                                sortField="categories.name"-->
+                    <!--                                filterField="categories"-->
+                    <!--                                :showFilterMatchModes="false">-->
+                    <!--                            <template #body="slotProps">-->
+                    <!--                            <span v-for="cat in slotProps.data.categories" class="ms-2 badge  bg-secondary bg-gradient">-->
+                    <!--                                {{ cat.name }}-->
+                    <!--                            </span>-->
+                    <!--                            </template>-->
+
+                    <!--                        </Column>-->
+
+                    <Column class="pe-0 me-0 icon-column-2">
+                        <template #body="slotProps">
+                            <!--                                <router-link :to="{ name: 'users.tasks', params: { id: slotProps.data.id } }">-->
+                            <!--                                    <Button icon="pi pi-eye"  severity="help" size="small" class="mr-1"/>-->
+                            <!--                                </router-link>-->
+
+                            <router-link
+                                v-if="can('user-edit')"
+                                :to="{
+                                    name: 'users.edit',
+                                    params: { id: slotProps.data.id },
+                                }"
+                            >
+                                <Button
+                                    icon="pi pi-pencil"
+                                    severity="info"
+                                    size="small"
+                                    class="mr-1"
+                                />
+                            </router-link>
+
+                            <Button
+                                icon="pi pi-trash"
+                                severity="danger"
+                                v-if="can('user-delete')"
+                                @click.prevent="
+                                    deleteUser(
+                                        slotProps.data.id,
+                                        slotProps.index
+                                    )
+                                "
+                                size="small"
+                            />
                         </template>
-
-                        <template #empty> No customers found. </template>
-
-                        <Column field="id" header="ID" sortable></Column>
-                        <Column field="alias" header="Alias" sortable></Column>
-                        <Column field="name" header="Nombre" sortable></Column>
-                        <Column field="surname1" header="Apellido1" sortable></Column>
-                        <Column field="surname2" header="Apellido2" sortable></Column>
-                        <Column field="email" header="Email" sortable></Column>
-                        <Column field="created_at" header="Creado el" sortable></Column>
-
-<!--                        <Column header="categories" sortable-->
-<!--                                sortField="categories.name"-->
-<!--                                filterField="categories"-->
-<!--                                :showFilterMatchModes="false">-->
-<!--                            <template #body="slotProps">-->
-<!--                            <span v-for="cat in slotProps.data.categories" class="ms-2 badge  bg-secondary bg-gradient">-->
-<!--                                {{ cat.name }}-->
-<!--                            </span>-->
-<!--                            </template>-->
-
-<!--                        </Column>-->
-
-                        <Column class="pe-0 me-0 icon-column-2">
-                            <template #body="slotProps">
-
-<!--                                <router-link :to="{ name: 'users.tasks', params: { id: slotProps.data.id } }">-->
-<!--                                    <Button icon="pi pi-eye"  severity="help" size="small" class="mr-1"/>-->
-<!--                                </router-link>-->
-
-                                <router-link v-if="can('user-edit')" :to="{ name: 'users.edit', params: { id: slotProps.data.id } }">
-                                    <Button icon="pi pi-pencil" severity="info" size="small" class="mr-1"/>
-                                </router-link>
-
-                                <Button icon="pi pi-trash" severity="danger" v-if="can('user-delete')" @click.prevent="deleteUser(slotProps.data.id, slotProps.index)" size="small"/>
-
-                            </template>
-                        </Column>
-
-                    </DataTable>
-
+                    </Column>
+                </DataTable>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref, onMounted} from "vue";
+import { ref, onMounted } from "vue";
 import useUsers from "../../../composables/users";
-import {useAbility} from '@casl/vue'
-import {FilterMatchMode, FilterService} from "@primevue/core/api";
+import { useAbility } from "@casl/vue";
+import { FilterMatchMode, FilterService } from "@primevue/core/api";
 
-const {users, getUsers, deleteUser, resetUserDB} = useUsers()
-const {can} = useAbility()
+const { users, getUsers, deleteUser, resetUserDB } = useUsers();
+const { can } = useAbility();
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -98,12 +131,11 @@ const filters = ref({
 
 const initFilters = () => {
     filters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
 };
 
 onMounted(() => {
-    getUsers()
-})
-
+    getUsers();
+});
 </script>

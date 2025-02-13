@@ -93,9 +93,12 @@ export default function useGames() {
             text: "This action cannot be reverted!",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Yes, delete",
             cancelButtonText: "Cancel",
+            confirmButtonText: "Yes, delete",
             confirmButtonColor: "#ef4444",
+            timer: 20000,
+            timerProgressBar: true,
+            reverseButtons: true,
         }).then((result) => {
             if (result.isConfirmed) {
                 axios

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Api\AvatarController;
 use App\Http\Controllers\Api\ShipController;
 use App\Http\Controllers\Api\GameController;
+use App\Http\Controllers\Api\RankingController;
 
 
 
@@ -78,6 +79,9 @@ Route::apiResource('avatars', AvatarController::class);
 
 // Games
 Route::apiResource('games', GameController::class);
+
+// Rankings
+Route::apiResource('rankings', RankingController::class);
 
 // Ships
 Route::apiResource('ships', ShipController::class);
