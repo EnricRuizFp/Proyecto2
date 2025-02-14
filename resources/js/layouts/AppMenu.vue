@@ -118,12 +118,6 @@ const model = ref([
                 to: "/admin/rankings",
                 permision: "ranking-list",
             },
-            {
-                label: "User Avatars",
-                icon: "pi pi-fw pi-id-card",
-                to: "/admin/user_avatars",
-                permision: "user_avatar-list",
-            },
         ],
     },
 ]);

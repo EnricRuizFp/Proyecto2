@@ -88,5 +88,6 @@ Route::apiResource('rankings', RankingController::class);
 // Ships
 Route::apiResource('ships', ShipController::class);
 
-// User Avatars
-Route::apiResource('user_avatars', UserAvatarController::class);
+// Assign avatars
+Route::post('/users/{id}/assign-avatar', [UserController::class, 'assignAvatar']);
+

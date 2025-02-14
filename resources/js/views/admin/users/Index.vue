@@ -29,78 +29,62 @@
                         <Toolbar pt:root:class="toolbar-table">
                             <template #start>
                                 <IconField>
-                                    <InputIcon class="pi pi-search">
-                                    </InputIcon>
+                                    <InputIcon class="pi pi-search" />
                                     <InputText
                                         v-model="filters['global'].value"
                                         placeholder="Buscar"
                                     />
                                 </IconField>
-
-                                    <Button type="button" icon="pi pi-filter-slash" label="Clear" class="ml-1" outlined @click="initFilters()" />
-                                    <Button type="button" icon="pi pi-refresh" class="h-100 ml-1" outlined @click="getUsers()" />
-                                </template>
-                                <template #end>
-                                    <Button v-if="can('user-create')" icon="pi pi-external-link" label="Crear Usuario" @click="$router.push('users/create')" class="float-end" />
-                                </template>
-                            </Toolbar>
-                            <!--
-                            <div class="flex justify-content-between flex-column sm:flex-row">
-
-                                <Button icon="pi pi-external-link" label="Export" @click="exportCSV($event)" />
-
-                                <div class="float-end">
-
-                                </div>
-
-                            </div>
-                            -->
+                                <Button
+                                    type="button"
+                                    icon="pi pi-filter-slash"
+                                    label="Clear"
+                                    class="ml-1"
+                                    outlined
+                                    @click="initFilters()"
+                                />
+                                <Button
+                                    type="button"
+                                    icon="pi pi-refresh"
+                                    class="h-100 ml-1"
+                                    outlined
+                                    @click="getUsers()"
+                                />
+                            </template>
+                            <template #end>
+                                <Button
+                                    v-if="can('user-create')"
+                                    icon="pi pi-external-link"
+                                    label="Crear Usuario"
+                                    @click="$router.push('users/create')"
+                                    class="float-end"
+                                />
+                            </template>
+                        </Toolbar>
                     </template>
 
                     <template #empty> No customers found. </template>
 
-                    <Column field="id" header="ID" sortable></Column>
-                    <Column
-                        field="username"
-                        header="Username"
-                        sortable
-                    ></Column>
-                    <Column field="name" header="Nombre" sortable></Column>
-                    <Column
-                        field="surname1"
-                        header="Apellido1"
-                        sortable
-                    ></Column>
-                    <Column
-                        field="surname2"
-                        header="Apellido2"
-                        sortable
-                    ></Column>
-                    <Column field="email" header="Email" sortable></Column>
-                    <Column
-                        field="created_at"
-                        header="Creado el"
-                        sortable
-                    ></Column>
-
-                    <!--                        <Column header="categories" sortable-->
-                    <!--                                sortField="categories.name"-->
-                    <!--                                filterField="categories"-->
-                    <!--                                :showFilterMatchModes="false">-->
-                    <!--                            <template #body="slotProps">-->
-                    <!--                            <span v-for="cat in slotProps.data.categories" class="ms-2 badge  bg-secondary bg-gradient">-->
-                    <!--                                {{ cat.name }}-->
-                    <!--                            </span>-->
-                    <!--                            </template>-->
-
-                    <!--                        </Column>-->
-
+                    <Column field="id" header="ID" sortable />
+                    <Column header="Avatar">
+                        <template #body="slotProps">
+                            <img
+                                v-if="slotProps.data.avatar"
+                                :src="slotProps.data.avatar"
+                                alt="Avatar"
+                                class="avatar-img"
+                            />
+                            <span v-else>N/A</span>
+                        </template>
+                    </Column>
+                    <Column field="username" header="Username" sortable />
+                    <Column field="name" header="Nombre" sortable />
+                    <Column field="surname1" header="Apellido1" sortable />
+                    <Column field="surname2" header="Apellido2" sortable />
+                    <Column field="email" header="Email" sortable />
+                    <Column field="created_at" header="Creado el" sortable />
                     <Column class="pe-0 me-0 icon-column-2">
                         <template #body="slotProps">
-                            <!--                                <router-link :to="{ name: 'users.tasks', params: { id: slotProps.data.id } }">-->
-                            <!--                                    <Button icon="pi pi-eye"  severity="help" size="small" class="mr-1"/>-->
-                            <!--                                </router-link>-->
-
                             <router-link
                                 v-if="can('user-edit')"
                                 :to="{
@@ -115,7 +99,6 @@
                                     class="mr-1"
                                 />
                             </router-link>
-
                             <Button
                                 icon="pi pi-trash"
                                 severity="danger"
@@ -140,9 +123,9 @@
 import { ref, onMounted } from "vue";
 import useUsers from "../../../composables/users";
 import { useAbility } from "@casl/vue";
-import { FilterMatchMode, FilterService } from "@primevue/core/api";
+import { FilterMatchMode } from "@primevue/core/api";
 
-const { users, getUsers, deleteUser, resetUserDB } = useUsers();
+const { users, getUsers, deleteUser } = useUsers();
 const { can } = useAbility();
 
 const filters = ref({
@@ -159,3 +142,12 @@ onMounted(() => {
     getUsers();
 });
 </script>
+
+<style scoped>
+.avatar-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+</style>

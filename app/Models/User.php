@@ -162,4 +162,11 @@ class User extends Authenticatable implements HasMedia
         )
         ->withPivot('updated'); // si deseas acceder a la columna 'updated'
     }
+    public function getAvatarUrlAttribute()
+    {
+        return $this->avatares->isNotEmpty() 
+            ? $this->avatares->first()->getUrl() 
+            : asset('images/placeholder.jpg');
+    }
+
 }

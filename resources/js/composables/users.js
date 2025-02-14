@@ -160,6 +160,18 @@ export default function useUsers() {
             }
         });
     };
+    const assignAvatar = async (userId, data) => {
+        try {
+            const response = await axios.post(
+                `/api/users/${userId}/assign-avatar`,
+                data
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Error assigning avatar:", error);
+            throw error;
+        }
+    };
 
     return {
         users,
@@ -174,6 +186,7 @@ export default function useUsers() {
         storeUser,
         updateUser,
         deleteUser,
+        assignAvatar,
         validationErrors,
         isLoading,
     };

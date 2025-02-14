@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
+use App\Models\Avatar;
 
 class UserController extends Controller
 {
@@ -123,6 +124,38 @@ class UserController extends Controller
         $user->delete();
 
         return response()->noContent();
+    }
+
+    public function assignAvatar(Request $request, $id)
+    {
+        $request->validate([
+            // Puede ser null si se sube archivo, pero si se envía un avatar existente se valida
+            'avatar_id' => 'nullable|exists:avatars,id',
+            'picture'   => 'nullable|image|mimes:webp,png,jpeg'
+        ]);
+
+        $user = User::findOrFail($id);
+
+        if ($request->hasFile('picture')) {
+            // Se sube un nuevo avatar: crea un registro en la tabla avatars
+            $avatar = new Avatar(['name' => 'Avatar subido']);
+            $avatar->save();
+            $avatar->addMediaFromRequest('picture')
+                ->preservingOriginal()
+                ->toMediaCollection('avatars');
+            $avatarId = $avatar->id;
+        } else {
+            // Se selecciona un avatar existente
+            $avatarId = $request->avatar_id;
+        }
+
+        // Asigna el avatar al usuario. Aquí usamos sync para forzar que solo tenga ese avatar asignado.
+        $user->avatares()->sync([$avatarId]);
+
+        return response()->json([
+            'message' => 'Avatar assigned successfully',
+            'avatar'  => $user->avatares()->first(), // o cualquier dato que quieras retornar
+        ], 200);
     }
 
 
