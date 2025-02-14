@@ -109,12 +109,12 @@
                             />
                         </template>
                     </Column>
+                    <template #empty>No games where found.</template>
                 </DataTable>
             </div>
         </div>
     </div>
 </template>
-
 <script setup>
 import { ref, onMounted } from "vue";
 import useGames from "@/composables/games.js";

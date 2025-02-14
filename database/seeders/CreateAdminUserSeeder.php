@@ -44,6 +44,7 @@ class CreateAdminUserSeeder extends Seeder
             'move-list','move-create','move-edit','move-delete',
             'ranking-list','ranking-create','ranking-edit','ranking-delete',
             'chat-list','chat-create','chat-edit','chat-delete',
+            'user_avatar-list','user_avatar-create','user_avatar-edit', 'user_avatar-delete',
 
         ];
         $user_role->syncPermissions($permissions);

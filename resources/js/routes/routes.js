@@ -295,8 +295,6 @@ export default [
                 ],
             },
 
-
-
             /* ----- ROUTES FOR DATABASE TAGS ----- */
 
             // Avatars
@@ -332,7 +330,6 @@ export default [
                             linked: false,
                         },
                     },
-
                 ],
             },
             // Ships
@@ -440,10 +437,41 @@ export default [
                     },
                 ],
             },
-
-
-
-
+            // User Avatars
+            {
+                name: "user_avatars",
+                path: "user_avatars",
+                meta: { breadCrumb: "User Avatars" },
+                children: [
+                    {
+                        name: "user_avatars.index",
+                        path: "",
+                        component: () =>
+                            import("../views/admin/user_avatars/Index.vue"),
+                        meta: { breadCrumb: "User Avatars" },
+                    },
+                    {
+                        name: "user_avatars.create",
+                        path: "create",
+                        component: () =>
+                            import("../views/admin/user_avatars/Create.vue"),
+                        meta: {
+                            breadCrumb: "Create User Avatar",
+                            linked: false,
+                        },
+                    },
+                    {
+                        name: "user_avatars.edit",
+                        path: "edit/:id",
+                        component: () =>
+                            import("../views/admin/user_avatars/Edit.vue"),
+                        meta: {
+                            breadCrumb: "Edit User Avatar",
+                            linked: false,
+                        },
+                    },
+                ],
+            },
 
             //TODO Organizar rutas
             {
