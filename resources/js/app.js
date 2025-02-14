@@ -64,7 +64,10 @@ import Message from "primevue/message";
 import "primeflex/primeflex.css";
 import "primeicons/primeicons.css";
 import "sweetalert2/dist/sweetalert2.min.css";
+//Import CSS styles
 import "../css/theme.css";
+import "../css/lateralBar.css";
+import "../css/general.css";
 
 const app = createApp({
     created() {

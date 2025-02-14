@@ -1,0 +1,46 @@
+/* -- THIS FILE CONTAINS GENERAL CSS DATA -- */
+
+
+/* -- FONTS -- */
+
+/* - TITLES - */
+.h1{font-family: 'Rubik', sans-serif;font-size: 65px;font-weight: bolder;}
+.h2{font-family: 'Rubik', sans-serif;font-size: 45px;font-weight: bold;}
+.h3{font-family: 'Rubik', sans-serif;font-size: 35px;font-weight: bold;}
+.h4{font-family: 'Rubik', sans-serif;font-size: 30px;font-weight: bold;}
+.h1-dark{font-family: 'Rubik', sans-serif;font-size: 65px;font-weight: bolder;color:var(--white-color)}
+.h2-dark{font-family: 'Rubik', sans-serif;font-size: 45px;font-weight: bold;color:var(--white-color)}
+.h3-dark{font-family: 'Rubik', sans-serif;font-size: 35px;font-weight: bold;color:var(--white-color)}
+.h4-dark{font-family: 'Rubik', sans-serif;font-size: 30px;font-weight: bold;color:var(--white-color)}
+/* - PARAGRAPHS - */
+.p1{font-family: 'Rubik', sans-serif;font-size: 26px;font-weight: normal;}
+.p2{font-family: 'Rubik', sans-serif;font-size: 24px;font-weight: normal;}
+.p3{font-family: 'Rubik', sans-serif;font-size: 22px;font-weight: normal;}
+.p4{font-family: 'Rubik', sans-serif;font-size: 20px;font-weight: normal;}
+.p5{font-family: 'Rubik', sans-serif;font-size: 16px;font-weight: normal;}
+.p1-dark{font-family: 'Rubik', sans-serif;font-size: 26px;font-weight: normal;color:var(--white-color)}
+.p2-dark{font-family: 'Rubik', sans-serif;font-size: 24px;font-weight: normal;color:var(--white-color)}
+.p3-dark{font-family: 'Rubik', sans-serif;font-size: 22px;font-weight: normal;color:var(--white-color)}
+.p4-dark{font-family: 'Rubik', sans-serif;font-size: 20px;font-weight: normal;color:var(--white-color)}
+.p5-dark{font-family: 'Rubik', sans-serif;font-size: 16px;font-weight: normal;color:var(--white-color)}
+
+/* -- COLORS -- */
+:root{
+
+    /* - Color palette - */
+    --primary-color: #7048EC;
+    --primary-v2-color: #5523E6;
+    --primary-v3-color: #C6B7F7;
+    --secondary-color: #F43C6B;
+    --secondary-v2-color: #F3174F;
+
+    --neutral-color: #131217;
+
+    /* - Defaults - */
+    --black-color: #000000;
+    --white-color: #FFFFFF;
+    --red-color: #FF0000;
+    --green-color: #00FF00;
+    --blue-color: #0000FF;
+
+}
