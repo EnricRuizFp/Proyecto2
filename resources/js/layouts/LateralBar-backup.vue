@@ -1,20 +1,15 @@
 <template>
-    <nav id="lateralBar" :class="{ 'closed': dropdownOpen }">
+    <nav id="lateralBar" class="h-screen">
         <UserComponent />
         <div id="menuItems">
             <hr class="dropdown-divider">
             <MenuComponent /> 
         </div> 
-        <!-- Botón de cerrar -->
-        <div id="closeButton" @click="toggleDropdown">
-            <span class="arrow">
-                <img src="../../../public//images/icons/arrow-left-dark.svg" alt="Close menu arrow">
-            </span>
-        </div>
     </nav>
 </template>
 
 <script setup>
+
     /* -- IMPORTS -- */
     import { ref } from "vue";
 
@@ -29,3 +24,11 @@
         dropdownOpen.value = !dropdownOpen.value;
     };
 </script>
+
+<style scoped>
+    /* Asegura que la barra lateral tenga una altura completa */
+    html, body, #app {
+        height: 100%;
+        background-color: var(--neutral-color);
+    }
+</style>

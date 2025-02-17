@@ -1,0 +1,112 @@
+/* IMPORT */
+@import url('general.css');
+
+/* -- GENERAL -- */
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+/* ---- MENÚ LATERAL ---- */
+#lateralBar {
+    background-color: var(--neutral-color);
+    width: 20%;
+    height: 100vh; /* Aseguramos que ocupe toda la altura de la pantalla */
+    color: var(--white-color) !important;
+    border-right: 2px solid var(--white-color);
+    position: relative; /* Para posicionar el botón de cierre */
+    transition: width 0.3s ease; /* Transición para el menú */
+}
+
+/* Botón de cerrar (pelotilla) dentro del menú */
+#closeButton {
+    position: absolute;
+    top: 50%;
+    right: -20px; /* Colocamos el botón dentro del menú */
+    transform: translateY(-50%);
+    background-color: var(--neutral-color);
+    border: 1px solid var(--white-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#closeButton .arrow {
+    color: var(--white-color);
+    font-size: 20px;
+}
+
+/* Cambiar color al pasar el cursor */
+#closeButton:hover {
+    background-color: var(--neutral-color-1);
+}
+
+/* -- USER - COMPONENT */
+#userComponent {
+    width: 100%;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    padding-left: 40px;
+}
+
+/* -- MENU - COMPONENT */
+#menuItems {
+    padding-left: 40px;
+}
+
+#menuItems hr {
+    width: 80%;
+    height: 1px;
+    background-color: var(--white-color);
+}
+
+#lateralMenu hr {
+    width: 70%;
+    height: 1px;
+    background-color: var(--white-color);
+}
+
+.tituloBarraLateral {
+    padding-top: 55px;
+    padding-bottom: 0px;
+}
+
+.contenidoSubtituloBarraLateral {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+/* -- MOBILE / TABLET SCREEN -- */
+
+@media (max-width: 1500px) {
+    /* -- MENÚ LATERAL EN VERSIÓN MÓVIL -- */
+    #lateralBar {
+        width: 100%; /* El menú ocupa toda la pantalla en móviles */
+        height: 100vh; /* Aseguramos que ocupe toda la altura de la pantalla */
+        border: 0; /* Sin borde en móvil */
+    }
+
+    /* Cerrar el menú al hacer clic */
+    #lateralBar.closed {
+        width: 0; /* Menú cerrado, sin mostrar */
+        border: none;
+        overflow: hidden;
+    }
+
+    /* Botón de cerrar en móvil */
+    #closeButton {
+        right: 10px; /* Lo movemos un poco hacia la derecha para que no esté pegado al borde */
+    }
+}
+
+/* -- MENÚ CERRADO EN VERSIÓN ESCRITORIO -- */
+#lateralBar.closed {
+    width: 0; /* Ocultamos el menú en pantallas grandes cuando se aplica la clase `closed` */
+    border: none;
+    overflow: hidden;
+}

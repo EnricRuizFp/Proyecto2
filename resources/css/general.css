@@ -1,6 +1,5 @@
 /* -- THIS FILE CONTAINS GENERAL CSS DATA -- */
 
-
 /* -- FONTS -- */
 
 /* - TITLES - */
@@ -23,6 +22,14 @@
 .p3-dark{font-family: 'Rubik', sans-serif;font-size: 22px;font-weight: normal;color:var(--white-color)}
 .p4-dark{font-family: 'Rubik', sans-serif;font-size: 20px;font-weight: normal;color:var(--white-color)}
 .p5-dark{font-family: 'Rubik', sans-serif;font-size: 16px;font-weight: normal;color:var(--white-color)}
+/* - WHEIGHTS - */
+.boldest{font-weight: 900;}
+.bolder{font-weight: bolder;}
+.bold{font-weight: bold;}
+.semi-bold{font-weight: 500;}
+.regular{font-weight: normal;}
+.light{font-weight: lighter;}
+.lightest{font-weight: 100;}
 
 /* -- COLORS -- */
 :root{
@@ -35,12 +42,46 @@
     --secondary-v2-color: #F3174F;
 
     --neutral-color: #131217;
+    --neutral-color-1: #2a292f;
 
     /* - Defaults - */
     --black-color: #000000;
     --white-color: #FFFFFF;
+    --white-color-1: #f1f1f1;
     --red-color: #FF0000;
     --green-color: #00FF00;
     --blue-color: #0000FF;
 
+}
+
+/* - Backgrounds - */
+.neutral-background{
+    background-color: var(--neutral-color) !important;
+}
+.white-background{
+    background-color: var(--white-color) !important;
+}
+
+/* - Class colors - */
+.white-color{
+    color: var(--white-color) !important;
+}
+.neutral-color{
+    color: var(--neutral-color) !important;
+}
+
+/* - Border colors - */
+.white-border{
+    border-color: var(--white-color) !important;
+}
+.neutral-border{
+    border-color: var(--neutral-color) !important;
+}
+
+/* - Hover colors - */
+.white-hover:hover{
+    background-color: var(--white-color) !important;
+}
+.neutral-hover:hover{
+    background-color: var(--neutral-color-1) !important;
 }

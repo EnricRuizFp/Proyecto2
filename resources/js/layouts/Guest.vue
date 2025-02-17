@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <Navbar />
+    <div class="neutral-background">
+        <!-- <Navbar /> -->
         <LateralBar />
         <router-view></router-view>
     </div>
