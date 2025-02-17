@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\AvatarResource;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -106,16 +107,21 @@ class UserController extends Controller
 
     public function updateimg(Request $request)
     {
-
-        $user = User::find($request->id);
-
-        if($request->hasFile('picture')) {
-            $user->media()->delete();
-            $media = $user->addMediaFromRequest('picture')->preservingOriginal()->toMediaCollection('images-users');
-
+        $user = User::findOrFail($request->id);
+        
+        if ($request->hasFile('picture')) {
+            // Limpia la colección de imágenes personalizadas del usuario
+            $user->clearMediaCollection('users-avatars');
+            
+            // Añade la nueva imagen a la colección "users-avatars"
+            $user->addMediaFromRequest('picture')
+                ->preservingOriginal()
+                ->toMediaCollection('users-avatars');
         }
-        $user =  User::with('media')->find($request->id);
-        return  $user;
+        
+        // Retornamos el usuario actualizado
+        dd($user->getMedia('users-avatars'));
+        return new UserResource($user->fresh());
     }
 
     public function destroy(User $user)
@@ -128,35 +134,49 @@ class UserController extends Controller
 
     public function assignAvatar(Request $request, $id)
     {
-        $request->validate([
-            // Puede ser null si se sube archivo, pero si se envía un avatar existente se valida
-            'avatar_id' => 'nullable|exists:avatars,id',
-            'picture'   => 'nullable|image|mimes:webp,png,jpeg'
-        ]);
-
         $user = User::findOrFail($id);
 
         if ($request->hasFile('picture')) {
-            // Se sube un nuevo avatar: crea un registro en la tabla avatars
-            $avatar = new Avatar(['name' => 'Avatar subido']);
+            // Opción: Avatar personalizado
+
+            // Desasocia cualquier avatar asignado previamente
+            $user->avatares()->detach();
+
+            // Crea un nuevo registro para el avatar personalizado.
+            // (Opcional: si quieres distinguirlo, podrías agregar un campo 'custom' en la tabla avatars)
+            $avatar = new Avatar(['name' => 'Avatar personalizado']);
             $avatar->save();
+
+            // Sube la imagen al registro del avatar usando la colección definida en el modelo Avatar
             $avatar->addMediaFromRequest('picture')
                 ->preservingOriginal()
                 ->toMediaCollection('avatars');
-            $avatarId = $avatar->id;
+
+            // Asocia el nuevo avatar al usuario mediante la tabla pivot
+            $user->avatares()->sync([$avatar->id]);
+
+            // Retorna la respuesta con el avatar creado usando el recurso (más adelante crearemos AvatarResource)
+            return response()->json([
+                'message' => 'Avatar personalizado asignado exitosamente',
+                'avatar'  => new AvatarResource($avatar)
+            ], 200);
         } else {
-            // Se selecciona un avatar existente
-            $avatarId = $request->avatar_id;
+            // Opción: Selección de avatar predeterminado.
+            $request->validate([
+                'avatar_id' => 'required|exists:avatars,id'
+            ]);
+
+            // Asocia el avatar predeterminado al usuario
+            $user->avatares()->sync([$request->avatar_id]);
+
+            // Obtiene el avatar asignado (ahora es el predeterminado)
+            $avatar = $user->avatares()->first();
+
+            return response()->json([
+                'message' => 'Avatar predeterminado asignado exitosamente',
+                'avatar'  => new AvatarResource($avatar)
+            ], 200);
         }
-
-        // Asigna el avatar al usuario. Aquí usamos sync para forzar que solo tenga ese avatar asignado.
-        $user->avatares()->sync([$avatarId]);
-
-        return response()->json([
-            'message' => 'Avatar assigned successfully',
-            'avatar'  => $user->avatares()->first(), // o cualquier dato que quieras retornar
-        ], 200);
     }
-
 
 }
