@@ -19,6 +19,8 @@ class Avatar extends Model implements HasMedia
     // Si ya no necesitas el campo image_path, puedes eliminarlo de $fillable
     protected $fillable = [
         'name',
+        'type',
+        'image_route'
     ];
 
     // Agrega el atributo 'image_route' a la serialización del modelo
@@ -38,8 +40,8 @@ class Avatar extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('avatars')
-            ->useFallbackUrl('/images/avatar-placeholder.jpg') // URL de fallback si no hay imagen
-            ->useFallbackPath(public_path('/images/avatar-placeholder.jpg'));
+            ->useFallbackUrl('/images/placeholder.jpg') // URL de fallback si no hay imagen
+            ->useFallbackPath(public_path('/images/placeholder.jpg'));
     }
 
     /**
@@ -58,5 +60,31 @@ class Avatar extends Model implements HasMedia
     public function getImageRouteAttribute()
     {
         return $this->getFirstMediaUrl('avatars', 'thumb') ?: asset('images/avatar-placeholder.jpg');
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_avatars')
+                    ->withTimestamps();
+    }
+
+    // Método helper para obtener la URL del avatar de manera segura
+    public function getAvatarUrl()
+    {
+        try {
+            return $this->getFirstMediaUrl('avatars') ?: asset('images/placeholder.jpg');
+        } catch (\Exception $e) {
+            \Log::error('Error getting avatar URL: ' . $e->getMessage());
+            return asset('images/placeholder.jpg');
+        }
+    }
+
+    // Agregar scope para filtrar avatares
+    public function scopeAvailableFor($query, $userId)
+    {
+        return $query->where('type', 'default')
+            ->orWhereHas('users', function($q) use ($userId) {
+                $q->where('users.id', $userId);
+            });
     }
 }

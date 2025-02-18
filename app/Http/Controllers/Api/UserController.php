@@ -107,21 +107,54 @@ class UserController extends Controller
 
     public function updateimg(Request $request)
     {
-        $user = User::findOrFail($request->id);
-        
-        if ($request->hasFile('picture')) {
-            // Limpia la colección de imágenes personalizadas del usuario
-            $user->clearMediaCollection('users-avatars');
+        try {
+            if (!$request->hasFile('picture')) {
+                return response()->json([
+                    'error' => 'No image file provided'
+                ], 400);
+            }
+
+            $user = User::findOrFail($request->id);
             
-            // Añade la nueva imagen a la colección "users-avatars"
-            $user->addMediaFromRequest('picture')
+            // Buscar si el usuario ya tiene un avatar personalizado a través de la relación
+            $existingCustomAvatar = $user->avatares()
+                ->where('type', 'custom')
+                ->first();
+
+            if ($existingCustomAvatar) {
+                // Actualizar el avatar existente
+                $avatar = $existingCustomAvatar;
+                $avatar->clearMediaCollection('avatars');
+            } else {
+                // Crear nuevo avatar personalizado
+                $avatar = new Avatar([
+                    'name' => 'Avatar personalizado de ' . $user->name,
+                    'type' => 'custom'
+                ]);
+                $avatar->save();
+            }
+
+            // Subir imagen al avatar
+            $media = $avatar->addMediaFromRequest('picture')
                 ->preservingOriginal()
-                ->toMediaCollection('users-avatars');
+                ->toMediaCollection('avatars');
+
+            // Asignar el avatar al usuario
+            $user->avatares()->sync([$avatar->id]);
+
+            return response()->json([
+                'message' => 'Avatar updated successfully',
+                'user' => new UserResource($user->fresh()),
+                'avatar' => new AvatarResource($avatar),
+                'media_url' => $media->getUrl()
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error updating user avatar: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Error updating avatar: ' . $e->getMessage()
+            ], 500);
         }
-        
-        // Retornamos el usuario actualizado
-        dd($user->getMedia('users-avatars'));
-        return new UserResource($user->fresh());
     }
 
     public function destroy(User $user)
@@ -177,6 +210,14 @@ class UserController extends Controller
                 'avatar'  => new AvatarResource($avatar)
             ], 200);
         }
+    }
+
+    // Modificar el método que obtiene los avatares disponibles
+    public function getAvailableAvatars(Request $request)
+    {
+        $userId = $request->user()->id;
+        $avatars = Avatar::availableFor($userId)->get();
+        return AvatarResource::collection($avatars);
     }
 
 }
