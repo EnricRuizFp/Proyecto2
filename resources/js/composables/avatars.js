@@ -1,3 +1,4 @@
+import axios from "axios";
 import { ref, inject } from "vue";
 import { useRouter } from "vue-router";
 
@@ -168,6 +169,15 @@ export default function useAvatars() {
             }
         });
     };
+
+    /**
+     * Obtiene el avatar del usuario por ID.
+     */
+    const getUserAvatarRoute = async (id) => {
+        return axios
+            .get()
+    };
+
 
     return {
         avatars,
