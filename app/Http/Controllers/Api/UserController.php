@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use App\Models\Avatar;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -121,6 +122,17 @@ class UserController extends Controller
                 ->where('type', 'custom')
                 ->first();
 
+            // Obtener el created_at existente
+            $existingPivot = $user->avatares()
+                ->latest()
+                ->first();
+
+            // Crear o actualizar avatar
+            $avatar = $existingCustomAvatar ?? new Avatar([
+                'name' => 'Avatar personalizado de ' . $user->name,
+                'type' => 'custom'
+            ]);
+            
             if ($existingCustomAvatar) {
                 // Actualizar el avatar existente
                 $avatar = $existingCustomAvatar;
@@ -139,8 +151,13 @@ class UserController extends Controller
                 ->preservingOriginal()
                 ->toMediaCollection('avatars');
 
-            // Asignar el avatar al usuario
-            $user->avatares()->sync([$avatar->id]);
+            // Asignar el avatar manteniendo el created_at original
+            $user->avatares()->sync([
+                $avatar->id => [
+                    'created_at' => $existingPivot ? $existingPivot->pivot->created_at : now(),
+                    'updated_at' => now()
+                ]
+            ]);
 
             return response()->json([
                 'message' => 'Avatar updated successfully',
@@ -150,7 +167,7 @@ class UserController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Error updating user avatar: ' . $e->getMessage());
+            Log::error('Error updating user avatar: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Error updating avatar: ' . $e->getMessage()
             ], 500);
@@ -167,48 +184,40 @@ class UserController extends Controller
 
     public function assignAvatar(Request $request, $id)
     {
-        $user = User::findOrFail($id);
-
-        if ($request->hasFile('picture')) {
-            // Opción: Avatar personalizado
-
-            // Desasocia cualquier avatar asignado previamente
-            $user->avatares()->detach();
-
-            // Crea un nuevo registro para el avatar personalizado.
-            // (Opcional: si quieres distinguirlo, podrías agregar un campo 'custom' en la tabla avatars)
-            $avatar = new Avatar(['name' => 'Avatar personalizado']);
-            $avatar->save();
-
-            // Sube la imagen al registro del avatar usando la colección definida en el modelo Avatar
-            $avatar->addMediaFromRequest('picture')
-                ->preservingOriginal()
-                ->toMediaCollection('avatars');
-
-            // Asocia el nuevo avatar al usuario mediante la tabla pivot
-            $user->avatares()->sync([$avatar->id]);
-
-            // Retorna la respuesta con el avatar creado usando el recurso (más adelante crearemos AvatarResource)
-            return response()->json([
-                'message' => 'Avatar personalizado asignado exitosamente',
-                'avatar'  => new AvatarResource($avatar)
-            ], 200);
-        } else {
-            // Opción: Selección de avatar predeterminado.
+        try {
+            $user = User::findOrFail($id);
             $request->validate([
                 'avatar_id' => 'required|exists:avatars,id'
             ]);
 
-            // Asocia el avatar predeterminado al usuario
-            $user->avatares()->sync([$request->avatar_id]);
+            // Obtener el created_at existente si existe
+            $existingPivot = $user->avatares()
+                ->latest()
+                ->first();
 
-            // Obtiene el avatar asignado (ahora es el predeterminado)
-            $avatar = $user->avatares()->first();
+            $pivotData = [
+                'created_at' => $existingPivot ? $existingPivot->pivot->created_at : now(),
+                'updated_at' => now()
+            ];
+
+            // Asignar el nuevo avatar manteniendo el created_at original
+            $user->avatares()->sync([$request->avatar_id => $pivotData]);
+
+            // Recargar el usuario con sus relaciones
+            $user->load('avatares');
+            $avatar = Avatar::findOrFail($request->avatar_id);
 
             return response()->json([
-                'message' => 'Avatar predeterminado asignado exitosamente',
-                'avatar'  => new AvatarResource($avatar)
+                'message' => 'Avatar asignado exitosamente',
+                'user' => new UserResource($user),
+                'avatar' => new AvatarResource($avatar)
             ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error asignando avatar: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Error al asignar el avatar: ' . $e->getMessage()
+            ], 500);
         }
     }
 

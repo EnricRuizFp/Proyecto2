@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Log;
 
 class UserResource extends JsonResource
 {
@@ -14,20 +15,30 @@ class UserResource extends JsonResource
      */
     public function toArray($request)
     {
-        return [
-            'id'         => $this->id,
-            'username'   => $this->username,
-            'name'       => $this->name,
-            'surname1'   => $this->surname1,
-            'surname2'   => $this->surname2,
-            'email'      => $this->email,
-            'role_id'    => $this->roles,
-            'roles'      => $this->roles,
-            'avatar'     => $this->getFirstMediaUrl('users-avatars') ?: asset('images/placeholder.jpg'),
-            'created_at' => $this->created_at->toDateString()
-        ];
-        
+        try {
+            $currentAvatar = $this->avatares()->latest()->first();
+            $avatarUrl = $currentAvatar ? $currentAvatar->getFirstMediaUrl('avatars') : asset('images/placeholder.jpg');
 
+            \Log::debug('[UserResource] Generando recurso de usuario', [
+                'user_id' => $this->id,
+                'avatar_url' => $avatarUrl
+            ]);
+
+            return [
+                'id'         => $this->id,
+                'username'   => $this->username,
+                'name'       => $this->name,
+                'surname1'   => $this->surname1,
+                'surname2'   => $this->surname2,
+                'email'      => $this->email,
+                'role_id'    => $this->roles,
+                'roles'      => $this->roles,
+                'avatar'     => $avatarUrl,
+                'created_at' => $this->created_at->toDateString()
+            ];
+        } catch (\Exception $e) {
+            \Log::error('[UserResource] Error: ' . $e->getMessage());
+            return [];
+        }
     }
-
 }

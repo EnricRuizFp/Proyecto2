@@ -7,6 +7,7 @@ use Spatie\Image\Manipulations;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Illuminate\Support\Facades\Log;
 
 class Avatar extends Model implements HasMedia
 {
@@ -14,7 +15,11 @@ class Avatar extends Model implements HasMedia
 
     protected $table = 'avatars';
     protected $primaryKey = 'id';
-    public $timestamps = false;
+    public $timestamps = true;  // Cambiar a true para activar timestamps
+
+    // Definir constantes para los tipos de avatar
+    const TYPE_DEFAULT = 'default';
+    const TYPE_CUSTOM = 'custom';
 
     // Si ya no necesitas el campo image_path, puedes eliminarlo de $fillable
     protected $fillable = [
@@ -82,9 +87,12 @@ class Avatar extends Model implements HasMedia
     // Agregar scope para filtrar avatares
     public function scopeAvailableFor($query, $userId)
     {
-        return $query->where('type', 'default')
-            ->orWhereHas('users', function($q) use ($userId) {
-                $q->where('users.id', $userId);
+        return $query->where('type', self::TYPE_DEFAULT)
+            ->orWhere(function($q) use ($userId) {
+                $q->where('type', self::TYPE_CUSTOM)
+                  ->whereHas('users', function($subQ) use ($userId) {
+                      $subQ->where('users.id', $userId);
+                  });
             });
     }
 }

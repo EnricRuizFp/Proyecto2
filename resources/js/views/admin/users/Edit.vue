@@ -74,89 +74,61 @@
                                             </p>
                                             <!-- Bloque horizontal de previews -->
                                             <div class="avatar-previews">
-                                                <!-- Si existe avatar personalizado (diferente al default), se muestra primero -->
+                                                <!-- Avatar personalizado primero -->
                                                 <div
-                                                    v-if="
-                                                        user.avatar &&
-                                                        user.avatar !==
-                                                            defaultAvatar
-                                                    "
-                                                    class="preview-item cursor-pointer"
-                                                    @click="
-                                                        selectAvatarPreview({
-                                                            url: user.avatar,
-                                                        })
-                                                    "
-                                                >
-                                                    <img
-                                                        :src="user.avatar"
-                                                        alt="Avatar personalizado"
-                                                    />
-                                                </div>
-                                                <!-- Previews de avatares predeterminados -->
-                                                <div
-                                                    v-for="preset in presetAvatars"
-                                                    :key="preset.id"
+                                                    v-if="customAvatar"
                                                     class="preview-item cursor-pointer"
                                                     @click="
                                                         selectAvatarPreview(
-                                                            preset
+                                                            customAvatar
                                                         )
                                                     "
                                                 >
                                                     <img
-                                                        :src="preset.url"
-                                                        alt="Avatar predeterminado"
+                                                        :src="customAvatar.url"
+                                                        alt="Avatar personalizado"
                                                     />
+                                                    <span class="preview-label"
+                                                        >Mi Avatar</span
+                                                    >
                                                 </div>
+                                                <!-- Avatares predeterminados después -->
+                                                <template
+                                                    v-for="preset in defaultAvatars"
+                                                    :key="preset.id"
+                                                >
+                                                    <div
+                                                        class="preview-item cursor-pointer"
+                                                        @click="
+                                                            selectAvatarPreview(
+                                                                preset
+                                                            )
+                                                        "
+                                                    >
+                                                        <img
+                                                            :src="preset.url"
+                                                            alt="Avatar predeterminado"
+                                                        />
+                                                    </div>
+                                                </template>
                                             </div>
                                         </div>
                                     </template>
 
                                     <template
-                                        #content="{
-                                            files,
-                                            uploadedFiles,
-                                            removeUploadedFileCallback,
-                                            removeFileCallback,
-                                        }"
+                                        #content="{ files, uploadedFiles }"
                                     >
                                         <div class="content-preview">
                                             <img
-                                                v-if="selectedAvatarPreview"
-                                                :src="selectedAvatarPreview"
-                                                alt="Avatar preview"
+                                                :key="previewKey"
+                                                :src="activePreview"
+                                                :alt="`${user.name} avatar`"
                                                 class="object-fit-cover w-100 h-100 img-profile"
-                                            />
-                                            <img
-                                                v-else-if="files.length > 0"
-                                                :src="files[0].objectURL"
-                                                :alt="files[0].name"
-                                                class="object-fit-cover w-100 h-100 img-profile"
-                                            />
-                                            <img
-                                                v-else-if="
-                                                    uploadedFiles.length > 0
+                                                @error="
+                                                    (e) =>
+                                                        (e.target.src =
+                                                            defaultAvatar)
                                                 "
-                                                :src="
-                                                    uploadedFiles[
-                                                        uploadedFiles.length - 1
-                                                    ].objectURL
-                                                "
-                                                :alt="
-                                                    uploadedFiles[
-                                                        uploadedFiles.length - 1
-                                                    ].name
-                                                "
-                                                class="object-fit-cover w-100 h-100 img-profile"
-                                            />
-                                            <img
-                                                v-else
-                                                :src="
-                                                    user.avatar || defaultAvatar
-                                                "
-                                                :alt="user.name + ' avatar'"
-                                                class="object-fit-cover w-100 h-100 img-profile"
                                             />
                                         </div>
                                     </template>
@@ -315,7 +287,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch, watchEffect } from "vue";
+import { onMounted, reactive, ref, watch, watchEffect, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { usePrimeVue } from "primevue/config";
 import useRoles from "@/composables/roles";
@@ -401,52 +373,108 @@ watch(selectedAvatarPreview, (newVal) => {
 // Valor por defecto para el avatar placeholder
 const defaultAvatar = "https://bootdey.com/img/Content/avatar/avatar7.png";
 
-// Lógica para obtener avatares predeterminados
-const presetAvatars = ref([]);
+// Separar la lógica de avatares
+const customAvatar = ref(null);
+const defaultAvatars = ref([]);
+
+// Modificar la función getPresetAvatars
 const getPresetAvatars = async () => {
     try {
         const response = await axios.get("/api/avatars");
-        console.log("Response de /api/avatars:", response.data);
-        // Mapear la propiedad 'data' del JSON devuelto
-        presetAvatars.value = response.data.data.map((item) => ({
-            id: item.id,
-            url: item.image_route,
-        }));
+        console.log("Respuesta completa:", response.data);
+
+        if (response.data.data) {
+            const avatars = response.data.data;
+
+            // Asegurarse que tenemos datos válidos
+            if (!Array.isArray(avatars)) {
+                console.error("Los avatares no son un array:", avatars);
+                return;
+            }
+
+            // Filtrar avatares
+            customAvatar.value = avatars.find(
+                (avatar) => avatar.type === "custom"
+            );
+            defaultAvatars.value = avatars.filter(
+                (avatar) => avatar.type === "default"
+            );
+
+            console.log("Avatar personalizado:", customAvatar.value);
+            console.log("Avatares predeterminados:", defaultAvatars.value);
+
+            // Solo establecer preview si no hay uno activo
+            if (!selectedAvatarPreview.value) {
+                if (user.avatar && user.avatar !== defaultAvatar) {
+                    selectedAvatarPreview.value = user.avatar;
+                } else if (customAvatar.value?.url) {
+                    selectedAvatarPreview.value = customAvatar.value.url;
+                } else if (defaultAvatars.value.length > 0) {
+                    selectedAvatarPreview.value = defaultAvatars.value[0].url;
+                }
+            }
+        }
     } catch (error) {
-        console.error("Error al obtener avatares predeterminados:", error);
+        console.error("Error completo:", error);
+        toast.add({
+            severity: "error",
+            summary: "Error",
+            detail: "No se pudieron cargar los avatares: " + error.message,
+            life: 3000,
+        });
     }
 };
 
-// Función para actualizar la previsualización y actualizar el backend si es un preset
-const selectAvatarPreview = (avatar) => {
-    selectedAvatarPreview.value = avatar.url;
-    // Si el avatar tiene id, se asume que es un preset y se llama al endpoint para asignarlo
-    if (avatar.id) {
-        axios
-            .post(`/api/users/assign-avatar/${user.id}`, {
+// Asegurarse de que el preview se actualiza cuando cambian los avatares
+watchEffect(() => {
+    if (customAvatar.value && !selectedAvatarPreview.value) {
+        selectedAvatarPreview.value = customAvatar.value.url;
+    }
+});
+
+// Añadir ref para la URL actual del preview
+const currentPreviewUrl = ref(null);
+
+// Modificar la función selectAvatarPreview
+const selectAvatarPreview = async (avatar) => {
+    if (!avatar?.url || !user.id) return;
+
+    const previousUrl = activePreview.value;
+
+    try {
+        // Actualizar inmediatamente el preview
+        activePreview.value = avatar.url;
+        previewKey.value++;
+
+        const response = await axios.post(
+            `/api/users/assign-avatar/${user.id}`,
+            {
                 avatar_id: avatar.id,
-            })
-            .then((response) => {
-                toast.add({
-                    severity: "success",
-                    summary: "Avatar asignado",
-                    detail: response.data.message,
-                    life: 3000,
-                });
-                // Actualiza el avatar del usuario según lo devuelto
-                user.avatar = response.data.avatar.url;
-            })
-            .catch((error) => {
-                toast.add({
-                    severity: "error",
-                    summary: "Error",
-                    detail:
-                        error.response?.data?.message ||
-                        "No se pudo asignar el avatar",
-                    life: 3000,
-                });
-                console.error(error);
-            });
+            }
+        );
+
+        // Actualizar el estado después de una respuesta exitosa
+        user.avatar = avatar.url;
+        files.value = [];
+
+        toast.add({
+            severity: "success",
+            summary: "Avatar asignado",
+            detail: response.data.message,
+            life: 3000,
+        });
+    } catch (error) {
+        // Revertir en caso de error
+        activePreview.value = previousUrl;
+        previewKey.value++;
+
+        console.error("Error al asignar avatar:", error);
+        toast.add({
+            severity: "error",
+            summary: "Error",
+            detail: "No se pudo asignar el avatar",
+            life: 3000,
+        });
     }
 };
 
@@ -479,14 +507,17 @@ const onSelectedFiles = (event) => {
     });
 };
 const uploadEvent = async (callback, uploadedFiles) => {
-    console.log("uploadEvent");
     try {
         totalSizePercent.value = totalSize.value / 10;
         await callback();
-        // Actualizar el avatar del usuario después de una carga exitosa
+
         if (uploadedFiles && uploadedFiles.length > 0) {
-            user.avatar = uploadedFiles[uploadedFiles.length - 1].objectURL;
+            const newUrl = uploadedFiles[uploadedFiles.length - 1].objectURL;
+            activePreview.value = newUrl;
+            user.avatar = newUrl;
+            previewKey.value++;
         }
+
         toast.add({
             severity: "success",
             summary: "Success",
@@ -517,6 +548,47 @@ const formatSize = (bytes) => {
     const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
     return `${formattedSize} ${sizes[i]}`;
 };
+
+// Modificar watchEffect para establecer el avatar actual al cargar
+watchEffect(() => {
+    if (postData.value) {
+        user.id = postData.value.id;
+        user.name = postData.value.name;
+        user.email = postData.value.email;
+        user.surname1 = postData.value.surname1;
+        user.surname2 = postData.value.surname2;
+        user.role_id = postData.value.role_id;
+        user.avatar = postData.value.avatar;
+
+        // Establecer el avatar actual como preview inicial
+        if (user.avatar && user.avatar !== defaultAvatar) {
+            selectedAvatarPreview.value = user.avatar;
+        }
+    }
+});
+
+const previewKey = ref(0); // Añadir ref para forzar re-render
+
+// Nuevo ref para el preview activo
+const activePreview = ref(null);
+
+// Modificar el watchEffect inicial para establecer el preview
+watchEffect(() => {
+    if (postData.value?.avatar) {
+        activePreview.value = postData.value.avatar;
+    }
+});
+
+// Añadir un watch para manejar cambios en el avatar del usuario
+watch(
+    () => user.avatar,
+    (newAvatar) => {
+        if (newAvatar) {
+            activePreview.value = newAvatar;
+            previewKey.value++;
+        }
+    }
+);
 </script>
 
 <style>
@@ -576,5 +648,33 @@ label {
 .content-preview {
     max-width: 100%;
     overflow: hidden;
+}
+.preview-label {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+    margin-top: 0.25rem;
+}
+.preview-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.preview-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    transition: border-color 0.3s ease;
+}
+
+.preview-item:hover img {
+    border-color: #4caf50;
+}
+
+.preview-item.active img {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
 }
 </style>

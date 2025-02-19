@@ -8,11 +8,17 @@ class AvatarResource extends JsonResource
 {
     public function toArray($request)
     {
+        // Obtener la URL del media primero para asegurar que existe
+        $mediaUrl = $this->getFirstMediaUrl('avatars');
+        $defaultUrl = asset('images/avatar-placeholder.jpg');
+
         return [
-            'id'   => $this->id,
+            'id' => $this->id,
             'name' => $this->name,
-            // Se obtiene la URL usando el método de Media Library definido en el modelo Avatar.
-            'url'  => $this->getFirstMediaUrl('avatars') ?: asset('images/avatar-placeholder.jpg'),
+            'type' => $this->type,
+            'url' => $mediaUrl ?: $defaultUrl,
+            'media_url' => $mediaUrl,  // URL directa del media
+            'is_default' => empty($mediaUrl)  // Indicador si está usando la URL por defecto
         ];
     }
 }

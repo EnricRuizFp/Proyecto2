@@ -68,13 +68,16 @@
                     <Column field="id" header="ID" sortable />
                     <Column header="Avatar">
                         <template #body="slotProps">
-                            <img
-                                v-if="slotProps.data.avatar"
-                                :src="slotProps.data.avatar"
-                                alt="Avatar"
-                                class="avatar-img"
-                            />
-                            <span v-else>N/A</span>
+                            <div class="avatar-container">
+                                <img
+                                    :src="slotProps.data.avatar"
+                                    :alt="slotProps.data.name + ' avatar'"
+                                    class="avatar-img"
+                                    @error="
+                                        (e) => (e.target.src = defaultAvatar)
+                                    "
+                                />
+                            </div>
                         </template>
                     </Column>
                     <Column field="username" header="Username" sortable />
@@ -138,16 +141,27 @@ const initFilters = () => {
     };
 };
 
+const defaultAvatar = "https://bootdey.com/img/Content/avatar/avatar7.png";
+
 onMounted(() => {
     getUsers();
 });
 </script>
 
 <style scoped>
-.avatar-img {
+.avatar-container {
     width: 40px;
     height: 40px;
     border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
 }
 </style>
