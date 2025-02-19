@@ -5,7 +5,6 @@ export default function useRankings() {
     const rankings = ref([]);
     const ranking = ref({
         user_id: "",
-        type: "",
         wins: "",
         losses: "",
         draws: "",
@@ -169,6 +168,19 @@ export default function useRankings() {
         });
     };
 
+    const getGlobalRanking = async (limit) => {
+        try {
+            const response = await axios.get(
+                `/api/rankings?limit=${limit}&order_column=points&order_direction=desc`
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Error al obtener el ranking global:", error);
+            return null;
+        }
+    };
+
+
     return {
         rankings,
         ranking,
@@ -177,6 +189,7 @@ export default function useRankings() {
         storeRanking,
         updateRanking,
         deleteRanking,
+        getGlobalRanking,
         validationErrors,
         isLoading,
     };

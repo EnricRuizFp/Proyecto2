@@ -17,7 +17,7 @@
     <!-- Session already started -->
     <div v-if="authStore().user?.name" id="userComponent">
         <div id="userContent">
-            <a id="userProfile" class="nav-link p1" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a id="userProfile" class="nav-link p1 white-color" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="../../../../public/images/icons/user-icon-dark.svg" alt="User avatar"> <!-- Reemplazar por imagen real cuando estén relacionadas con el usuario -->
                 {{ authStore().user?.name }}
                 <p class="p4">{{ userPoints }} <img src="../../../../public/images/icons/trophy-icon-dark.svg" alt="Trophy icon"></p>
@@ -48,16 +48,10 @@
 
     /* -- FUNCTIONS -- */
     onMounted(() => {
-        console.log("Obteniendo rankings [para trofeos]");
-        console.log("Usuario actual: ", authStore().user?.id);
         getRanking(authStore().user?.id).then((data) => {
-            console.log("User ranking: ", data);
-
             if (data.points) {
-                userPoints.value = data.points;  // Asignamos el valor a la variable reactiva
-                console.log("User points: ", userPoints.value);
+                userPoints.value = data.points;
             }
         });
-        console.log("Trofeos obtenidos");
     });
 </script>
