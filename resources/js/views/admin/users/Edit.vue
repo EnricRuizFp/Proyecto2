@@ -128,75 +128,37 @@
                                                 alt="Avatar preview"
                                                 class="object-fit-cover w-100 h-100 img-profile"
                                             />
-                                            <div v-else>
-                                                <img
-                                                    v-if="files.length > 0"
-                                                    v-for="(
-                                                        file, index
-                                                    ) in files"
-                                                    :key="
-                                                        file.name +
-                                                        file.type +
-                                                        file.size
-                                                    "
-                                                    role="presentation"
-                                                    :alt="file.name"
-                                                    :src="file.objectURL"
-                                                    class="object-fit-cover w-100 h-100 img-profile"
-                                                />
-                                                <div v-else>
-                                                    <img
-                                                        v-if="
-                                                            uploadedFiles.length >
-                                                            0
-                                                        "
-                                                        :key="
-                                                            uploadedFiles[
-                                                                uploadedFiles.length -
-                                                                    1
-                                                            ].name +
-                                                            uploadedFiles[
-                                                                uploadedFiles.length -
-                                                                    1
-                                                            ].type +
-                                                            uploadedFiles[
-                                                                uploadedFiles.length -
-                                                                    1
-                                                            ].size
-                                                        "
-                                                        role="presentation"
-                                                        :alt="
-                                                            uploadedFiles[
-                                                                uploadedFiles.length -
-                                                                    1
-                                                            ].name
-                                                        "
-                                                        :src="
-                                                            uploadedFiles[
-                                                                uploadedFiles.length -
-                                                                    1
-                                                            ].objectURL
-                                                        "
-                                                        class="object-fit-cover w-100 h-100 img-profile"
-                                                    />
-                                                </div>
-                                            </div>
+                                            <img
+                                                v-else-if="files.length > 0"
+                                                :src="files[0].objectURL"
+                                                :alt="files[0].name"
+                                                class="object-fit-cover w-100 h-100 img-profile"
+                                            />
+                                            <img
+                                                v-else-if="
+                                                    uploadedFiles.length > 0
+                                                "
+                                                :src="
+                                                    uploadedFiles[
+                                                        uploadedFiles.length - 1
+                                                    ].objectURL
+                                                "
+                                                :alt="
+                                                    uploadedFiles[
+                                                        uploadedFiles.length - 1
+                                                    ].name
+                                                "
+                                                class="object-fit-cover w-100 h-100 img-profile"
+                                            />
+                                            <img
+                                                v-else
+                                                :src="
+                                                    user.avatar || defaultAvatar
+                                                "
+                                                :alt="user.name + ' avatar'"
+                                                class="object-fit-cover w-100 h-100 img-profile"
+                                            />
                                         </div>
-                                    </template>
-
-                                    <template #empty>
-                                        <img
-                                            v-if="user.avatar"
-                                            :src="user.avatar"
-                                            alt="Avatar"
-                                            class="object-fit-cover w-100 h-100 img-profile"
-                                        />
-                                        <img
-                                            v-if="!user.avatar"
-                                            src="https://bootdey.com/img/Content/avatar/avatar7.png"
-                                            alt="Avatar Default"
-                                            class="object-fit-cover w-100 h-100 img-profile"
-                                        />
                                     </template>
                                 </FileUpload>
                             </div>
@@ -478,7 +440,9 @@ const selectAvatarPreview = (avatar) => {
                 toast.add({
                     severity: "error",
                     summary: "Error",
-                    detail: "No se pudo asignar el avatar",
+                    detail:
+                        error.response?.data?.message ||
+                        "No se pudo asignar el avatar",
                     life: 3000,
                 });
                 console.error(error);
@@ -516,8 +480,28 @@ const onSelectedFiles = (event) => {
 };
 const uploadEvent = async (callback, uploadedFiles) => {
     console.log("uploadEvent");
-    totalSizePercent.value = totalSize.value / 10;
-    await callback();
+    try {
+        totalSizePercent.value = totalSize.value / 10;
+        await callback();
+        // Actualizar el avatar del usuario después de una carga exitosa
+        if (uploadedFiles && uploadedFiles.length > 0) {
+            user.avatar = uploadedFiles[uploadedFiles.length - 1].objectURL;
+        }
+        toast.add({
+            severity: "success",
+            summary: "Success",
+            detail: "Avatar updated successfully",
+            life: 3000,
+        });
+    } catch (error) {
+        console.error("Upload error:", error);
+        toast.add({
+            severity: "error",
+            summary: "Error",
+            detail: error.response?.data?.error || "Error uploading avatar",
+            life: 3000,
+        });
+    }
 };
 const onTemplatedUpload = (event) => {
     // Callback para depuración, si es necesario

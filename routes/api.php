@@ -53,6 +53,10 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
             ->values()
             ->toArray();
     });
+
+    // Modificar esta ruta para que coincida con la URL que estás usando
+    Route::post('users/assign-avatar/{id}', [UserController::class, 'assignAvatar'])
+        ->name('users.assign-avatar');
 });
 
 Route::get('category-list', [CategoryController::class, 'getList']);
@@ -88,6 +92,5 @@ Route::apiResource('rankings', RankingController::class);
 // Ships
 Route::apiResource('ships', ShipController::class);
 
-// Assign avatars
-Route::post('/users/{id}/assign-avatar', [UserController::class, 'assignAvatar']);
+// Eliminar la ruta duplicada y dejar solo una versión correcta
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -160,13 +161,30 @@ class User extends Authenticatable implements HasMedia
             'user_id',       
             'avatar_id'
         )
-        ->withPivot('updated'); // si deseas acceder a la columna 'updated'
+        ->withTimestamps();  // Solo mantenemos withTimestamps() ya que la tabla tiene created_at y updated_at
     }
+
     public function getAvatarUrlAttribute()
     {
         return $this->avatares->isNotEmpty() 
             ? $this->avatares->first()->getUrl() 
             : asset('images/placeholder.jpg');
+    }
+
+    // Método para obtener el avatar actual
+    public function getCurrentAvatarUrl()
+    {
+        try {
+            $currentAvatar = $this->avatares()->latest()->first();
+            if ($currentAvatar) {
+                $mediaUrl = $currentAvatar->getFirstMediaUrl('avatars');
+                return !empty($mediaUrl) ? $mediaUrl : asset('images/placeholder.jpg');
+            }
+            return asset('images/placeholder.jpg');
+        } catch (\Exception $e) {
+            Log::error('Error getting avatar URL: ' . $e->getMessage());
+            return asset('images/placeholder.jpg');
+        }
     }
 
 }
