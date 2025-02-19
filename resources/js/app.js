@@ -68,6 +68,7 @@ import "sweetalert2/dist/sweetalert2.min.css";
 import "../css/theme.css";
 import "../css/lateralBar.css";
 import "../css/general.css";
+import "../css/mainPage.css";
 
 const app = createApp({
     created() {
