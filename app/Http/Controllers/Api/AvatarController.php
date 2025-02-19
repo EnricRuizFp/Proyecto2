@@ -4,17 +4,57 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Avatar;
+use App\Http\Resources\AvatarResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AvatarController extends Controller
 {
-    /**
-     * Muestra una lista paginada de avatares.
-     */
     public function index(Request $request)
     {
-        $avatars = Avatar::paginate(10);
-        return response()->json($avatars);
+        try {
+            // Obtener el usuario autenticado
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['error' => 'Usuario no autenticado'], 401);
+            }
+
+            // 1. Obtener avatares predeterminados
+            $defaultAvatars = Avatar::where('type', 'default')->get();
+
+            // 2. Obtener avatar personalizado del usuario
+            $customAvatar = Avatar::where('type', 'custom')
+                ->whereHas('users', function($query) use ($user) {
+                    $query->where('users.id', $user->id);
+                })
+                ->first();
+
+            // 3. Combinar resultados
+            $avatars = $defaultAvatars;
+            if ($customAvatar) {
+                $avatars->push($customAvatar);
+            }
+
+            // Debug
+            Log::info('Avatares encontrados:', [
+                'user_id' => $user->id,
+                'total' => $avatars->count(),
+                'default_count' => $defaultAvatars->count(),
+                'has_custom' => !is_null($customAvatar)
+            ]);
+
+            return AvatarResource::collection($avatars);
+
+        } catch (\Exception $e) {
+            Log::error('Error en AvatarController@index: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+
+            return response()->json([
+                'error' => 'Error al obtener avatares',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function show($id)

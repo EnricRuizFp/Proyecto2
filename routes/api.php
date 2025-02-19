@@ -57,6 +57,10 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     // Modificar esta ruta para que coincida con la URL que estás usando
     Route::post('users/assign-avatar/{id}', [UserController::class, 'assignAvatar'])
         ->name('users.assign-avatar');
+    
+    // Avatars
+    Route::get('avatars', [AvatarController::class, 'index']);
+    Route::apiResource('avatars', AvatarController::class)->except(['index']);
 });
 
 Route::get('category-list', [CategoryController::class, 'getList']);
@@ -79,9 +83,6 @@ Route::get('authors/{author}', [AuthorController::class, 'show'])->name('authors
 Route::put('authors/{author}', [AuthorController::class, 'update'])->name('authors.update');
 
 /* -- APP ROUTES -- */
-
-// Avatars
-Route::apiResource('avatars', AvatarController::class);
 
 // Games
 Route::apiResource('games', GameController::class);
