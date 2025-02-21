@@ -3,7 +3,7 @@
     <!-- Menu List -->
     <div id="lateralMenu">
         <div class="tituloBarraLateral">
-            <h2 class="bolder">INICIO</h2>
+            <router-link class="color-white h3 bolder" to="/">INICIO</router-link>
         </div>
         <div class="subtituloBarraLateral">
             <div class="contenidoSubtituloBarraLateral">
