@@ -61,6 +61,11 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     // Avatars
     Route::get('avatars', [AvatarController::class, 'index']);
     Route::apiResource('avatars', AvatarController::class)->except(['index']);
+    
+    // Rutas de gestión de avatares de usuario
+    Route::get('user-avatars', [UserController::class, 'getUserAvatars']);
+    Route::get('users/{userId}/avatars', [UserController::class, 'getUserAvatar']);
+    Route::delete('users/{userId}/avatars/{avatarId}', [UserController::class, 'removeAvatar']);
 });
 
 Route::get('category-list', [CategoryController::class, 'getList']);
