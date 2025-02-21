@@ -59,6 +59,9 @@ export default function useRankings() {
                 return response.data;
             })
             .catch((error) => {
+
+                console.log("ERROR A");
+
                 console.error("Error at getting the ranking:", error);
                 throw error;
             });
@@ -169,6 +172,7 @@ export default function useRankings() {
     };
 
     const getGlobalRanking = async (limit) => {
+
         try {
             const response = await axios.get(
                 `/api/rankings?limit=${limit}&order_column=points&order_direction=desc`

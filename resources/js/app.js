@@ -1,4 +1,5 @@
-import "bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
@@ -11,7 +12,7 @@ import { installI18n, loadMessages } from "./plugins/i18n";
 import { langStore } from "@/store/lang";
 import "./plugins/axios.js";
 
-/*PRIMEVUE */
+/* PRIMEVUE */
 import PrimeVue from "primevue/config";
 import Accordion from "primevue/accordion";
 import ToggleSwitch from "primevue/toggleswitch";
@@ -60,11 +61,11 @@ import Tooltip from "primevue/tooltip";
 import FloatLabel from "primevue/floatlabel";
 import Message from "primevue/message";
 
-/*STYLES */
+/* STYLES */
 import "primeflex/primeflex.css";
 import "primeicons/primeicons.css";
 import "sweetalert2/dist/sweetalert2.min.css";
-//Import CSS styles
+// Import CSS styles
 import "../css/theme.css";
 import "../css/lateralBar.css";
 import "../css/general.css";
@@ -94,7 +95,7 @@ l.$subscribe((_, state) => {
     loadMessages(state.locale);
 });
 
-/**PRIMEVUE */
+/** PRIMEVUE */
 import Aura from "@primevue/themes/aura";
 
 app.use(PrimeVue, {
@@ -103,7 +104,7 @@ app.use(PrimeVue, {
         preset: Aura,
         options: {
             prefix: "p",
-            darkModeSelector: ".p-dark", //dark
+            darkModeSelector: ".p-dark", // dark
             cssLayer: false,
         },
     },
