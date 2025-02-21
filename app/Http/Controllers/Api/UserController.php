@@ -229,4 +229,34 @@ class UserController extends Controller
         return AvatarResource::collection($avatars);
     }
 
+    /**
+     * Obtiene todos los avatares asignados a usuarios
+     */
+    public function getUserAvatars()
+    {
+        $userAvatars = User::with('avatares')->paginate(10);
+        return response()->json($userAvatars);
+    }
+
+    /**
+     * Obtiene los avatares asignados a un usuario específico
+     */
+    public function getUserAvatar($userId)
+    {
+        $user = User::with('avatares')->findOrFail($userId);
+        return response()->json($user->avatares);
+    }
+
+    /**
+     * Elimina la asignación de un avatar a un usuario
+     */
+    public function removeAvatar($userId, $avatarId)
+    {
+        $user = User::findOrFail($userId);
+        $user->avatares()->detach($avatarId);
+        
+        return response()->json([
+            'message' => 'Avatar removed successfully from user'
+        ]);
+    }
 }

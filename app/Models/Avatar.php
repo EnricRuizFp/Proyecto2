@@ -25,7 +25,7 @@ class Avatar extends Model implements HasMedia
     protected $fillable = [
         'name',
         'type',
-        'image_route'
+        'url'
     ];
 
     // Agrega el atributo 'image_route' a la serialización del modelo
@@ -77,7 +77,7 @@ class Avatar extends Model implements HasMedia
     public function getAvatarUrl()
     {
         try {
-            return $this->getFirstMediaUrl('avatars') ?: asset('images/placeholder.jpg');
+            return $this->url ?? asset('storage/avatars/default.png');
         } catch (\Exception $e) {
             \Log::error('Error getting avatar URL: ' . $e->getMessage());
             return asset('images/placeholder.jpg');
