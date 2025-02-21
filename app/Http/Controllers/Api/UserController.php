@@ -46,22 +46,47 @@ class UserController extends Controller
         return UserResource::collection($users);
     }
 
-    public function store(StoreUserRequest $request)
+    public function store(Request $request)
     {
-        $role = Role::find($request->role_id);
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->surname1 = $request->surname1;
-        $user->surname2 = $request->surname2;
+        try {
+            $request->validate([
+                'name' => 'required',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|min:8',
+                'role_id' => 'required|array' // Change validation to expect array
+            ]);
 
-        $user->password = Hash::make($request->password);
+            \Log::info('User creation request data:', $request->all()); // Add logging
 
-        if ($user->save()) {
-            if ($role) {
-                $user->assignRole($role);
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'surname1' => $request->surname1,
+                'surname2' => $request->surname2,
+            ]);
+
+            // Asignar roles usando los IDs recibidos
+            if (!empty($request->role_id)) {
+                \Log::info('Assigning roles:', $request->role_id);
+                $user->syncRoles($request->role_id);
             }
-            return new UserResource($user);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User created successfully',
+                'user' => $user
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Error creating user: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error creating user',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 

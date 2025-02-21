@@ -78,28 +78,39 @@ export default function useUsers() {
         isLoading.value = true;
         validationErrors.value = {};
 
-        let serializedPost = new FormData();
-        for (let item in user) {
-            if (user.hasOwnProperty(item)) {
-                serializedPost.append(item, user[item]);
-            }
-        }
+        try {
+            console.log('Sending user data:', user); // Add debugging
 
-        axios
-            .post("/api/users", serializedPost)
-            .then((response) => {
-                router.push({ name: "users.index" });
+            const response = await axios.post("/api/users", {
+                name: user.name,
+                email: user.email,
+                password: user.password,
+                role_id: Array.isArray(user.role_id) ? user.role_id : [user.role_id],,
+                surname1: user.surname1 || null,
+                surname2: user.surname2 || null
+            });
+
+            console.log('Response:', response.data); // Add debugging
+,
+            router.push({ name: "users.index" });
+            swal({
+                icon: "success",
+                title: "User saved successfully"
+            });
+        } catch (error) {
+            console.error('Error details:', error.response?.data); // Add debugging
+            ,
+            if (error.response?.data) {
+                validationErrors.value = error.response.data.errors;
                 swal({
-                    icon: "success",
-                    title: "User saved successfully",
+                    icon: "error",
+                    title: "Error",
+                    text: error.response.data.message || "Something went wrong"
                 });
-            })
-            .catch((error) => {
-                if (error.response?.data) {
-                    validationErrors.value = error.response.data.errors;
-                }
-            })
-            .finally(() => (isLoading.value = false));
+            }
+        } finally {
+            isLoading.value = false;
+        }
     };
 
     const updateUser = async (user) => {
