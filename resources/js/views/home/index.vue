@@ -1,16 +1,27 @@
 <template>
-    
-    <div id="content">
-        <div id="playMenu">
-            <playComponent />
+
+    <div id="mainPageContainer">
+        <div id="mainPageContent" class="container-fluid">
+            <div class="row container-fluid">
+                <div class="col-sm-10 col-lg-8 mx-auto row">
+                    <div class="col-sm-12 col-xl-6">
+                        <div id="playMenu">
+                            <playComponent />
+                        </div>
+                        <div id="myProfileComponent">
+                            <myProfileMenuComponent />
+                        </div>
+                    </div>
+                    
+                    <div id="globalRankingComponent" class="col-sm-12 col-xl-6">
+                        <globalRankingComponent />
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="myProfileComponent">
-            <myProfileMenuComponent />
-        </div>
-        <div id="globalRankingComponent">
-            <globalRankingComponent />
-        </div>
-    </div>    
+    </div>
+
+     
 
 </template>
 

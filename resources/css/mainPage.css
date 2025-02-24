@@ -120,3 +120,22 @@
 .pointsContainer{
     width: 20%;
 }
+
+
+/*
+
+    ///// ORDER COMPONENTS IN INDEX /////
+
+*/
+
+#mainPageContainer{
+    background-color: var(--neutral-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+#myProfileComponent{
+    margin-top: 50px;
+}

@@ -48,10 +48,15 @@
 
     /* -- FUNCTIONS -- */
     onMounted(() => {
-        getRanking(authStore().user?.id).then((data) => {
-            if (data.points) {
-                userPoints.value = data.points;
-            }
-        });
+
+        if(authStore().user?.id){
+
+            getRanking(authStore().user?.id).then((data) => {
+                if (data.points) {
+                    userPoints.value = data.points;
+                }
+            });
+        }
+        
     });
 </script>

@@ -7,5 +7,5 @@
 </template>
 
 <script setup>
-import LateralBar from "./LateralBar.vue";
+    import LateralBar from "./LateralBar.vue";
 </script>
