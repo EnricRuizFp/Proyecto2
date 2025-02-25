@@ -20,19 +20,44 @@
     background-color: var(--neutral-color);
     height: calc(100vh - 101px);
 }
-
 #loginForm{
     padding: 100px;
     border: 1px solid var(--white-color);
     border-radius: 15px;
 }
+#loginFormTitle{
+    text-align: center;
+
+    margin-bottom: 50px;
+}
 
 .loginFormLabels{
     color: var(--white-color);
     width: 100%;
+    margin-bottom: 10px;
 }
 .loginFormFields{
-    border-color: var(--white-color);
-    border-radius: 5px;
+    border: 1px solid var(--white-color);
+    border-radius: 10px;
+    color: var(--white-color);
+    padding: 5px 15px;
     background-color: var(--neutral-color);
+    width: 100%;
+}
+#emailField{
+    margin-bottom: 25px;
+}
+#rememberMeField{
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
+#flexCheckIndeterminate{
+    margin-right: 10px;
+}
+#loginButton{
+    margin-top: 25px;
+    width: 100% !important;
+}
+#forgotPasswordText{
+    margin-top: 15px;
 }
