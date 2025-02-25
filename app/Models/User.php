@@ -31,7 +31,7 @@ class User extends Authenticatable implements HasMedia
         'password',
         'surname1',
         'surname2',
-        'nationality', // Añadir este campo
+        'nationality', // Asegurarse de que está incluido aquí
     ];
 
     protected $hidden = [
@@ -41,6 +41,7 @@ class User extends Authenticatable implements HasMedia
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'nationality' => 'string',
     ];
 
     /**
@@ -65,8 +66,8 @@ class User extends Authenticatable implements HasMedia
     {
         if (env('RESIZE_IMAGE') === true) {
             $this->addMediaConversion('resized-image')
-                 ->width(env('IMAGE_WIDTH', 300))
-                 ->height(env('IMAGE_HEIGHT', 300));
+                ->width(env('IMAGE_WIDTH', 300))
+                ->height(env('IMAGE_HEIGHT', 300));
         }
     }
 
@@ -90,7 +91,7 @@ class User extends Authenticatable implements HasMedia
     }
 
     //  Relation with game_players
-    
+
     public function gamePlayers()
     {
         return $this->hasMany(GamePlayer::class, 'user_id');
@@ -155,17 +156,17 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->belongsToMany(
             Avatar::class,
-            'user_avatars',  
-            'user_id',       
+            'user_avatars',
+            'user_id',
             'avatar_id'
         )
-        ->withTimestamps();  // Solo mantenemos withTimestamps() ya que la tabla tiene created_at y updated_at
+            ->withTimestamps();  // Solo mantenemos withTimestamps() ya que la tabla tiene created_at y updated_at
     }
 
     public function getAvatarUrlAttribute()
     {
-        return $this->avatares->isNotEmpty() 
-            ? $this->avatares->first()->getUrl() 
+        return $this->avatares->isNotEmpty()
+            ? $this->avatares->first()->getUrl()
             : asset('images/placeholder.jpg');
     }
 
@@ -184,5 +185,4 @@ class User extends Authenticatable implements HasMedia
             return asset('images/placeholder.jpg');
         }
     }
-
 }

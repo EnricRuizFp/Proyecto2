@@ -19,7 +19,7 @@ class UserResource extends JsonResource
             $currentAvatar = $this->avatares()->latest()->first();
             $avatarUrl = $currentAvatar ? $currentAvatar->getFirstMediaUrl('avatars') : asset('images/placeholder.jpg');
 
-            \Log::debug('[UserResource] Generando recurso de usuario', [
+            Log::debug('[UserResource] Generando recurso de usuario', [
                 'user_id' => $this->id,
                 'avatar_url' => $avatarUrl
             ]);
@@ -31,13 +31,14 @@ class UserResource extends JsonResource
                 'surname1'   => $this->surname1,
                 'surname2'   => $this->surname2,
                 'email'      => $this->email,
+                'nationality' => $this->nationality, // Asegurarse de que se incluye
                 'role_id'    => $this->roles,
                 'roles'      => $this->roles,
                 'avatar'     => $avatarUrl,
                 'created_at' => $this->created_at->toDateString()
             ];
         } catch (\Exception $e) {
-            \Log::error('[UserResource] Error: ' . $e->getMessage());
+            Log::error('[UserResource] Error: ' . $e->getMessage());
             return [];
         }
     }
