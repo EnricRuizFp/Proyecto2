@@ -113,43 +113,29 @@ export default function useAuth() {
 
     const submitRegister = async () => {
 
-        console.log("AAA");
-
         if (processing.value) return;
     
         processing.value = true;
         validationErrors.value = {};
-
-        console.log("BBB");
     
         await axios.post('/register', registerForm)
             .then(async response => {
 
-                console.log("CCC");
-
                 const newUser = response.data.data; // Suponiendo que la API devuelve el usuario registrado
                 console.log(response.data.data);
-
-                console.log("DDD");
     
                 // Crear un ranking vacío asignado al nuevo usuario
                 const rankingData = {
                     user_id: newUser.id,  // Asigna el ID del usuario recién creado
-                    points: "",
-                    games_played: "",
-                    wins: "",
-                    losses: "",
-                    draws: ""
+                    points: 0,
+                    wins: 0,
+                    losses: 0,
+                    draws: 0
                 };
-
-                console.log(rankingData);
-                console.log("EEE");
     
                 // Llamar a storeRanking con los datos del ranking
                 await storeRanking(rankingData);
 
-                console.log("FFF");
-    
                 // Mostrar mensaje de éxito
                 swal({
                     icon: 'success',
@@ -157,8 +143,6 @@ export default function useAuth() {
                     showConfirmButton: false,
                     timer: 1500
                 });
-
-                console.log("GGG");
     
                 await router.push({ name: 'auth.login' });
             })
@@ -168,6 +152,8 @@ export default function useAuth() {
                 }
             })
             .finally(() => processing.value = false);
+
+        console.log("User registred correctly.");
     };
     
 

@@ -60,8 +60,6 @@ export default function useRankings() {
             })
             .catch((error) => {
 
-                console.log("ERROR A");
-
                 console.error("Error at getting the ranking:", error);
                 throw error;
             });
@@ -71,6 +69,7 @@ export default function useRankings() {
      * Crea un nuevo avatar enviando un POST a la API.
      */
     const storeRanking = async (rankingData) => {
+
         if (isLoading.value) return;
 
         isLoading.value = true;

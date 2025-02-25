@@ -38,11 +38,14 @@
 .loginFormFields, .registerFormFields{
     border: 1px solid var(--white-color);
     border-radius: 10px;
-    color: var(--white-color);
+    color: var(--white-color) !important;
     padding: 5px 15px;
     background-color: var(--neutral-color);
     width: 100%;
 }
+::-ms-reveal {
+    filter: invert(100%);
+  }
 
 
 /*
