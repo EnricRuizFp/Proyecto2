@@ -1,6 +1,10 @@
 /* -- THIS FILE CONTAINS GENERAL CSS DATA -- */
 
-/* -- FONTS -- */
+/* 
+
+    ///// FONTS /////
+
+*/
 
 /* - TITLES - */
 .h1{font-family: 'Rubik', sans-serif;font-size: 65px;font-weight: bolder;}
@@ -30,8 +34,23 @@
 .regular{font-weight: normal;}
 .light{font-weight: lighter;}
 .lightest{font-weight: 100;}
+/* - DECORATIONS - */
+.no-decoration{text-decoration: none;}
+.underline{text-decoration: underline;}
+.overline{text-decoration: overline;}
+.line-through{text-decoration: line-through;}
 
-/* -- COLORS -- */
+
+
+
+
+/*
+
+    ///// COLORS /////
+    
+*/
+
+/* -- ROOT colors -- */
 :root{
 
     /* - Color palette - */
@@ -43,6 +62,8 @@
 
     --neutral-color: #131217;
     --neutral-color-1: #2a292f;
+
+    --link-color: #00CCC0;
 
     /* - Defaults - */
     --black-color: #000000;
@@ -84,4 +105,32 @@
 }
 .neutral-hover:hover{
     background-color: var(--neutral-color-1) !important;
+}
+
+
+/* - Link text colors - */
+.linkText{
+    color: var(--link-color);
+}
+
+
+
+
+/*
+
+    ///// BUTTONS /////
+
+*/
+
+/* - PRIMARY BUTTON - */
+.primary-button{
+    background-color: var(--primary-color);
+    color: var(--white-color);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
 }
