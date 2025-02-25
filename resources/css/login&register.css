@@ -7,6 +7,43 @@
     padding: 0px;
 }
 
+/*
+
+    ///// GENERAL CSS /////
+
+*/
+
+.loginFormLabels{
+    color: var(--white-color);
+    width: 100%;
+    margin-bottom: 10px;
+}
+.loginFormFields{
+    border: 1px solid var(--white-color);
+    border-radius: 10px;
+    color: var(--white-color);
+    padding: 5px 15px;
+    background-color: var(--neutral-color);
+    width: 100%;
+}
+.loginFormField, .registerFormField{
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+.loginFormLabels, .registerFormLabels{
+    color: var(--white-color);
+    width: 100%;
+    margin-bottom: 10px;
+}
+.loginFormFields, .registerFormFields{
+    border: 1px solid var(--white-color);
+    border-radius: 10px;
+    color: var(--white-color);
+    padding: 5px 15px;
+    background-color: var(--neutral-color);
+    width: 100%;
+}
+
 
 /*
 
@@ -27,25 +64,7 @@
 }
 #loginFormTitle{
     text-align: center;
-
     margin-bottom: 50px;
-}
-
-.loginFormLabels{
-    color: var(--white-color);
-    width: 100%;
-    margin-bottom: 10px;
-}
-.loginFormFields{
-    border: 1px solid var(--white-color);
-    border-radius: 10px;
-    color: var(--white-color);
-    padding: 5px 15px;
-    background-color: var(--neutral-color);
-    width: 100%;
-}
-#emailField{
-    margin-bottom: 25px;
 }
 #rememberMeField{
     margin-top: 25px;
@@ -60,4 +79,51 @@
 }
 #forgotPasswordText{
     margin-top: 15px;
+}
+
+/* -- MOBILE / TABLET SCREEN -- */
+@media (max-width: 1000px) {
+    #loginForm{
+        padding: 50px;
+    }
+}
+
+
+
+
+/*
+
+    ///// REGISTER PAGE /////
+
+*/
+#registerContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--neutral-color);
+}
+#registerForm{
+    padding: 100px;
+    border: 1px solid var(--white-color);
+    border-radius: 15px;
+}
+#registerFormTitle{
+    text-align: center;
+
+    margin-bottom: 50px;
+}
+
+#contenedorTienesCuenta{
+    margin-top: 25px;
+}
+#registerButton{
+    margin-top: 25px;
+    width: 100% !important;
+}
+
+/* -- MOBILE / TABLET SCREEN -- */
+@media (max-width: 1000px) {
+    #registerForm{
+        padding: 50px;
+    }
 }

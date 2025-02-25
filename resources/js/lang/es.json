@@ -8,6 +8,7 @@
     "token_expired_alert_text": "Por favor inicie sesión de nuevo para continuar.",
     "login": "Iniciar Sesión",
     "register": "Registro",
+    "register_title": "Registrarse",
     "page_not_found": "Página No Encontrada",
     "go_home": "Ir a Inicio",
     "logout": "Cerrar Sesión",
@@ -31,5 +32,11 @@
     "password_updated": "¡Tu contraseña ha sido actualizada!",
     "new_password": "Nueva Contraseña",
     "login_with": "Iniciar Sesión con",
-    "register_with": "Registro con"
+    "register_with": "Registro con",
+
+    "username": "Nombre de usuario",
+    "surname1": "Primer apellido",
+    "surname2": "Segundo apellido",
+    "nationality": "Nacionalidad"
+
 }

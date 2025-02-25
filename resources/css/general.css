@@ -39,6 +39,11 @@
 .underline{text-decoration: underline;}
 .overline{text-decoration: overline;}
 .line-through{text-decoration: line-through;}
+/* - transform texts - */
+.uppercase{text-transform: uppercase;}
+.lowercase{text-transform: lowercase;}
+.capitalize{text-transform: capitalize;}
+.italic{font-style: italic;}
 
 
 

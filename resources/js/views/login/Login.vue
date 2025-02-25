@@ -6,13 +6,13 @@
 
                 <!-- LOGIN title -->
                 <div id="loginFormTitle">
-                    <h2 class="h2 white-color">INICIAR SESIÓN</h2>
+                    <h2 class="h2 white-color uppercase">{{ $t('login')}}</h2>
                 </div>
 
                 <div id="loginFormContent">
 
                     <!-- Email -->
-                    <div id="emailField">
+                    <div class="loginFormField">
                         <label for="email" class="loginFormLabels p4">{{ $t('email') }}</label>
                         <input v-model="loginForm.email" id="email" class="loginFormFields" type="email" required autofocus autocomplete="username">
                         <!-- Validation Errors -->
@@ -23,7 +23,7 @@
                         </div>
                     </div>
                     <!-- Password -->
-                    <div id="passwordField">
+                    <div class="loginFormField">
                         <label for="password"  class="loginFormLabels p4">
                             {{ $t('password') }}
                         </label>
@@ -50,11 +50,9 @@
                     </div>
 
                     <!-- Buttons -->
-                    <div>
-                        <button :class="{ 'opacity-25': processing }" :disabled="processing" id="loginButton" class="primary-button">
-                            {{ $t('login') }}
-                        </button>
-                    </div>
+                    <button :class="{ 'opacity-25': processing }" :disabled="processing" id="loginButton" class="primary-button">
+                        {{ $t('login') }}
+                    </button>
                 </div>
 
                 <div id="forgotPasswordText">

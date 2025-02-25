@@ -5,6 +5,9 @@ import { ABILITY_TOKEN } from '@casl/vue';
 //import store from '../store'
 import { authStore } from "../store/auth";
 
+// IMPORT RANKINGS
+import useRankings from './rankings';
+
 let user = reactive({
     name: '',
     email: '',
@@ -18,6 +21,7 @@ export default function useAuth() {
     const ability = inject(ABILITY_TOKEN)
     const auth = authStore()
 
+    const { storeRanking } = useRankings();
 
     const loginForm = reactive({
         email: '',
@@ -37,10 +41,14 @@ export default function useAuth() {
     })
 
     const registerForm = reactive({
+        username: '',
         name: '',
+        surname1: '',
+        surname2: '',
         email: '',
         password: '',
-        password_confirmation: ''
+        password_confirmation: '',
+        nationality: ''
     })
 
     const submitLogin = async () => {
@@ -73,31 +81,95 @@ export default function useAuth() {
             .finally(() => processing.value = false)
     }
 
+    // const submitRegister = async () => {
+
+    //     if (processing.value) return
+
+    //     processing.value = true
+    //     validationErrors.value = {}
+
+    //     await axios.post('/register', registerForm)
+    //         .then(async response => {
+
+    //             // Create empty ranking
+    //             storeRanking(ranking);
+
+    //             // Finalize with swal alert
+    //             swal({
+    //                 icon: 'success',
+    //                 title: 'Registration successfully',
+    //                 showConfirmButton: false,
+    //                 timer: 1500
+    //             })
+    //             await router.push({ name: 'auth.login' })
+    //         })
+    //         .catch(error => {
+    //             if (error.response?.data) {
+    //                 validationErrors.value = error.response.data.errors
+    //             }
+    //         })
+    //         .finally(() => processing.value = false)
+    // }
+
     const submitRegister = async () => {
-        if (processing.value) return
 
-        processing.value = true
-        validationErrors.value = {}
+        console.log("AAA");
 
+        if (processing.value) return;
+    
+        processing.value = true;
+        validationErrors.value = {};
+
+        console.log("BBB");
+    
         await axios.post('/register', registerForm)
             .then(async response => {
-                // await store.dispatch('auth/getUser')
-                // await loginUser()
+
+                console.log("CCC");
+
+                const newUser = response.data.data; // Suponiendo que la API devuelve el usuario registrado
+                console.log(response.data.data);
+
+                console.log("DDD");
+    
+                // Crear un ranking vacío asignado al nuevo usuario
+                const rankingData = {
+                    user_id: newUser.id,  // Asigna el ID del usuario recién creado
+                    points: "",
+                    games_played: "",
+                    wins: "",
+                    losses: "",
+                    draws: ""
+                };
+
+                console.log(rankingData);
+                console.log("EEE");
+    
+                // Llamar a storeRanking con los datos del ranking
+                await storeRanking(rankingData);
+
+                console.log("FFF");
+    
+                // Mostrar mensaje de éxito
                 swal({
                     icon: 'success',
                     title: 'Registration successfully',
                     showConfirmButton: false,
                     timer: 1500
-                })
-                await router.push({ name: 'auth.login' })
+                });
+
+                console.log("GGG");
+    
+                await router.push({ name: 'auth.login' });
             })
             .catch(error => {
                 if (error.response?.data) {
-                    validationErrors.value = error.response.data.errors
+                    validationErrors.value = error.response.data.errors;
                 }
             })
-            .finally(() => processing.value = false)
-    }
+            .finally(() => processing.value = false);
+    };
+    
 
     const submitForgotPassword = async () => {
         if (processing.value) return
