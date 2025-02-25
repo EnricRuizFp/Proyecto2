@@ -177,6 +177,7 @@ export default function useRankings() {
             const response = await axios.get(
                 `/api/rankings?limit=${limit}&order_column=points&order_direction=desc`
             );
+            console.log(response.data.data);
             return response.data;
         } catch (error) {
             console.error("Error al obtener el ranking global:", error);

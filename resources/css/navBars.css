@@ -7,7 +7,7 @@
     padding: 0px;
 }
 
-/* ---- MENÚ LATERAL ---- */
+/* ///// MENÚ LATERAL ///// */
 #lateralBar {
     background-color: var(--neutral-color);
     width: 20%;
@@ -27,7 +27,7 @@
     transform: translateX(0);
 }
 
-/* Botón de cerrar */
+/* Botón de cerrar en desktop */
 #closeButton {
     position: absolute;
     top: 50%;
@@ -45,18 +45,34 @@
     transition: background-color 0.3s ease, right 0.3s ease-in-out;
 }
 
-/* Cuando el menú está abierto, mover el botón al borde */
+/* Mostrar el botón cuando el menú está abierto */
 #lateralBar:not(.closed) #closeButton {
     right: -20px;
 }
 
-#closeButton .arrow {
-    color: var(--white-color);
-    font-size: 20px;
+/* Cambiar color al pasar el cursor */
+#closeButton:hover {
+    background-color: var(--neutral-color-1);
+}
+
+/* Botón móvil: inicialmente oculto */
+#mobileMenuButton {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 10px; /* Colocarlo más a la derecha */
+    background-color: var(--neutral-color);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1010;
 }
 
 /* Cambiar color al pasar el cursor */
-#closeButton:hover {
+#mobileMenuButton:hover {
     background-color: var(--neutral-color-1);
 }
 
@@ -105,11 +121,40 @@
 
     /* Botón de cerrar en móvil */
     #closeButton {
-        right: 10px; /* Lo movemos un poco hacia la derecha para que no esté pegado al borde */
+        top: 10px;
+        right: 10px;
+        transform: translateY(0);
     }
 
     /* Cuando el menú está desplegado en móvil, mover el botón un poco hacia la izquierda */
     #lateralBar:not(.closed) #closeButton {
-        right: 20px; /* Mover más hacia la izquierda cuando el menú está abierto */
+        right: 20px;
     }
+
+    /* Mostrar el botón móvil solo cuando el menú está cerrado */
+    #mobileMenuButton {
+        display: flex; /* El botón será visible solo cuando el menú esté cerrado */
+        left: 99%;
+        top: 30px;
+    }
+
+    /* Cuando el menú está cerrado, el botón móvil se muestra en la parte derecha */
+    #lateralBar.closed #mobileMenuButton {
+        display: flex;
+    }
+}
+
+/* ///// BARRA SUPERIOR ///// */
+#topBar {
+    width: 100%;
+    background-color: var(--neutral-color);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--white-color);
+}
+
+#topBarContent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px;
 }

@@ -73,6 +73,7 @@
 */
 #myProfileMenuContainer{
     width: 100%;
+    margin-bottom: 50px;
 }
 
 #myProfileMenuTitle{
@@ -107,6 +108,8 @@
 .rankingContainer{
     display: flex;
     width: 100%;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 .indexContainer{
     width: 20%;
@@ -120,6 +123,13 @@
 .pointsContainer{
     width: 20%;
 }
+#textoCargandoDatosRanking{
+    padding: 20px;
+}
+#peticionInicioSesion{
+    padding: 20px;
+}
+
 
 
 /*

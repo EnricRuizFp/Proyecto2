@@ -13,10 +13,10 @@
                 <div v-if="authStore().user?.id">
 
                     <!-- Condición HAY RANKING -->
-                    <ul v-if="ranking.length">
-                        <li v-for="(user, index) in ranking" :key="user.id">
+                    <div v-if="ranking.length">
+                        <div v-for="(user, index) in ranking" :key="user.id">
 
-                            <div class="rankingContainer white-color p4">
+                            <div class="rankingContainer white-color p3">
                                 <div class="indexContainer">
                                     <span class="rank">{{ index + 1 }}</span>
                                 </div>
@@ -31,14 +31,14 @@
                                     <span class="points">{{ user.points }} <img src="../../../../public/images/icons/trophy-icon-dark.svg" alt="Trophy icon" height="70%"></span>
                                 </div>
                             </div>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
                     <!-- Condición SIN RANKING -->
-                    <p v-else>Cargando ranking...</p>
+                    <p v-else id="textoCargandoDatosRanking" class="p3 white-color">Cargando ranking...</p>
                 </div>
                 <!-- Condición SIN SESIÓN -->
-                <div v-else>
-                    <p>Para ver el ranking global, debes iniciar sesión.</p>
+                <div v-else id="peticionInicioSesion" class="white-color">
+                    <p class="p3">Para ver el ranking global, debes iniciar sesión.</p>
                 </div>
                 
 

@@ -1,4 +1,5 @@
 <template>
+
     <!-- No session -->
     <div v-if="!authStore().user?.name" class="nav-item dropdown" id="userComponent">
         <div id="userContent">
@@ -6,10 +7,10 @@
                 <img src="../../../../public/images/icons/user-icon-dark.svg" alt="Default avatar"> <!-- Not logged user image -->
                 Login now
             </a>
-            <ul id="userProfileMenu" class="dropdown-menu dropdown-menu-start neutral-background white-border">
-                <li><router-link class="dropdown-item white-color neutral-hover" to="/login">Login</router-link></li>
-                <li><router-link class="dropdown-item white-color neutral-hover" to="/register">Register</router-link></li>
-            </ul>
+            <div id="userProfileMenu" class="dropdown-menu dropdown-menu-start neutral-background white-border">
+                <div><router-link class="dropdown-item white-color neutral-hover" to="/login">Login</router-link></div>
+                <div><router-link class="dropdown-item white-color neutral-hover" to="/register">Register</router-link></div>
+            </div>
         </div>
         
     </div>
@@ -22,13 +23,13 @@
                 {{ authStore().user?.name }}
                 <p class="p4">{{ userPoints }} <img src="../../../../public/images/icons/trophy-icon-dark.svg" alt="Trophy icon"></p>
             </a>
-            <ul id="userProfileMenu" class="dropdown-menu dropdown-menu-start neutral-background white-border">
-                <li><router-link class="dropdown-item white-color neutral-hover" to="/admin">Admin</router-link></li>
-                <li><router-link class="dropdown-item white-color neutral-hover" to="/profile">Perfil</router-link></li>
-                <li><router-link to="/admin/posts" class="dropdown-item white-color neutral-hover">Post</router-link></li>
-                <li><hr class="dropdown-divider white-background"></li>
-                <li><a class="dropdown-item white-color neutral-hover" href="javascript:void(0)" @click="logout">Logout</a></li>
-            </ul>
+            <div id="userProfileMenu" class="dropdown-menu dropdown-menu-start neutral-background white-border">
+                <div><router-link class="dropdown-item white-color neutral-hover" to="/admin">Admin</router-link></div>
+                <div><router-link class="dropdown-item white-color neutral-hover" to="/profile">Perfil</router-link></div>
+                <div><router-link to="/admin/posts" class="dropdown-item white-color neutral-hover">Post</router-link></div>
+                <div><hr class="dropdown-divider white-background"></div>
+                <div><a class="dropdown-item white-color neutral-hover" href="javascript:void(0)" @click="logout">Logout</a></div>
+            </div>
         </div>
         
     </div>

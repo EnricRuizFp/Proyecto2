@@ -1,0 +1,38 @@
+/* IMPORT */
+@import url('general.css');
+
+/* -- GENERAL -- */
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+
+/*
+
+    ///// LOGIN PAGE /////
+
+*/
+#loginContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--neutral-color);
+    height: calc(100vh - 101px);
+}
+
+#loginForm{
+    padding: 100px;
+    border: 1px solid var(--white-color);
+    border-radius: 15px;
+}
+
+.loginFormLabels{
+    color: var(--white-color);
+    width: 100%;
+}
+.loginFormFields{
+    border-color: var(--white-color);
+    border-radius: 5px;
+    background-color: var(--neutral-color);
+}

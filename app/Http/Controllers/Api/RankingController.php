@@ -15,7 +15,7 @@ class RankingController extends Controller
     public function index(Request $request)
     {
         // Incluye la relación 'user' para poder mostrar datos del creador (alias, etc.)
-        $rankings = Ranking::with('user')->paginate(10);
+        $rankings = Ranking::with('user')->orderBy('points', 'desc')->paginate(10);
         return response()->json($rankings);
     }
 

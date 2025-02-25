@@ -6,7 +6,7 @@
         </div>
         <!-- Contenedor -->
         <div id="myProfileContainer">
-            <div id="myProfileInternContainer">
+            <div id="myProfileInternContainer" class="white-color">
                 <UserComponent />
             </div>
         </div>
