@@ -13,6 +13,7 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use App\Models\Avatar;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -46,22 +47,77 @@ class UserController extends Controller
         return UserResource::collection($users);
     }
 
-    public function store(StoreUserRequest $request)
+    public function store(Request $request)
     {
-        $role = Role::find($request->role_id);
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->surname1 = $request->surname1;
-        $user->surname2 = $request->surname2;
+        try {
+            Log::info('Request data:', $request->all());  // Log para debug
 
-        $user->password = Hash::make($request->password);
+            $validatedData = $request->validate([
+                'username' => 'required|unique:users',
+                'name' => 'required',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|min:8',
+                'role_id' => 'required|array',
+                'surname1' => 'required',
+                'surname2' => 'nullable',
+                'avatar_id' => 'nullable|exists:avatars,id',
+                'nationality' => 'required|string|in:africa,america,asia,europe,oceania', // Modificar esta línea
+            ]);
 
-        if ($user->save()) {
-            if ($role) {
-                $user->assignRole($role);
+            Log::info('Validated data:', $validatedData);  // Log para debug
+
+            DB::beginTransaction();
+
+            try {
+                $user = User::create([
+                    'username' => $validatedData['username'],
+                    'name' => $validatedData['name'],
+                    'email' => $validatedData['email'],
+                    'password' => Hash::make($validatedData['password']),
+                    'surname1' => $validatedData['surname1'],
+                    'surname2' => $validatedData['surname2'] ?? null,
+                    'nationality' => $validatedData['nationality'],
+                ]);
+
+                if (!empty($validatedData['role_id'])) {
+                    $user->syncRoles($validatedData['role_id']);
+                }
+
+                if (!empty($validatedData['avatar_id'])) {
+                    $user->avatares()->sync([$validatedData['avatar_id']]);
+                }
+
+                DB::commit();
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Usuario creado exitosamente',
+                    'user' => $user
+                ], 201);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Database error: ' . $e->getMessage());
+                throw $e;
             }
-            return new UserResource($user);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            Log::error('Unexpected error: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error interno del servidor',
+                'debug_message' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -92,6 +148,7 @@ class UserController extends Controller
         $user->email = $request->email;
         $user->surname1 = $request->surname1;
         $user->surname2 = $request->surname2;
+        $user->nationality = $request->nationality['value'] ?? $request->nationality; // Modificar esta línea
 
         if(!empty($request->password)) {
             $user->password = Hash::make($request->password) ?? $user->password;

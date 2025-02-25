@@ -175,7 +175,6 @@
         <div class="col-12 md:col-8 lg:col-8 xl:col-8">
             <div class="card mb-3">
                 <div class="card-body">
-                    {{ user.avatar }}
                     <h6 class="mb-2 text-primary">Personal Details</h6>
 
                     <div class="form-group">
@@ -272,6 +271,28 @@
                         <div class="text-danger mt-1">
                             <div
                                 v-for="message in validationErrors?.password"
+                                :key="message"
+                            >
+                                {{ message }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nationality">Nacionalidad</label>
+                        <Select
+                            v-model="user.nationality"
+                            :options="continents"
+                            optionLabel="label"
+                            placeholder="Selecciona un continente"
+                            class="w-100"
+                        />
+                        <div class="text-danger mt-1">
+                            {{ errors.nationality }}
+                        </div>
+                        <div class="text-danger mt-1">
+                            <div
+                                v-for="message in validationErrors?.nationality"
                                 :key="message"
                             >
                                 {{ message }}
@@ -589,6 +610,25 @@ watch(
         }
     }
 );
+
+// Añadir los continentes como constante
+const continents = [
+    { label: "África", value: "africa" },
+    { label: "América", value: "america" },
+    { label: "Asia", value: "asia" },
+    { label: "Europa", value: "europe" },
+    { label: "Oceanía", value: "oceania" },
+];
+
+// Modificar el watchEffect para incluir nationality
+watchEffect(() => {
+    if (postData.value) {
+        // ...existing watchEffect assignments...
+        user.nationality = postData.value.nationality
+            ? continents.find((c) => c.value === postData.value.nationality)
+            : null;
+    }
+});
 </script>
 
 <style>

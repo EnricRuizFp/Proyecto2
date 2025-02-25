@@ -1,5 +1,6 @@
 import { ref, inject } from "vue";
 import { useRouter } from "vue-router";
+import { useToast } from "primevue/usetoast";
 
 export default function useUsers() {
     const users = ref([]);
@@ -11,6 +12,7 @@ export default function useUsers() {
     const validationErrors = ref({});
     const isLoading = ref(false);
     const swal = inject("$swal");
+    const toast = useToast();
 
     const getUsers = async (
         page = 1,
@@ -72,34 +74,43 @@ export default function useUsers() {
     const createUserProceduredDB = async (id) => {
         return axios.put("/api/users/db/procedure/" + id);
     };
-    const storeUser = async (user) => {
-        if (isLoading.value) return;
 
+    const storeUser = async (data) => {
         isLoading.value = true;
         validationErrors.value = {};
 
-        let serializedPost = new FormData();
-        for (let item in user) {
-            if (user.hasOwnProperty(item)) {
-                serializedPost.append(item, user[item]);
-            }
-        }
+        try {
+            console.log("Sending data:", data); // Debug log
 
-        axios
-            .post("/api/users", serializedPost)
-            .then((response) => {
-                router.push({ name: "users.index" });
-                swal({
-                    icon: "success",
-                    title: "User saved successfully",
-                });
-            })
-            .catch((error) => {
-                if (error.response?.data) {
-                    validationErrors.value = error.response.data.errors;
-                }
-            })
-            .finally(() => (isLoading.value = false));
+            const formattedData = {
+                ...data,
+                role_id: Array.isArray(data.role_id)
+                    ? data.role_id.map((role) =>
+                          typeof role === "object" ? role.id : role
+                      )
+                    : [data.role_id],
+                avatar_id: data.avatar_id || null,
+            };
+
+            console.log("Formatted data:", formattedData); // Debug log
+
+            const response = await axios.post("/api/users", formattedData);
+            console.log("Response:", response.data); // Debug log
+
+            if (response.data) {
+                return response;
+            }
+        } catch (error) {
+            console.error("Full error:", error); // Debug log
+            console.error("Error response:", error.response?.data); // Debug log
+
+            if (error.response?.data?.errors) {
+                validationErrors.value = error.response.data.errors;
+            }
+            throw error;
+        } finally {
+            isLoading.value = false;
+        }
     };
 
     const updateUser = async (user) => {
@@ -173,6 +184,29 @@ export default function useUsers() {
         }
     };
 
+    const uploadCustomAvatar = async (userId, fileData) => {
+        try {
+            const formData = new FormData();
+            formData.append("picture", fileData);
+            formData.append("id", userId);
+
+            const response = await axios.post(
+                "/api/users/updateimg",
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            return response.data;
+        } catch (error) {
+            console.error("Error uploading custom avatar:", error);
+            throw error;
+        }
+    };
+
     return {
         users,
         user,
@@ -187,6 +221,7 @@ export default function useUsers() {
         updateUser,
         deleteUser,
         assignAvatar,
+        uploadCustomAvatar,
         validationErrors,
         isLoading,
     };

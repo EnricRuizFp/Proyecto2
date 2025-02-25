@@ -25,15 +25,13 @@ class User extends Authenticatable implements HasMedia
     protected $table = 'users';
 
     protected $fillable = [
-        'name',
-        'surname1',
-        'surname2',
         'username',
+        'name',
         'email',
         'password',
-        'username',
-        'nationality',
-        'register_date',
+        'surname1',
+        'surname2',
+        'nationality', // Añadir este campo
     ];
 
     protected $hidden = [
