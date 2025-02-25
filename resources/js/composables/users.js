@@ -97,6 +97,13 @@ export default function useUsers() {
             const response = await axios.post("/api/users", formattedData);
             console.log("Response:", response.data); // Debug log
 
+            toast.add({
+                severity: "success",
+                summary: "Usuario creado",
+                detail: "El usuario se ha creado correctamente",
+                life: 3000,
+            });
+
             if (response.data) {
                 return response;
             }
@@ -106,6 +113,24 @@ export default function useUsers() {
 
             if (error.response?.data?.errors) {
                 validationErrors.value = error.response.data.errors;
+
+                // Mostrar mensaje específico para errores de duplicados
+                if (error.response.data.errors.username) {
+                    toast.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "El nombre de usuario ya está en uso",
+                        life: 5000,
+                    });
+                }
+                if (error.response.data.errors.email) {
+                    toast.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "El correo electrónico ya está registrado",
+                        life: 5000,
+                    });
+                }
             }
             throw error;
         } finally {
@@ -115,26 +140,72 @@ export default function useUsers() {
 
     const updateUser = async (user) => {
         if (isLoading.value) return;
-
         isLoading.value = true;
         validationErrors.value = {};
 
-        axios
-            .put("/api/users/" + user.id, user)
-            .then((response) => {
-                //router.push({name: 'users.index'})
+        try {
+            // Preparar los datos
+            const userData = {
+                ...user,
+                nationality:
+                    typeof user.nationality === "object"
+                        ? user.nationality.value
+                        : user.nationality,
+                role_id: Array.isArray(user.role_id)
+                    ? user.role_id.map((role) =>
+                          typeof role === "object" ? role.id : role
+                      )
+                    : [user.role_id],
+            };
 
-                swal({
-                    icon: "success",
-                    title: "User updated successfully",
+            console.log("Sending update with data:", userData);
+
+            const response = await axios.put(`/api/users/${user.id}`, userData);
+
+            toast.add({
+                severity: "success",
+                summary: "Usuario actualizado",
+                detail: "Los datos se han actualizado correctamente",
+                life: 3000,
+            });
+
+            return response.data;
+        } catch (error) {
+            console.error("Update error:", {
+                message: error.message,
+                response: error.response?.data,
+            });
+
+            if (error.response?.data?.errors) {
+                validationErrors.value = error.response.data.errors;
+
+                // Mostrar errores específicos
+                Object.entries(error.response.data.errors).forEach(
+                    ([field, messages]) => {
+                        toast.add({
+                            severity: "error",
+                            summary: "Error de validación",
+                            detail: messages[0],
+                            life: 5000,
+                        });
+                    }
+                );
+            } else {
+                // Error general
+                toast.add({
+                    severity: "error",
+                    summary: "Error",
+                    detail:
+                        error.response?.data?.message ||
+                        "Error al actualizar el usuario",
+                    life: 5000,
                 });
-            })
-            .catch((error) => {
-                if (error.response?.data) {
-                    validationErrors.value = error.response.data.errors;
-                }
-            })
-            .finally(() => (isLoading.value = false));
+            }
+
+            throw error;
+        } finally {
+            isLoading.value = false;
+        }
     };
 
     const deleteUser = async (id, index) => {
@@ -151,12 +222,9 @@ export default function useUsers() {
         }).then((result) => {
             if (result.isConfirmed) {
                 axios
-                    .delete("/api/users/" + id)
+                    .delete(`/api/users/${id}`)
                     .then((response) => {
                         users.value.data.splice(index, 1);
-
-                        //getUsers()
-                        //router.push({name: 'users.index'})
                         swal({
                             icon: "success",
                             title: "User deleted successfully",
@@ -171,6 +239,7 @@ export default function useUsers() {
             }
         });
     };
+
     const assignAvatar = async (userId, data) => {
         try {
             const response = await axios.post(
@@ -199,7 +268,6 @@ export default function useUsers() {
                     },
                 }
             );
-
             return response.data;
         } catch (error) {
             console.error("Error uploading custom avatar:", error);

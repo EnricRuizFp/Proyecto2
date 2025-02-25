@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -27,18 +28,16 @@ class UserController extends Controller
         if (!in_array($orderDirection, ['asc', 'desc'])) {
             $orderDirection = 'desc';
         }
-        $users = User::
-        when(request('search_id'), function ($query) {
+        $users = User::when(request('search_id'), function ($query) {
             $query->where('id', request('search_id'));
         })
             ->when(request('search_title'), function ($query) {
-                $query->where('name', 'like', '%'.request('search_title').'%');
+                $query->where('name', 'like', '%' . request('search_title') . '%');
             })
             ->when(request('search_global'), function ($query) {
-                $query->where(function($q) {
+                $query->where(function ($q) {
                     $q->where('id', request('search_global'))
-                        ->orWhere('name', 'like', '%'.request('search_global').'%');
-
+                        ->orWhere('name', 'like', '%' . request('search_global') . '%');
                 });
             })
             ->orderBy($orderColumn, $orderDirection)
@@ -51,6 +50,26 @@ class UserController extends Controller
     {
         try {
             Log::info('Request data:', $request->all());  // Log para debug
+
+            // Validación personalizada para verificar duplicados
+            $existingUser = User::where('username', $request->username)
+                ->orWhere('email', $request->email)
+                ->first();
+
+            if ($existingUser) {
+                $errors = [];
+                if ($existingUser->username === $request->username) {
+                    $errors['username'] = ['Este nombre de usuario ya está en uso'];
+                }
+                if ($existingUser->email === $request->email) {
+                    $errors['email'] = ['Este correo electrónico ya está registrado'];
+                }
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Error de validación',
+                    'errors' => $errors
+                ], 422);
+            }
 
             $validatedData = $request->validate([
                 'username' => 'required|unique:users',
@@ -94,13 +113,11 @@ class UserController extends Controller
                     'message' => 'Usuario creado exitosamente',
                     'user' => $user
                 ], 201);
-
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('Database error: ' . $e->getMessage());
                 throw $e;
             }
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation error: ' . $e->getMessage());
             return response()->json([
@@ -108,11 +125,10 @@ class UserController extends Controller
                 'message' => 'Error de validación',
                 'errors' => $e->errors()
             ], 422);
-
         } catch (\Exception $e) {
             Log::error('Unexpected error: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
-            
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Error interno del servidor',
@@ -129,8 +145,13 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load('roles')->get();
-        return new UserResource($user);
+        $user->load('roles');
+        $userData = new UserResource($user);
+
+        // Log para debug
+        Log::info('User nationality:', ['nationality' => $user->nationality]);
+
+        return $userData;
     }
 
     /**
@@ -142,26 +163,82 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user)
     {
-        $role = Role::find($request->role_id);
+        try {
+            Log::info('Update request data:', $request->all());
 
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->surname1 = $request->surname1;
-        $user->surname2 = $request->surname2;
-        $user->nationality = $request->nationality['value'] ?? $request->nationality; // Modificar esta línea
+            DB::beginTransaction();
 
-        if(!empty($request->password)) {
-            $user->password = Hash::make($request->password) ?? $user->password;
-        }
+            try {
+                // Procesar la nacionalidad
+                $nationality = is_array($request->nationality)
+                    ? $request->nationality['value']
+                    : $request->nationality;
 
-        if ($user->save()) {
-            if ($role) {
-                $user->syncRoles($role);
+                // Validar la nacionalidad
+                if (!in_array($nationality, ['africa', 'america', 'asia', 'europe', 'oceania'])) {
+                    throw new \InvalidArgumentException('Nacionalidad inválida');
+                }
+
+                // Actualizar datos básicos
+                $user->fill([
+                    'username' => $request->username,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'surname1' => $request->surname1,
+                    'surname2' => $request->surname2,
+                    'nationality' => $nationality
+                ]);
+
+                // Actualizar contraseña si se proporcionó
+                if ($request->filled('password')) {
+                    $user->password = Hash::make($request->password);
+                }
+
+                // Guardar cambios
+                if (!$user->save()) {
+                    throw new \Exception('Error al guardar los datos del usuario');
+                }
+
+                // Actualizar roles
+                if (!empty($request->role_id)) {
+                    $user->syncRoles($request->role_id);
+                }
+
+                DB::commit();
+
+                // Recargar el modelo con sus relaciones
+                $user->load('roles');
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Usuario actualizado correctamente',
+                    'data' => new UserResource($user)
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error en la transacción:', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                throw $e;
             }
-            return new UserResource($user);
+        } catch (\Exception $e) {
+            Log::error('Error actualizando usuario:', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage()
+            ]);
+
+            $statusCode = $e instanceof \InvalidArgumentException ? 422 : 500;
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al actualizar usuario',
+                'errors' => [
+                    'general' => [$e->getMessage()]
+                ]
+            ], $statusCode);
         }
     }
-
 
     public function updateimg(Request $request)
     {
@@ -173,7 +250,7 @@ class UserController extends Controller
             }
 
             $user = User::findOrFail($request->id);
-            
+
             // Buscar si el usuario ya tiene un avatar personalizado a través de la relación
             $existingCustomAvatar = $user->avatares()
                 ->where('type', 'custom')
@@ -189,7 +266,7 @@ class UserController extends Controller
                 'name' => 'Avatar personalizado de ' . $user->name,
                 'type' => 'custom'
             ]);
-            
+
             if ($existingCustomAvatar) {
                 // Actualizar el avatar existente
                 $avatar = $existingCustomAvatar;
@@ -222,7 +299,6 @@ class UserController extends Controller
                 'avatar' => new AvatarResource($avatar),
                 'media_url' => $media->getUrl()
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error updating user avatar: ' . $e->getMessage());
             return response()->json([
@@ -269,7 +345,6 @@ class UserController extends Controller
                 'user' => new UserResource($user),
                 'avatar' => new AvatarResource($avatar)
             ], 200);
-
         } catch (\Exception $e) {
             Log::error('Error asignando avatar: ' . $e->getMessage());
             return response()->json([
@@ -311,7 +386,7 @@ class UserController extends Controller
     {
         $user = User::findOrFail($userId);
         $user->avatares()->detach($avatarId);
-        
+
         return response()->json([
             'message' => 'Avatar removed successfully from user'
         ]);

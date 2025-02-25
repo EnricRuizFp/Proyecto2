@@ -134,38 +134,10 @@
                                     </template>
                                 </FileUpload>
                             </div>
-
-                            <h5 class="user-name">{{ user.name }}</h5>
-                            <h6 class="user-email">{{ user.email }}</h6>
                         </div>
 
                         <div class="about">
-                            <div class="form-group">
-                                <label for="roles">Roles</label>
-                                <MultiSelect
-                                    id="roles"
-                                    v-model="user.role_id"
-                                    display="chip"
-                                    :options="roleList"
-                                    optionLabel="name"
-                                    dataKey="id"
-                                    placeholder="Seleciona los roles"
-                                    appendTo="self"
-                                    class="w-100"
-                                />
-                            </div>
-
-                            <div class="text-right">
-                                <button
-                                    :disabled="isLoading"
-                                    class="btn btn-primary w-100"
-                                    @click="submitForm"
-                                >
-                                    <div v-show="isLoading"></div>
-                                    <span v-if="isLoading">Processing...</span>
-                                    <span v-else>Guardar</span>
-                                </button>
-                            </div>
+                            <!-- Eliminar el botón de aquí -->
                         </div>
                     </div>
                 </div>
@@ -175,7 +147,27 @@
         <div class="col-12 md:col-8 lg:col-8 xl:col-8">
             <div class="card mb-3">
                 <div class="card-body">
-                    <h6 class="mb-2 text-primary">Personal Details</h6>
+                    <!-- Username field -->
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input
+                            v-model="user.username"
+                            type="text"
+                            class="form-control"
+                            id="username"
+                        />
+                        <div class="text-danger mt-1">
+                            {{ errors.username }}
+                        </div>
+                        <div class="text-danger mt-1">
+                            <div
+                                v-for="message in validationErrors?.username"
+                                :key="message"
+                            >
+                                {{ message }}
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="form-group">
                         <label for="name">Nombre</label>
@@ -281,11 +273,12 @@
                     <div class="form-group">
                         <label for="nationality">Nacionalidad</label>
                         <Select
-                            v-model="user.nationality"
+                            v-model="selectedNationality"
                             :options="continents"
                             optionLabel="label"
                             placeholder="Selecciona un continente"
                             class="w-100"
+                            @change="onNationalityChange"
                         />
                         <div class="text-danger mt-1">
                             {{ errors.nationality }}
@@ -298,6 +291,35 @@
                                 {{ message }}
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Añadir el MultiSelect de Roles aquí, antes del botón submit -->
+                    <div class="form-group">
+                        <label for="roles">Roles</label>
+                        <MultiSelect
+                            id="roles"
+                            v-model="user.role_id"
+                            display="chip"
+                            :options="roleList"
+                            optionLabel="name"
+                            dataKey="id"
+                            placeholder="Seleciona los roles"
+                            appendTo="self"
+                            class="w-100"
+                        />
+                    </div>
+
+                    <!-- Modificar el div del botón para que coincida con Create.vue -->
+                    <div class="mt-4">
+                        <button
+                            type="submit"
+                            :disabled="isLoading"
+                            class="btn btn-primary"
+                            @click="submitForm"
+                        >
+                            <span v-if="isLoading">Processing...</span>
+                            <span v-else>Save</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -354,12 +376,14 @@ const { value: role_id } = useField("role_id", null, {
 });
 
 const user = reactive({
+    username: "", // Añadir username
     name,
     email,
     surname1,
     surname2,
     password,
     role_id,
+    nationality: "", // Añadir esta línea
 });
 
 const route = useRoute();
@@ -376,6 +400,7 @@ onMounted(() => {
 });
 watchEffect(() => {
     user.id = postData.value.id;
+    user.username = postData.value.username; // Añadir esta línea
     user.name = postData.value.name;
     user.email = postData.value.email;
     user.surname1 = postData.value.surname1;
@@ -620,13 +645,38 @@ const continents = [
     { label: "Oceanía", value: "oceania" },
 ];
 
-// Modificar el watchEffect para incluir nationality
+// Simplificar completamente el manejo de nacionalidad
+const selectedNationality = ref(null);
+
+watch(
+    () => postData.value?.nationality,
+    (newValue) => {
+        if (newValue) {
+            const matchingContinent = continents.find(
+                (c) => c.value === newValue
+            );
+            if (matchingContinent) {
+                selectedNationality.value = matchingContinent;
+                user.nationality = matchingContinent.value;
+            }
+        }
+    },
+    { immediate: true }
+);
+
+const onNationalityChange = (e) => {
+    if (!e?.value) return;
+    user.nationality = e.value;
+};
+
+// Remover los watchEffect anteriores relacionados con nacionalidad
+
+// Modificar el watchEffect de datos generales para excluir explícitamente nationality
 watchEffect(() => {
     if (postData.value) {
-        // ...existing watchEffect assignments...
-        user.nationality = postData.value.nationality
-            ? continents.find((c) => c.value === postData.value.nationality)
-            : null;
+        // Desestructurar para excluir nationality
+        const { nationality: _, ...rest } = postData.value;
+        Object.assign(user, rest);
     }
 });
 </script>
@@ -716,5 +766,27 @@ label {
 .preview-item.active img {
     border-color: #4caf50;
     box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+}
+
+/* Añadir estos estilos para igualar alturas */
+.card {
+    height: 100%;
+    margin: 0;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Ajustar el espaciado del formulario */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Opcional: hacer que el formulario ocupe todo el espacio disponible */
+.form-group:last-child {
+    margin-bottom: 0;
 }
 </style>

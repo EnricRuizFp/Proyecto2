@@ -85,6 +85,15 @@
                     <Column field="surname1" header="Apellido1" sortable />
                     <Column field="surname2" header="Apellido2" sortable />
                     <Column field="email" header="Email" sortable />
+                    <Column field="nationality" header="Nacionalidad" sortable>
+                        <template #body="slotProps">
+                            {{
+                                capitalizeFirstLetter(
+                                    slotProps.data.nationality
+                                )
+                            }}
+                        </template>
+                    </Column>
                     <Column field="created_at" header="Creado el" sortable />
                     <Column class="pe-0 me-0 icon-column-2">
                         <template #body="slotProps">
@@ -142,6 +151,12 @@ const initFilters = () => {
 };
 
 const defaultAvatar = "https://bootdey.com/img/Content/avatar/avatar7.png";
+
+// Agregar esta función para capitalizar la primera letra
+const capitalizeFirstLetter = (string) => {
+    if (!string) return "";
+    return string.charAt(0).toUpperCase() + string.slice(1);
+};
 
 onMounted(() => {
     getUsers();
