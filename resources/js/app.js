@@ -70,7 +70,7 @@ import "../css/theme.css";
 import "../css/navBars.css";
 import "../css/general.css";
 import "../css/mainPage.css";
-import "../css/login&register.css";
+import "../css/login&register&forgot.css";
 
 const app = createApp({
     created() {
