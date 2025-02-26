@@ -89,8 +89,13 @@ Route::put('authors/{author}', [AuthorController::class, 'update'])->name('autho
 
 /* -- APP ROUTES -- */
 
-// Games
+/* - GAMES - */
+// Play a public game (ruta personalizada)
+Route::post('/games/play-public', [GameController::class, 'playPublicGame']);
+// Games (después de la personalizada)
 Route::apiResource('games', GameController::class);
+
+
 
 // Rankings
 Route::apiResource('rankings', RankingController::class);
