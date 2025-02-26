@@ -65,16 +65,19 @@ class Game extends Model
      */
     public function players()
     {
-        return $this->hasMany(GamePlayer::class, 'game_id');
+        return $this->belongsToMany(User::class, 'game_players', 'game_id', 'user_id')
+                    ->withPivot('joined');  // Si la tabla intermedia tiene campos adicionales
     }
 
     /**
-     * Relación: Un Game tiene muchos GameObservers.
+     * Relación: Un Game tiene muchos GameViewers.
      */
     public function observers()
     {
-        return $this->hasMany(GameViewer::class, 'game_id');
+        return $this->belongsToMany(User::class, 'game_viewers', 'game_id', 'user_id')
+                    ->withPivot('joined');  // Si la tabla intermedia tiene campos adicionales
     }
+
 
     /**
      * Relación: Un Game tiene muchos Movements.

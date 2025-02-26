@@ -76,4 +76,83 @@ class GameController extends Controller
         ]);
     }
 
+
+
+    /*
+
+        ///// GAME FUNCTIONS /////
+
+    */
+
+    public function playPublicGame()
+    {
+        // Generar un usuario random
+        $user = [
+            'id' => 1,
+            'name' => 'Enric',
+            'surname1' => 'Ruiz',
+            'surname2' => 'Badia',
+            'username' => 'enricrb',
+            'email' => 'erb@erb.com',
+            'nationality' => 'spain'
+        ];
+
+        // Buscar todos los juegos públicos que no han comenzado
+        $publicUnstartedGames = Game::where('is_public', true)
+                                    ->where('is_finished', false)
+                                    ->with(['players', 'observers']) // Cargar relaciones de jugadores y observadores
+                                    ->withCount('players') // Obtener el count de jugadores
+                                    ->get();
+
+        // Para cada juego, revisamos la cantidad de jugadores
+        foreach ($publicUnstartedGames as $publicGame) {
+
+            // Obtener la cantidad de jugadores
+            $playersCount = $publicGame->players_count;
+
+            // Devolver el primer juego disponible (menos de 2 jugadores)
+            if ($playersCount < 2) {
+
+                // ----- Unirse a la partida
+                // Aquí es donde aseguramos que todos los datos de la tabla intermedia sean correctos
+                $publicGame->players()->attach($user['id'], [
+                    'joined' => now() // La fecha de unión del jugador
+                ]);
+
+                // Devolver el juego encontrado
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Public free game found, connected successfully',
+                    'data'    => $publicGame
+                ]);
+            }
+        }
+
+        // Si no se encontraron juegos públicos, crear un nuevo juego
+        $newGame = Game::create([
+            'creation_date' => now(),
+            'is_public'     => true,
+            'is_finished'   => false,
+            'end_date'      => null,
+            'created_by'    => $user['id']
+        ]);
+
+        $newGame->players()->attach($user['id'], [
+            'joined' => now() // La fecha de unión del jugador
+        ]);
+
+        // Devolver el juego encontrado
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'No games found, new one created and connected successfully',
+            'data'    => $newGame
+        ]);
+
+        // return response()->json([
+        //     'message' => 'No public games found, new game created'
+        // ]);
+    }
+
+
+
 }
