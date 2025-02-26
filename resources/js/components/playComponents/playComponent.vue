@@ -6,7 +6,7 @@
         <button
             id="botonJugarPartida"
             class="white-color h4 bold"
-            to="resources/js/views/game/GameView.vue"
+            @click="irAlJuego"
         >
             JUGAR
             <img
@@ -43,3 +43,21 @@
         </div>
     </div>
 </template>
+
+<script>
+import { useRouter } from "vue-router";
+
+export default {
+    setup() {
+        const router = useRouter();
+
+        const irAlJuego = () => {
+            router.push({ name: "game" });
+        };
+
+        return {
+            irAlJuego,
+        };
+    },
+};
+</script>
