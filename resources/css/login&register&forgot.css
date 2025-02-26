@@ -13,29 +13,16 @@
 
 */
 
-.loginFormLabels{
-    color: var(--white-color);
-    width: 100%;
-    margin-bottom: 10px;
-}
-.loginFormFields{
-    border: 1px solid var(--white-color);
-    border-radius: 10px;
-    color: var(--white-color);
-    padding: 5px 15px;
-    background-color: var(--neutral-color);
-    width: 100%;
-}
-.loginFormField, .registerFormField{
+.loginFormField, .registerFormField, .forgotFormField{
     margin-top: 20px;
     margin-bottom: 20px;
 }
-.loginFormLabels, .registerFormLabels{
+.loginFormLabels, .registerFormLabels, .forgotFormLabels{
     color: var(--white-color);
     width: 100%;
     margin-bottom: 10px;
 }
-.loginFormFields, .registerFormFields{
+.loginFormFields, .registerFormFields, .forgotFormFields{
     border: 1px solid var(--white-color);
     border-radius: 10px;
     color: var(--white-color) !important;
@@ -129,4 +116,27 @@
     #registerForm{
         padding: 50px;
     }
+}
+
+/*
+
+    ///// FORGOT PASSWORD PAGE /////
+
+*/
+#forgotContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--neutral-color);
+    height: calc(100vh - 101px);
+}
+#forgotForm{
+    padding: 100px;
+    border: 1px solid var(--white-color);
+    border-radius: 15px;
+}
+#forgotFormTitle{
+    text-align: center;
+
+    margin-bottom: 50px;
 }

@@ -1,33 +1,33 @@
 <template>
-    <div class="container">
-        <div class="row justify-content-center my-5">
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <form @submit.prevent="submitForgotPassword">
-                            <div class="">
-                                <!-- Email -->
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">{{ $t('email') }}</label>
-                                    <input v-model="forgotForm.email" id="email" type="email" class="form-control" required autofocus autocomplete="username">
-                                    <!-- Validation Errors -->
-                                    <div class="text-danger mt-1">
-                                        <div v-for="message in validationErrors?.email">
-                                            {{ message }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Buttons -->
-                                <div class="flex items-center justify-end mt-4">
-                                    <button class="btn btn-primary" :class="{ 'opacity-25': processing }" :disabled="processing">
-                                        {{ $t('send_password_reset_link') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+    <div id="forgotContainer">
+        <div>
+            <form @submit.prevent="submitForgotPassword" id="forgotForm">
+
+                <!-- FORGOT title -->
+                <div id="forgotFormTitle">
+                    <h2 class="h2 white-color uppercase">{{ $t('forgot_password_1')}}</h2>
                 </div>
-            </div>
+
+                <div class="forgonFormContent">
+
+                    <!-- Email -->
+                    <div class="forgotFormField">
+                        <label for="email" class="forgotFormLabels p4">{{ $t('email') }}</label>
+                        <input v-model="forgotForm.email" id="email" type="email" class="forgotFormFields" required autofocus autocomplete="username">
+                        <!-- Validation Errors -->
+                        <div>
+                            <div v-for="message in validationErrors?.email">
+                                {{ message }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <button :class="{ 'opacity-25': processing }" :disabled="processing" id="forgotButton" class="primary-button">
+                        {{ $t('send_password_reset_link') }}
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </template>
