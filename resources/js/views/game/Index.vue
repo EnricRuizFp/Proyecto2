@@ -1,41 +1,36 @@
 <template>
     <div class="game-view">
-        <GameLayout>
-            <!-- Contenido principal del juego -->
-            <div class="game-container">
-                <!-- Aquí irá el contenido específico del juego -->
-                <h2>Nivel {{ currentLevel }}</h2>
-                <!-- Botones temporales para pruebas -->
-                <div class="debug-controls">
-                    <button @click="testWin">Simular Victoria</button>
-                    <button @click="testGameOver">Simular Derrota</button>
-                </div>
+        <div class="game-container">
+            <h1>Game View</h1>
+            <h2>Nivel {{ currentLevel }}</h2>
+            <!-- Botones temporales para pruebas -->
+            <div class="debug-controls">
+                <button @click="testWin">Simular Victoria</button>
+                <button @click="testGameOver">Simular Derrota</button>
             </div>
+        </div>
 
-            <!-- Componentes de victoria y derrota -->
-            <GameWin
-                :visible="showWin"
-                @next-level="nextLevel"
-                @restart="restartLevel"
-            />
-            <GameOver
-                :visible="showGameOver"
-                @restart="restartLevel"
-                @menu="goToMenu"
-            />
-        </GameLayout>
+        <!-- Componentes de victoria y derrota -->
+        <GameWin
+            :visible="showWin"
+            @next-level="nextLevel"
+            @restart="restartLevel"
+        />
+        <GameOver
+            :visible="showGameOver"
+            @restart="restartLevel"
+            @menu="goToMenu"
+        />
     </div>
 </template>
 
 <script>
-import GameLayout from "@/js/layouts/Game.vue";
-import GameWin from "@/js/components/GameWin.vue";
-import GameOver from "@/js/components/GameOver.vue";
+import GameWin from "../../components/gameComponents/GameWin.vue";
+import GameOver from "../../components/gameComponents/GameOver.vue";
 
 export default {
     name: "GameView",
     components: {
-        GameLayout,
         GameWin,
         GameOver,
     },
