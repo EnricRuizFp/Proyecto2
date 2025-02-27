@@ -84,9 +84,15 @@ class GameController extends Controller
 
     */
 
+    /**
+     * PLAY A PUBLIC GAME
+     * This function searches a public game to join. If there are no public games available, it creates a new one.
+     * Returns the game you have joined.
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
     public function playPublicGame()
     {
-        // Generar un usuario random
+        // Generar un usuario random [SUSTITUIR POR EL USUARIO AUTENTICADO]
         $user = [
             'id' => 1,
             'name' => 'Enric',
@@ -147,10 +153,114 @@ class GameController extends Controller
             'message' => 'No games found, new one created and connected successfully',
             'data'    => $newGame
         ]);
+    }
 
-        // return response()->json([
-        //     'message' => 'No public games found, new game created'
-        // ]);
+    public function createPrivateGame()
+    {
+        // Generar un usuario random [SUSTITUIR POR EL USUARIO AUTENTICADO]
+        $user = [
+            'id' => 1,
+            'name' => 'Enric',
+            'surname1' => 'Ruiz',
+            'surname2' => 'Badia',
+            'username' => 'enricrb',
+            'email' => 'erb@erb.com',
+            'nationality' => 'spain'
+        ];
+
+        // Crear juego privado
+        $newPrivateGame = Game::create([
+            'creation_date' => now(),
+            'is_public'     => false,
+            'is_finished'   => false,
+            'end_date'      => null,
+            'created_by'    => $user['id']
+        ]);
+
+        // Unirse a la partida privada
+        $newPrivateGame->players()->attach($user['id'], [
+            'joined' => now() // La fecha de unión del jugador
+        ]);
+
+        // Devolver el juego creado
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'New private game created and connected successfully',
+            'data'    => $newPrivateGame
+        ]);
+
+    }
+
+    public function joinPrivateGame($code)
+    {
+
+        // Crear un usuario random [SUSTITUIR POR EL USUARIO AUTENTICADO]
+        $user = [
+            'id' => 1,
+            'name' => 'Enric',
+            'surname1' => 'Ruiz',
+            'surname2' => 'Badia',
+            'username' => 'enricrb',
+            'email' => 'erb@gmail.com'
+        ];
+
+
+        // Buscar todos los juegos privados que no hay comenzado
+        $privateGame = Game::where('code', $code)
+                                    ->with(['players', 'observers']) // Cargar relaciones de jugadores y observadores
+                                    ->withCount('players') // Obtener el count de jugadores
+                                    ->first();
+        
+        // Si encuentra el juego lo devuelve
+        if($privateGame) {
+
+            // Obtener el tipo de partida
+            if($privateGame->is_public){
+
+                // Devolver mensaje partida pública
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Game found, but is public.'
+                ]);
+
+            }else{
+
+                // Obtener cantidad de jugadores
+                $playersCount = $privateGame->players_count;
+
+                if($playersCount > 1){
+
+                    // Si hay más de 1 jugador la partida está llena
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => 'Private game is full.'
+                    ]);
+
+                }else{
+
+                    // Unir al usuario a la partida
+                    $privateGame->players()->attach($user['id'], [
+                        'joined' => now() // La fecha de unión del jugador
+                    ]);
+
+                    // Devolver los datos de la partida
+                    return response()->json([
+                        'status'  => 'success',
+                        'message' => 'Private game found & connected.',
+                        'data'    => $privateGame
+                    ]);
+                }
+            }
+
+        }else{
+
+            // Partida no encontrada
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Private game not found.'
+            ]);
+        }
+
     }
 
 

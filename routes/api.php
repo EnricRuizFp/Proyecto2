@@ -92,6 +92,10 @@ Route::put('authors/{author}', [AuthorController::class, 'update'])->name('autho
 /* - GAMES - */
 // Play a public game (ruta personalizada)
 Route::post('/games/play-public', [GameController::class, 'playPublicGame']);
+// Create a private game (ruta personalizada)
+Route::post('/games/create-private', [GameController::class, 'createPrivateGame']);
+// Join a private game (ruta personalizada)
+Route::get('/games/join-private/{code}', [GameController::class, 'joinPrivateGame']);
 // Games (después de la personalizada)
 Route::apiResource('games', GameController::class);
 
