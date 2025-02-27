@@ -109,7 +109,7 @@ export default {
         const router = useRouter();
 
         const goToHome = () => {
-            router.push({ name: "home" });
+            router.push("/");
         };
 
         return {

@@ -112,7 +112,7 @@ export default {
         const router = useRouter();
 
         const goToHome = () => {
-            router.push({ name: "home" });
+            router.push("/"); // Cambiado de { name: 'home' } a '/'
         };
 
         return {
