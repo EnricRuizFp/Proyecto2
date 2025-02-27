@@ -1,5 +1,5 @@
 <template>
-    <div class="game-view">
+    <div class="game-view neutral-background">
         <div class="game-container">
             <h1>Game View</h1>
             <h2>Nivel {{ currentLevel }}</h2>
@@ -69,8 +69,7 @@ export default {
 <style scoped>
 .game-view {
     width: 100%;
-    height: 100vh;
-    background: #1a1a1a;
+    height: calc(100vh - 101px);
     color: white;
 }
 
@@ -92,14 +91,15 @@ export default {
 .debug-controls button {
     padding: 10px 20px;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
-    background: #333;
-    color: white;
-    transition: all 0.3s ease;
+    background: var(--primary-color);
+    color: var(--white-color);
+    font-weight: bold;
+    transition: 0.3s;
 }
 
 .debug-controls button:hover {
-    background: #444;
+    background: var(--primary-v2-color);
 }
 </style>
