@@ -155,6 +155,11 @@ class GameController extends Controller
         ]);
     }
 
+    /**
+     * CREATE A PRIVATE GAME
+     * This function creates a new private game and connects the user to it.
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
     public function createPrivateGame()
     {
         // Generar un usuario random [SUSTITUIR POR EL USUARIO AUTENTICADO]
@@ -191,6 +196,15 @@ class GameController extends Controller
 
     }
 
+    /**
+     * JOIN A PRIVATE GAME
+     * This function allows a user to join a private game using the game code.
+     * If the code does not exist, it returns an error message.
+     * If the game is public, it returns an error message.
+     * If the game is full, it returns an error message.
+     * @param mixed $code
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
     public function joinPrivateGame($code)
     {
 
@@ -262,7 +276,5 @@ class GameController extends Controller
         }
 
     }
-
-
 
 }
