@@ -1,12 +1,21 @@
 <template>
     <div class="game-view neutral-background">
         <div class="game-container">
-            <h1>Game View</h1>
-            <h2>Nivel {{ currentLevel }}</h2>
-            <!-- Botones temporales para pruebas -->
-            <div class="debug-controls">
-                <button @click="testWin">Simular Victoria</button>
-                <button @click="testGameOver">Simular Derrota</button>
+            <!-- Fase de colocación de barcos -->
+            <ShipPlacement
+                v-if="gamePhase === 'placement'"
+                @placement-confirmed="startGame"
+            />
+
+            <!-- Resto del juego -->
+            <div v-else>
+                <h1>Game View</h1>
+                <h2>Nivel {{ currentLevel }}</h2>
+                <!-- Botones temporales para pruebas -->
+                <div class="debug-controls">
+                    <button @click="testWin">Simular Victoria</button>
+                    <button @click="testGameOver">Simular Derrota</button>
+                </div>
             </div>
         </div>
 
@@ -25,23 +34,32 @@
 </template>
 
 <script>
+import ShipPlacement from "../../components/gameComponents/ShipPlacement.vue";
 import GameWin from "../../components/gameComponents/GameWin.vue";
 import GameOver from "../../components/gameComponents/GameOver.vue";
 
 export default {
     name: "GameView",
     components: {
+        ShipPlacement,
         GameWin,
         GameOver,
     },
     data() {
         return {
+            gamePhase: "placement", // 'placement', 'playing', 'finished'
+            playerBoard: null,
             currentLevel: 1,
             showWin: false,
             showGameOver: false,
         };
     },
     methods: {
+        startGame(boardConfiguration) {
+            this.playerBoard = boardConfiguration;
+            this.gamePhase = "playing";
+            // Iniciar lógica del juego
+        },
         nextLevel() {
             this.currentLevel++;
             this.showWin = false;
