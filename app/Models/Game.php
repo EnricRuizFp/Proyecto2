@@ -66,7 +66,7 @@ class Game extends Model
     public function players()
     {
         return $this->belongsToMany(User::class, 'game_players', 'game_id', 'user_id')
-                    ->withPivot('joined');  // Si la tabla intermedia tiene campos adicionales
+                    ->withPivot('joined'); // Importante para tener acceso al campo 'joined'
     }
 
     /**

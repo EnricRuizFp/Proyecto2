@@ -113,12 +113,7 @@ class GameController extends Controller
             if ($playersCount < 2) {
 
                 // Unir al jugador a la partida
-                $publicGame->players()->create([
-                    'user_id' => $user['id'],
-                    'joined' => now()
-                ]);
-
-                return "USER JOINED";
+                $publicGame->players()->attach($user['id'], ['joined' => now()]);
 
                 // Devolver el juego encontrado
                 return response()->json([
