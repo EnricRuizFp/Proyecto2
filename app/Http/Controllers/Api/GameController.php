@@ -92,6 +92,7 @@ class GameController extends Controller
      */
     public function playPublicGame(Request $request)
     {
+        
         // Obtener el usuario del frontend
         $user = $request->input('user');
 
@@ -111,11 +112,8 @@ class GameController extends Controller
             // Devolver el primer juego disponible (menos de 2 jugadores)
             if ($playersCount < 2) {
 
-                // ----- Unirse a la partida
-                // Aquí es donde aseguramos que todos los datos de la tabla intermedia sean correctos
-                $publicGame->players()->attach($user['id'], [
-                    'joined' => now() // La fecha de unión del jugador
-                ]);
+                // Unir al jugador a la partida
+                $publicGame->players()->attach($user['id'], ['joined' => now()]);
 
                 // Devolver el juego encontrado
                 return response()->json([
