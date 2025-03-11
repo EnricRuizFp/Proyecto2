@@ -90,18 +90,11 @@ class GameController extends Controller
      * Returns the game you have joined.
      * @return mixed|\Illuminate\Http\JsonResponse
      */
-    public function playPublicGame()
+    public function playPublicGame(Request $request)
     {
-        // Generar un usuario random [SUSTITUIR POR EL USUARIO AUTENTICADO]
-        $user = [
-            'id' => 1,
-            'name' => 'Enric',
-            'surname1' => 'Ruiz',
-            'surname2' => 'Badia',
-            'username' => 'enricrb',
-            'email' => 'erb@erb.com',
-            'nationality' => 'spain'
-        ];
+        
+        // Obtener el usuario del frontend
+        $user = $request->input('user');
 
         // Buscar todos los juegos públicos que no han comenzado
         $publicUnstartedGames = Game::where('is_public', true)
@@ -119,11 +112,8 @@ class GameController extends Controller
             // Devolver el primer juego disponible (menos de 2 jugadores)
             if ($playersCount < 2) {
 
-                // ----- Unirse a la partida
-                // Aquí es donde aseguramos que todos los datos de la tabla intermedia sean correctos
-                $publicGame->players()->attach($user['id'], [
-                    'joined' => now() // La fecha de unión del jugador
-                ]);
+                // Unir al jugador a la partida
+                $publicGame->players()->attach($user['id'], ['joined' => now()]);
 
                 // Devolver el juego encontrado
                 return response()->json([
@@ -160,18 +150,10 @@ class GameController extends Controller
      * This function creates a new private game and connects the user to it.
      * @return mixed|\Illuminate\Http\JsonResponse
      */
-    public function createPrivateGame()
+    public function createPrivateGame(Request $request)
     {
-        // Generar un usuario random [SUSTITUIR POR EL USUARIO AUTENTICADO]
-        $user = [
-            'id' => 1,
-            'name' => 'Enric',
-            'surname1' => 'Ruiz',
-            'surname2' => 'Badia',
-            'username' => 'enricrb',
-            'email' => 'erb@erb.com',
-            'nationality' => 'spain'
-        ];
+        // Obtener el usuario del frontend
+        $user = $request->input('user');
 
         // Crear juego privado
         $newPrivateGame = Game::create([
@@ -205,18 +187,11 @@ class GameController extends Controller
      * @param mixed $code
      * @return mixed|\Illuminate\Http\JsonResponse
      */
-    public function joinPrivateGame($code)
+    public function joinPrivateGame(Request $request)
     {
-
-        // Crear un usuario random [SUSTITUIR POR EL USUARIO AUTENTICADO]
-        $user = [
-            'id' => 1,
-            'name' => 'Enric',
-            'surname1' => 'Ruiz',
-            'surname2' => 'Badia',
-            'username' => 'enricrb',
-            'email' => 'erb@gmail.com'
-        ];
+        // Obtener el usuario y el código de la request
+        $user = $request->input('user');
+        $code = $request->input('code');
 
 
         // Buscar todos los juegos privados que no hay comenzado

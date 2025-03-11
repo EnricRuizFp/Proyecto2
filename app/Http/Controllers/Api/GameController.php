@@ -84,6 +84,44 @@ class GameController extends Controller
 
     */
 
+    public function playFunction(Request $request){
+
+        // Inclusión de los datos pasados por parámetro
+        $gameType = $request->input('game');
+        $gameCode = $request->input('code');
+        $user = $request->input('user');
+
+        /*
+            ///// COMRPOBACIONES PRE PARTIDA /////
+        */
+
+        // Usuario registrado
+        if(!$user){
+            return response()->json([
+                'status'  => 'failed',
+                'message' => 'You are not logged in.'
+            ]);
+        }
+
+        // Usuario en otra partida
+        $unfinishedUserGames = Game::whereIn('id', function ($query) use ($user) {
+            $query->select('game_id')
+                ->from('game_players')
+                ->where('user_id', $user);
+        })
+        ->where('is_finished', false)
+        ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Unfinished user games found:',
+            'games' => $unfinishedUserGames
+        ]);
+
+
+    }
+
+
     /**
      * PLAY A PUBLIC GAME
      * This function searches a public game to join. If there are no public games available, it creates a new one.
