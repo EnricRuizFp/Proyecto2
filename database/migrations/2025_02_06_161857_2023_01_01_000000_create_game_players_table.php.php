@@ -14,7 +14,7 @@ return new class extends Migration
             $table->unsignedBigInteger('game_id');
             $table->unsignedBigInteger('user_id');
             $table->date('joined')->default(DB::raw('(CURDATE())'));
-            $table->json('coordinates');
+            $table->json('coordinates')->nullable();;
 
             $table->foreign('game_id')->references('id')->on('games');
             $table->foreign('user_id')->references('id')->on('users');
