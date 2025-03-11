@@ -11,6 +11,7 @@ import useAuth from "./composables/auth";
 import { installI18n, loadMessages } from "./plugins/i18n";
 import { langStore } from "@/store/lang";
 import "./plugins/axios.js";
+import "@fortawesome/fontawesome-free/css/all.css";
 
 /* PRIMEVUE */
 import PrimeVue from "primevue/config";
