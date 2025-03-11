@@ -316,11 +316,12 @@ const emit = defineEmits(["placement-confirmed"]);
 
 .ship-preview {
     display: flex;
-    flex-direction: row;
+    flex-direction: row; /* Siempre horizontal */
     background: transparent;
     border-radius: 4px;
     position: relative;
-    height: 40px; /* Altura fija para los barcos */
+    height: 40px;
+    width: 100%;
 }
 
 .ship-segment {
