@@ -87,8 +87,8 @@ class GameController extends Controller
     public function playFunction(Request $request){
 
         // Inclusión de los datos pasados por parámetro
-        $gameType = $request->input('game');
-        $gameCode = $request->input('code');
+        $gameType = $request->input('gameType');
+        $gameCode = $request->input('gameCode');
         $user = $request->input('user');
 
         /*
@@ -104,19 +104,18 @@ class GameController extends Controller
         }
 
         // Usuario en otra partida
-        $unfinishedUserGames = Game::whereIn('id', function ($query) use ($user) {
-            $query->select('game_id')
-                ->from('game_players')
-                ->where('user_id', $user);
-        })
-        ->where('is_finished', false)
-        ->get();
+        $unfinishedUserGames = Game::whereIn('id', function ($query) use ($user) {$query->select('game_id')->from('game_players')->where('user_id', $user);})->where('is_finished', false)->get();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Unfinished user games found:',
-            'games' => $unfinishedUserGames
-        ]);
+        if(count($unfinishedUserGames) > 0){
+
+            // TERMINAR TODOS LOS JUEGOS
+            
+
+            return response()->json([
+                'status'  => 'failed',
+                'message' => 'Your user is currently in a game. Unfinished match has been finished. Wait some seconds.'
+            ]);
+        }
 
 
     }

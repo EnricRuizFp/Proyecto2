@@ -90,6 +90,8 @@ Route::put('authors/{author}', [AuthorController::class, 'update'])->name('autho
 /* -- APP ROUTES -- */
 
 /* - GAMES - */
+// General play function
+Route::post('/games/play-function', [GameController::class, 'playFunction']);
 // Play a public game (ruta personalizada)
 Route::post('/games/play-public', [GameController::class, 'playPublicGame']);
 // Create a private game (ruta personalizada)

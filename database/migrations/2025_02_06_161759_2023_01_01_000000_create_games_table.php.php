@@ -18,9 +18,11 @@ return new class extends Migration
             $table->boolean('is_public')->default(true);
             $table->boolean('is_finished')->default(false);
             $table->dateTime('end_date')->nullable();
+            $table->unsignedBigInteger('winner')->nullable();
             $table->unsignedBigInteger('created_by');
             
             $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('winner')->references('id')->on('users');
         });
     }
 

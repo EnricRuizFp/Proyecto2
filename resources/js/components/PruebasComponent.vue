@@ -5,6 +5,9 @@
         <button style="padding: 10px; background-color: yellowgreen;" @click="createPrivateGame">Create private</button>
         <input id="gameCode" type="text" v-model="gameCode" maxlength="4" placeholder="Código">
         <button style="padding: 10px; background-color: yellow;" @click="joinPrivateGame">Join game</button>
+
+        <h2>PLAY FUNCTION</h2>
+        <button style="padding: 10px; background-color: yellow;" @click="playFunction('public',this.gameCode)">Play game</button>
     </div>
 </template>
 
@@ -60,6 +63,15 @@ export default {
                 console.error("Error al llamar a la API: ", error);
             }
         },
+        async playFunction(gameType, gameCode) {
+
+            try {
+                const response = await axios.post("http://127.0.0.1:8000/api/games/play-function", { gameType: gameType, gameCode: gameCode, user: authStore().user });
+                console.log("Respuesta de la API: ", response.data);
+            } catch (error) {
+                console.error("Error al llamar a la API: ", error);
+            }
+        }
     },
 };
 </script>
