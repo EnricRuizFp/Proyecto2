@@ -25,18 +25,16 @@ class ShipController extends Controller
         if (!in_array($orderDirection, ['asc', 'desc'])) {
             $orderDirection = 'desc';
         }
-        $ships = Ship::
-            when(request('search_id'), function ($query) {
-                $query->where('id', request('search_id'));
-            })
+        $ships = Ship::when(request('search_id'), function ($query) {
+            $query->where('id', request('search_id'));
+        })
             ->when(request('search_title'), function ($query) {
-                $query->where('name', 'like', '%'.request('search_title').'%');
+                $query->where('name', 'like', '%' . request('search_title') . '%');
             })
             ->when(request('search_global'), function ($query) {
-                $query->where(function($q) {
+                $query->where(function ($q) {
                     $q->where('id', request('search_global'))
-                        ->orWhere('name', 'like', '%'.request('search_global').'%');
-
+                        ->orWhere('name', 'like', '%' . request('search_global') . '%');
                 });
             })
             ->orderBy($orderColumn, $orderDirection)
@@ -64,7 +62,6 @@ class ShipController extends Controller
         }
 
         return response()->json(['status' => 405, 'success' => false]);
-
     }
 
     /**
@@ -107,7 +104,8 @@ class ShipController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Ship $ship) {
+    public function destroy(Ship $ship)
+    {
         $this->authorize('ship-delete');
         $ship->delete();
 
@@ -117,5 +115,29 @@ class ShipController extends Controller
     public function getList()
     {
         return ShipResource::collection(Ship::all());
+    }
+
+    /**
+     * Get a simple list of all ships for game placement
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getGameShips()
+    {
+        $ships = Ship::select('id', 'name', 'size')->get();
+        $gameShips = $ships->toArray();
+
+        // Buscar y duplicar el crucero
+        foreach ($ships as $ship) {
+            if ($ship->name === 'Crucero') {
+                $gameShips[] = [
+                    'id' => $ship->id . '_2', // Añadir sufijo para ID único
+                    'name' => $ship->name,
+                    'size' => $ship->size
+                ];
+                break;
+            }
+        }
+
+        return response()->json($gameShips);
     }
 }
