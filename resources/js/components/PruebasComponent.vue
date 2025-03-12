@@ -7,8 +7,8 @@
         <button style="padding: 10px; background-color: yellow;" @click="joinPrivateGame">Join game</button>
 
         <h2>PLAY FUNCTION</h2>
-        <button style="padding: 10px; background-color: yellow;" @click="findGameFunction('public', null)">Play game</button>
-        <button style="padding: 10px; background-color: yellow;" @click="findGameFunction('private',this.gameCode)">Private game</button>
+        <button style="padding: 10px; background-color: yellow;" @click="checkUserRequirements('public', null)">Play game</button>
+        <button style="padding: 10px; background-color: yellow;" @click="checkUserRequirements('private',this.gameCode)">Private game</button>
         
     </div>
 </template>
@@ -68,7 +68,7 @@ export default {
         },
         async checkUserRequirements(gameType, gameCode) {
             try {
-                const response = await axios.post("/api/games/find-game-function", { gameType: gameType, gameCode: gameCode, user: authStore().user });
+                const response = await axios.post("/api/games/check-user-requirements", { gameType: gameType, gameCode: gameCode, user: authStore().user });
                 if(response.data.status == 'success'){
                     console.log("Usuario preparado para unirse a una partida");
                     // Llevar al usuario a la pantalla de matchmaking
