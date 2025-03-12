@@ -189,6 +189,11 @@
 .neutral-background {
     background-color: var(--neutral-color) !important;
 }
+.neutral-background-full {
+    background-color: var(--neutral-color) !important;
+    min-height: 100vh;
+    width: 100%;
+}
 .white-background {
     background-color: var(--white-color) !important;
 }

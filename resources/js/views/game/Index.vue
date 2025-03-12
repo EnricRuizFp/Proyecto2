@@ -2,13 +2,10 @@
     <div class="game-view neutral-background">
         <div class="game-container">
             <!-- Fase de colocación de barcos -->
-            <ShipPlacement v-if="gamePhase === 'placement'" @placement-confirmed="startGame" />
-
-            <!-- Resto del juego -->
-            <div>
-                <h1>Game View</h1>
-                <h2>Nivel {{ currentLevel }}</h2>
-            </div>
+            <ShipPlacement
+                v-if="gamePhase === 'placement'"
+                @placement-confirmed="startGame"
+            />
 
             <!-- Panel de pruebas convertido en componente -->
             <PruebasComponent />
@@ -21,8 +18,16 @@
         </div>
 
         <!-- Componentes de victoria y derrota -->
-        <GameWin :visible="showWin" @next-level="nextLevel" @restart="restartLevel" />
-        <GameOver :visible="showGameOver" @restart="restartLevel" @menu="goToMenu" />
+        <GameWin
+            :visible="showWin"
+            @next-level="nextLevel"
+            @restart="restartLevel"
+        />
+        <GameOver
+            :visible="showGameOver"
+            @restart="restartLevel"
+            @menu="goToMenu"
+        />
     </div>
 </template>
 
@@ -78,12 +83,16 @@ export default {
 <style scoped>
 .game-view {
     width: 100%;
-    height: calc(100vh - 101px);
-    color: white;
+    min-height: 100vh;
+    background-color: var(--neutral-color);
+    color: var(--white-color);
+    position: relative; /* Cambiado de fixed a relative */
+    overflow-y: auto;
 }
 
 .game-container {
     padding: 20px;
+    padding-top: 80px; /* Reducido de 121px a 111px */
     display: flex;
     flex-direction: column;
     align-items: center;

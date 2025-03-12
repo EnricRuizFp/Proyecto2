@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 
 // Estado del tablero
 const board = ref(
@@ -107,13 +107,25 @@ const selectedShip = ref(null);
 const isVertical = ref(false);
 
 // Definición de barcos disponibles
-const availableShips = ref([
-    { name: "Portaaviones", size: 5, placed: false },
-    { name: "Acorazado", size: 4, placed: false },
-    { name: "Crucero", size: 3, placed: false },
-    { name: "Submarino", size: 3, placed: false },
-    { name: "Destructor", size: 2, placed: false },
-]);
+const availableShips = ref([]);
+
+// Cargar barcos desde la API
+const loadShips = async () => {
+    try {
+        const response = await fetch("/api/game-ships");
+        const ships = await response.json();
+        availableShips.value = ships.map((ship) => ({
+            ...ship,
+            placed: false,
+        }));
+    } catch (error) {
+        console.error("Error loading ships:", error);
+    }
+};
+
+onMounted(() => {
+    loadShips();
+});
 
 // Computed para verificar si todos los barcos están colocados
 const isPlacementComplete = computed(() => {
@@ -215,14 +227,19 @@ const emit = defineEmits(["placement-confirmed"]);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2rem;
     padding: 2rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .game-layout {
     display: flex;
     gap: 2rem;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
 }
 
 .ships-dock {
@@ -395,5 +412,42 @@ const emit = defineEmits(["placement-confirmed"]);
     border-color: var(--neutral-color-1);
     color: var (--neutral-color-1);
     background: var(--neutral-color);
+}
+
+@media (max-width: 1200px) {
+    .game-layout {
+        gap: 1.5rem;
+    }
+
+    .controls {
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+        padding: 0.5rem;
+        order: 2;
+    }
+
+    .ships-dock {
+        order: 1;
+    }
+
+    .board-container {
+        order: 3;
+    }
+}
+
+@media (max-width: 480px) {
+    .ship-placement {
+        padding: 1rem;
+    }
+
+    .game-layout {
+        gap: 1rem;
+    }
+
+    .ships-dock {
+        width: 100%;
+        max-width: 400px;
+    }
 }
 </style>

@@ -24,11 +24,11 @@ use App\Http\Controllers\Api\UserAvatarController;
 Route::post('forget-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('forget.password.post');
 Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');
 
-Route::group(['middleware' => 'auth:sanctum'], function() {
+Route::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::apiResource('users', UserController::class);
 
-    Route::post('users/updateimg', [UserController::class,'updateimg']); //Listar
+    Route::post('users/updateimg', [UserController::class, 'updateimg']); //Listar
 
     Route::apiResource('posts', PostControllerAdvance::class);
     Route::apiResource('categories', CategoryController::class);
@@ -43,7 +43,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/user', [ProfileController::class, 'user']);
     Route::put('/user', [ProfileController::class, 'update']);
 
-    Route::get('abilities', function(Request $request) {
+    Route::get('abilities', function (Request $request) {
         return $request->user()->roles()->with('permissions')
             ->get()
             ->pluck('permissions')
@@ -57,11 +57,11 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     // Modificar esta ruta para que coincida con la URL que estás usando
     Route::post('users/assign-avatar/{id}', [UserController::class, 'assignAvatar'])
         ->name('users.assign-avatar');
-    
+
     // Avatars
     Route::get('avatars', [AvatarController::class, 'index']);
     Route::apiResource('avatars', AvatarController::class)->except(['index']);
-    
+
     // Rutas de gestión de avatares de usuario
     Route::get('user-avatars', [UserController::class, 'getUserAvatars']);
     Route::get('users/{userId}/avatars', [UserController::class, 'getUserAvatar']);
@@ -76,10 +76,10 @@ Route::get('get-post/{id}', [PostControllerAdvance::class, 'getPost']);
 
 
 Route::get('notes', [NoteController::class, 'index'])->name('notes.index');
-Route::post('notes',[NoteController::class,'store'])->name('notes.store');
-Route::get('notes/{id}',[NoteController:: class, 'show'])->name(name: 'notes.show');
-Route::put('notes/{id}',[NoteController:: class, 'update'])->name(name: 'notes.update');
-Route::delete('notes/{id}',[NoteController:: class, 'destroy'])->name(name: 'notes.destroy');
+Route::post('notes', [NoteController::class, 'store'])->name('notes.store');
+Route::get('notes/{id}', [NoteController::class, 'show'])->name(name: 'notes.show');
+Route::put('notes/{id}', [NoteController::class, 'update'])->name(name: 'notes.update');
+Route::delete('notes/{id}', [NoteController::class, 'destroy'])->name(name: 'notes.destroy');
 
 Route::get('authors', [AuthorController::class, 'index'])->name('authors.index');
 Route::post('authors', [AuthorController::class, 'store'])->name('authors.store');
@@ -108,6 +108,5 @@ Route::apiResource('rankings', RankingController::class);
 
 // Ships
 Route::apiResource('ships', ShipController::class);
-
-// Eliminar la ruta duplicada y dejar solo una versión correcta
-
+Route::get('/ships', [ShipController::class, 'index']);
+Route::get('/game-ships', [ShipController::class, 'getGameShips']);
