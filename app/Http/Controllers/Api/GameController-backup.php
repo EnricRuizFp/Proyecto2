@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Game;
+use App\Models\GamePlayer;
 use Illuminate\Http\Request;
 
 class GameController extends Controller
@@ -84,17 +85,129 @@ class GameController extends Controller
 
     */
 
+    public function findGameFunction(Request $request){
+
+        // Inclusión de los datos pasados por parámetro
+        $gameType = $request->input('gameType');
+        $gameCode = $request->input('gameCode');
+        $user = $request->input('user');
+
+        /*
+            ///// COMRPOBACIONES PRE PARTIDA /////
+        */
+
+        // Usuario registrado
+        if(!$user){
+            return response()->json([
+                'status'  => 'failed',
+                'message' => 'You are not logged in.',
+                'game' => null
+            ]);
+        }
+
+        // Usuario en otra partida
+        $unfinishedUserGames = Game::whereIn('id', function ($query) use ($user) {$query->select('game_id')->from('game_players')->where('user_id', $user);})->where('is_finished', false)->get();
+        if(count($unfinishedUserGames) > 0){
+
+            // Terminar todas las posibles partidas que tenga el usuario
+            foreach ($unfinishedUserGames as $game) {
+
+                // Obtener los jugadores de la partida
+                $players = GamePlayer::where('game_id', $game->id)->get();
+    
+                // Si hay dos jugadores, asignar el ganador, si hay 1, dejar el ganador como null
+                if ($players->count() == 2) {
+                    // El ganador es el otro jugador
+                    $winner = $players->first()->user_id == $user ? $players->last()->user_id : $players->first()->user_id;
+                }else{
+                    $winner = null;
+                }
+    
+                // Marcar la partida como finalizada
+                $game->update([
+                    'is_finished' => true,
+                    'end_date'    => now(),
+                    'winner'      => $winner
+                ]);
+            }
+
+            return response()->json([
+                'status'  => 'failed',
+                'message' => 'Your user is currently in a game. Unfinished match has been finished. Wait some seconds.',
+                'game' => null
+            ]);
+        }
+
+        // Response OK
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User ready to play a game'
+        ]);
+
+        // Jugar partida
+        if($gameType == "public"){
+
+            $response = GameController::playPublicGame($user);
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Joined to a game',
+                'game' =>  $response->getData()->data
+            ]);
+
+        }else if($gameType == "private"){
+
+            if(!$gameCode){
+
+                $response = GameController::createPrivateGame(new Request(['user' => $user]));
+
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Creando partida privada.',
+                    'game' => $response->getData()->data
+                ]);
+            }
+
+            $response = GameController::joinPrivateGame(new Request(['user' => $user, 'code' => $gameCode]));
+
+            if($response->getData()->status == 'failed'){
+
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => $response->getData()->message,
+                    'game' => null
+                ]);
+
+            }
+
+            return response()->json(data: [
+                'status'  => 'success',
+                'message' => 'Entrando a partida privada.',
+                'game' => $response->getData()
+            ]);
+            
+        }
+
+        // No game type selected
+        return response()->json([
+            'status'  => 'failed',
+            'message' => 'No game type selected'
+        ]);
+
+    }
+
+
     /**
      * PLAY A PUBLIC GAME
      * This function searches a public game to join. If there are no public games available, it creates a new one.
      * Returns the game you have joined.
      * @return mixed|\Illuminate\Http\JsonResponse
      */
-    public function playPublicGame(Request $request)
+    public function playPublicGame($user)
     {
         
         // Obtener el usuario del frontend
-        $user = $request->input('user');
+        //$user = $request->input('user');
 
         // Buscar todos los juegos públicos que no han comenzado
         $publicUnstartedGames = Game::where('is_public', true)
@@ -118,7 +231,7 @@ class GameController extends Controller
                 // Devolver el juego encontrado
                 return response()->json([
                     'status'  => 'success',
-                    'message' => 'Public free game found, connected successfully',
+                    //'message' => 'Public free game found, connected successfully',
                     'data'    => $publicGame
                 ]);
             }
@@ -140,7 +253,7 @@ class GameController extends Controller
         // Devolver el juego encontrado
         return response()->json([
             'status'  => 'success',
-            'message' => 'No games found, new one created and connected successfully',
+            //'message' => 'No games found, new one created and connected successfully',
             'data'    => $newGame
         ]);
     }
@@ -152,6 +265,7 @@ class GameController extends Controller
      */
     public function createPrivateGame(Request $request)
     {
+
         // Obtener el usuario del frontend
         $user = $request->input('user');
 
@@ -208,7 +322,7 @@ class GameController extends Controller
 
                 // Devolver mensaje partida pública
                 return response()->json([
-                    'status'  => 'error',
+                    'status'  => 'failed',
                     'message' => 'Game found, but is public.'
                 ]);
 
@@ -221,7 +335,7 @@ class GameController extends Controller
 
                     // Si hay más de 1 jugador la partida está llena
                     return response()->json([
-                        'status'  => 'error',
+                        'status'  => 'failed',
                         'message' => 'Private game is full.'
                     ]);
 
@@ -245,7 +359,7 @@ class GameController extends Controller
 
             // Partida no encontrada
             return response()->json([
-                'status'  => 'error',
+                'status'  => 'failed',
                 'message' => 'Private game not found.'
             ]);
         }

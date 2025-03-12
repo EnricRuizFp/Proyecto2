@@ -85,7 +85,7 @@ class GameController extends Controller
 
     */
 
-    public function findGameFunction(Request $request){
+    public function checkUserRequirements(Request $request){
 
         // Inclusión de los datos pasados por parámetro
         $gameType = $request->input('gameType');

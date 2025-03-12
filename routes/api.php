@@ -90,8 +90,17 @@ Route::put('authors/{author}', [AuthorController::class, 'update'])->name('autho
 /* -- APP ROUTES -- */
 
 /* - GAMES - */
-// General play function
-Route::post('/games/find-game-function', [GameController::class, 'findGameFunction']);
+// Check user requirements function
+Route::post('/games/check-user-requirements', [GameController::class, 'checkUserRequirements']);
+// Join user to game function
+Route::post('/games/matchmaking-function', [GameController::class, 'matchmakingFunction']);
+// Ship placement function
+Route::post('/games/ship-placement-function', [GameController::class, 'shipPlacementFunction']);
+// Game play function
+Route::post('/games/game-function', [GameController::class, 'gameFunction']);
+// Result function
+Route::post('/games/result-function', [GameController::class, 'resultFunction']);
+
 // Play a public game (ruta personalizada)
 Route::post('/games/play-public', [GameController::class, 'playPublicGame']);
 // Create a private game (ruta personalizada)

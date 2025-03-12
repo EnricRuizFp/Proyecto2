@@ -66,11 +66,12 @@ export default {
                 console.error("Error al llamar a la API: ", error);
             }
         },
-        async findGameFunction(gameType, gameCode) {
+        async checkUserRequirements(gameType, gameCode) {
             try {
                 const response = await axios.post("/api/games/find-game-function", { gameType: gameType, gameCode: gameCode, user: authStore().user });
                 if(response.data.status == 'success'){
-                    console.log("Usuario unido a una partida");
+                    console.log("Usuario preparado para unirse a una partida");
+                    // Llevar al usuario a la pantalla de matchmaking
                 }
                 console.log("Respuesta de la API: ", response.data);
             } catch (error) {
