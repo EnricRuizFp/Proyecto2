@@ -71,7 +71,9 @@ export default {
                 const response = await axios.post("/api/games/check-user-requirements", { gameType: gameType, gameCode: gameCode, user: authStore().user });
                 if(response.data.status == 'success'){
                     console.log("Usuario preparado para unirse a una partida");
-                    // Llevar al usuario a la pantalla de matchmaking
+                    // Llevar al usuario a la pantalla de matchmaking pasando los datos
+                }else{
+                    console.log("No se cumple con los requisitos para empezar una partida")
                 }
                 console.log("Respuesta de la API: ", response.data);
             } catch (error) {
