@@ -119,3 +119,10 @@ Comando para refrescar la base de datos (eliminar todas las tablas, volver a mig
 php artisan migrate:fresh --seed
 
 ```
+DEV TEAM USERS:
+```bash
+EMAIL                    PASSWORD    ROLE
+admin@demo.com           12345678    Admin
+danielloberafp@ibf.cat   Asdqwe!23   User
+enricruizfp@ibf.cat      Asdqwe!23   User
+```

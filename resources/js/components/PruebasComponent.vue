@@ -7,8 +7,8 @@
         <button style="padding: 10px; background-color: yellow;" @click="joinPrivateGame">Join game</button>
 
         <h2>PLAY FUNCTION</h2>
-        <button style="padding: 10px; background-color: yellow;" @click="playFunction('public')">Play game</button>
-        <button style="padding: 10px; background-color: yellow;" @click="playFunction('private',this.gameCode)">Create game</button>
+        <button style="padding: 10px; background-color: yellow;" @click="findGameFunction('public', null)">Play game</button>
+        <button style="padding: 10px; background-color: yellow;" @click="findGameFunction('private',this.gameCode)">Private game</button>
         
     </div>
 </template>
@@ -22,6 +22,7 @@ export default {
     data() {
         return {
             gameCode: "",
+            gameType: ""
         };
     },
     methods: {
@@ -65,11 +66,10 @@ export default {
                 console.error("Error al llamar a la API: ", error);
             }
         },
-        async playFunction(gameType, gameCode) {
-
+        async findGameFunction(gameType, gameCode) {
             try {
-                const response = await axios.post("/api/games/play-function", { gameType: gameType, gameCode: gameCode, user: authStore().user });
-                if(response.data.status = 'success'){
+                const response = await axios.post("/api/games/find-game-function", { gameType: gameType, gameCode: gameCode, user: authStore().user });
+                if(response.data.status == 'success'){
                     console.log("Usuario unido a una partida");
                 }
                 console.log("Respuesta de la API: ", response.data);

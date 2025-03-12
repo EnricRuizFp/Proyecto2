@@ -67,6 +67,30 @@ class CreateAdminUserSeeder extends Seeder
         $user->assignRole([$user_role->id]);
 
 
+        /* -- GENERATE LOCAL TEAM USERS -- */
+        $user = User::create([
+            'id' => 3,
+            'name' => 'Daniel',
+            'surname1' => 'Lobera',
+            'surname2' => 'Simon',
+            'username' => 'K4ze',
+            'email' => 'danielloberafp@ibf.cat',
+            'password' => bcrypt('Asdqwe!23'),
+            'nationality' => 'spain'
+        ]);
+        $user->assignRole([$user_role->id]);
+
+        $user = User::create([
+            'id' => 4,
+            'name' => 'Enric',
+            'surname1' => 'Ruiz',
+            'surname2' => 'Badia',
+            'username' => 'ERB',
+            'email' => 'enricruizfp@ibf.cat',
+            'password' => bcrypt('Asdqwe!23'),
+            'nationality' => 'spain'
+        ]);
+        $user->assignRole([$user_role->id]);
 
         /* -- GENERATE MASS USERS -- */
 
