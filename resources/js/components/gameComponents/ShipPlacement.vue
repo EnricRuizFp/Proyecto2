@@ -1,10 +1,19 @@
 <template>
     <div class="ship-placement">
         <div class="game-layout">
+            <!-- Temporizador -->
+            <div class="timer-container">
+                <div class="timer" :class="{ 'timer-warning': timeLeft <= 10 }">
+                    <i class="fas fa-clock"></i>
+                    <span class="timer-text">{{ formatTime(timeLeft) }}</span>
+                </div>
+            </div>
             <!-- Lista de barcos para colocar -->
             <div class="ships-dock">
-                <h3><bold>POSICIONA LOS BARCOS DISPONIBLES</bold></h3>
-                <hr class="separator" />
+                <h4 class="h4-dark dock-title">
+                    POSICIONA LOS BARCOS DISPONIBLES
+                </h4>
+                <div class="separator"></div>
                 <div class="ships-container">
                     <div
                         v-for="(ship, index) in availableShips"
@@ -96,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 // Estado del tablero
 const board = ref(
@@ -124,8 +133,37 @@ const loadShips = async () => {
     }
 };
 
+// Temporizador
+const timeLeft = ref(55);
+const timerInterval = ref(null);
+
+const formatTime = (seconds) => {
+    return `${Math.floor(seconds / 60)}:${(seconds % 60)
+        .toString()
+        .padStart(2, "0")}`;
+};
+
+const startTimer = () => {
+    timerInterval.value = setInterval(() => {
+        if (timeLeft.value > 0) {
+            timeLeft.value--;
+        } else {
+            clearInterval(timerInterval.value);
+            // Aquí puedes manejar qué sucede cuando se acaba el tiempo
+            confirmPlacement();
+        }
+    }, 1000);
+};
+
 onMounted(() => {
     loadShips();
+    startTimer();
+});
+
+onUnmounted(() => {
+    if (timerInterval.value) {
+        clearInterval(timerInterval.value);
+    }
 });
 
 // Computed para verificar si todos los barcos están colocados
@@ -228,10 +266,17 @@ const emit = defineEmits(["placement-confirmed"]);
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem;
+    padding: 1rem;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
+    background: var(--neutral-color);
+    min-height: 100vh;
+}
+
+.page-title {
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
 .game-layout {
@@ -241,15 +286,19 @@ const emit = defineEmits(["placement-confirmed"]);
     justify-content: center;
     flex-wrap: wrap;
     width: 100%;
+    background: var(--neutral-v2-color);
+    border-radius: 12px;
 }
 
 .ships-dock {
-    width: 400px;
-    min-height: 400px;
-    padding: 1rem;
-    background: var(--neutral-v2-color);
-    border-radius: 8px;
+    width: 450px; /* Aumentado para igualar el ancho total del board-container */
+    height: 450px; /* Altura fija para igualar el board-container */
+    padding: 0.75rem;
+    background: var(--neutral-color-1);
+    border-radius: 12px;
     border: 2px solid var(--primary-color);
+    display: flex;
+    flex-direction: column;
 }
 
 .ships-dock h3 {
@@ -270,11 +319,27 @@ const emit = defineEmits(["placement-confirmed"]);
 .ships-container {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem; /* Reducido de 1rem */
+    gap: 0.25rem; /* Reducido de 0.5rem */
     align-items: center; /* Centrar los barcos */
+    flex-grow: 1;
+    padding: 0.25rem; /* Reducido de 0.5rem */
+}
+
+.board-container {
+    width: 450px; /* Aumentado para igualar el ships-dock */
+    height: 450px; /* Altura fija para igualar el ships-dock */
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 2px solid var(--primary-color);
+    background: var(--neutral-color-1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .board-grid {
+    width: 400px; /* Tamaño fijo para la cuadrícula */
+    height: 400px; /* Tamaño fijo para la cuadrícula */
     display: flex;
     flex-direction: column;
     border: 2px solid var(--primary-color);
@@ -295,6 +360,7 @@ const emit = defineEmits(["placement-confirmed"]);
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
+    background: var(--neutral-color);
 }
 
 .board-cell.ship::after {
@@ -325,11 +391,18 @@ const emit = defineEmits(["placement-confirmed"]);
 
 .ship-item {
     cursor: grab;
-    padding: 0.25rem; /* Reducido de 0.5rem */
-    border-radius: 4px;
+    padding: 0.5rem;
+    border-radius: 8px;
     transition: all 0.3s ease;
     background: var(--neutral-color); /* Fondo para el contenedor del barco */
+    border: 2px solid transparent;
     margin: 0.25rem; /* Reducido de 0.5rem */
+}
+
+.ship-item:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(112, 72, 236, 0.2);
 }
 
 .ship-item:active {
@@ -382,6 +455,7 @@ const emit = defineEmits(["placement-confirmed"]);
     align-items: center;
     justify-content: center;
     position: relative;
+    color: var(--primary-color);
 }
 
 .control-button i {
@@ -389,6 +463,13 @@ const emit = defineEmits(["placement-confirmed"]);
     color: var(--primary-color);
     transition: all 0.3s ease;
     text-shadow: 0 0 3px #7048ec4d;
+}
+
+.control-button:hover {
+    background: var(--primary-color);
+    color: var(--white-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(112, 72, 236, 0.2);
 }
 
 .control-button:hover i {
@@ -459,5 +540,60 @@ const emit = defineEmits(["placement-confirmed"]);
         width: 100%;
         max-width: 400px;
     }
+    .ships-dock,
+    .board-container {
+        width: 100%;
+        max-width: 450px;
+        height: auto;
+        min-height: 450px;
+    }
+}
+
+.dock-title {
+    text-align: center;
+    margin-bottom: 0.25rem; /* Reducido de 0.5rem */
+    color: var(--white-color);
+    font-size: 18px; /* Reducido de 22px */
+}
+
+.separator {
+    height: 2px;
+    background: var(--primary-color);
+    opacity: 0.5;
+    margin-bottom: 0.5rem; /* Reducido de 1rem */
+    width: 100%;
+}
+
+.timer-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.timer {
+    background: var(--neutral-color-1);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: 2px solid var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--white-color);
+    font-size: 24px;
+    font-family: "Rubik", sans-serif;
+}
+
+.timer i {
+    color: var(--primary-color);
+}
+
+.timer-warning {
+    border-color: var(--secondary-color);
+    animation: pulse 1s infinite;
+}
+
+.timer-warning i {
+    color: var(--secondary-color);
 }
 </style>

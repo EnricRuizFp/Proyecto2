@@ -337,30 +337,34 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     width: 100%;
+    min-height: 60px; /* Añadido para asegurar altura consistente */
 }
 
 .code-number {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.5rem 1rem;
+    justify-content: center; /* Cambiado para centrar contenido */
+    padding: 0.75rem 1.5rem;
     border: 2px solid var(--primary-color);
-    border-radius: 8px; /* Aumentado de 4px */
+    border-radius: 12px;
     background: var(--neutral-color);
-    min-width: 240px; /* Aumentado de 200px */
+    width: 100%;
+    max-width: 400px; /* Ajustado el ancho máximo */
+    position: relative; /* Para posicionar el botón de copia */
 }
 
 .code-text {
+    text-align: center;
     font-family: "Rubik", sans-serif;
     font-size: 24px;
     font-weight: 600;
     letter-spacing: 3px;
     color: var(--white-color);
-    flex-grow: 1;
-    text-align: center;
 }
 
 .copy-button {
+    position: absolute;
+    right: 1rem;
     background: none;
     border: none;
     color: var(--primary-color);
@@ -600,6 +604,7 @@ onMounted(() => {
 }
 
 .page-title {
-    margin-bottom: 3rem; /* Reducido de 5rem a 3rem */
+    margin-bottom: 3rem; /* Reducido de 5rem a 
+3rem */
 }
 </style>

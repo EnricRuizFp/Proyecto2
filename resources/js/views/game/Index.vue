@@ -92,7 +92,7 @@ export default {
 
 .game-container {
     padding: 20px;
-    padding-top: 80px; /* Reducido de 121px a 111px */
+    padding-top: 40px; /* Reducido de 121px a 111px */
     display: flex;
     flex-direction: column;
     align-items: center;

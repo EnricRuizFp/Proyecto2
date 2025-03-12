@@ -1,48 +1,50 @@
 <template>
-    <div v-if="visible" class="join-match-overlay">
-        <div class="join-match-modal neutral-background">
-            <button class="close-button" @click="$emit('close')">
-                <i class="fas fa-times"></i>
-            </button>
-            <h2 class="h4-dark">ÚNETE A UNA PARTIDA PRIVADA</h2>
-            <div class="match-form">
-                <input
-                    type="text"
-                    placeholder="Ej: 1A2B"
-                    class="match-input"
-                    v-model="matchCode"
-                    maxlength="4"
-                />
-                <p class="p4-dark help-text">
-                    Introduce el código de 4 dígitos que aparece en la pantalla
-                    de tu oponente para unirte
-                </p>
-                <button
-                    class="primary-button"
-                    :disabled="!matchCode"
-                    @click="joinMatch"
-                >
-                    UNIRSE
-                    <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path
-                            d="M14.4301 5.92993L20.5001 11.9999L14.4301 18.0699"
-                            stroke="white"
-                            stroke-width="2.5"
-                            stroke-miterlimit="10"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        />
-                    </svg>
+    <Transition name="modal">
+        <div v-if="visible" class="join-match-overlay">
+            <div class="join-match-modal neutral-background">
+                <button class="close-button" @click="$emit('close')">
+                    <i class="fas fa-times"></i>
                 </button>
+                <h2 class="h4-dark">ÚNETE A UNA PARTIDA PRIVADA</h2>
+                <div class="match-form">
+                    <input
+                        type="text"
+                        placeholder="Ej: 1A2B"
+                        class="match-input"
+                        v-model="matchCode"
+                        maxlength="4"
+                    />
+                    <p class="p4-dark help-text">
+                        Introduce el código de 4 dígitos que aparece en la
+                        pantalla de tu oponente para unirte
+                    </p>
+                    <button
+                        class="primary-button"
+                        :disabled="!matchCode"
+                        @click="joinMatch"
+                    >
+                        UNIRSE
+                        <svg
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                d="M14.4301 5.92993L20.5001 11.9999L14.4301 18.0699"
+                                stroke="white"
+                                stroke-width="2.5"
+                                stroke-miterlimit="10"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
+    </Transition>
 </template>
 
 <script setup>
@@ -83,6 +85,8 @@ const joinMatch = () => {
     min-width: 350px;
     max-width: 400px;
     position: relative; /* Añadido para posicionamiento absoluto del botón */
+    transform-origin: center;
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .modal-header {
@@ -168,5 +172,32 @@ const joinMatch = () => {
     margin-top: -1rem;
     font-size: 0.9rem;
     line-height: 1.4;
+}
+
+/* Animaciones de popup */
+.modal-enter-active,
+.modal-leave-active {
+    transition: all 0.3s ease;
+}
+
+.modal-enter-from {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.modal-leave-to {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 </style>
