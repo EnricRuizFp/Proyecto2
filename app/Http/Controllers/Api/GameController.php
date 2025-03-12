@@ -164,16 +164,17 @@ class GameController extends Controller
 
             $response = GameController::joinPrivateGame(new Request(['user' => $user, 'code' => $gameCode]));
 
-            if($response->getData()->status== 'failed'){
+            if($response->getData()->status == 'failed'){
 
                 return response()->json([
-                    // 'status' => 'ok',
+                    'status' => 'failed',
                     'message' => $response->getData()->message,
-                    'game' => $response->getData()
+                    'game' => null
                 ]);
+
             }
 
-            return response()->json([
+            return response()->json(data: [
                 'status'  => 'success',
                 'message' => 'Entrando a partida privada.',
                 'game' => $response->getData()

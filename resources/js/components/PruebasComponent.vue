@@ -69,7 +69,7 @@ export default {
 
             try {
                 const response = await axios.post("/api/games/play-function", { gameType: gameType, gameCode: gameCode, user: authStore().user });
-                if(response.data.status = 'success'){
+                if(response.data.status == 'success'){
                     console.log("Usuario unido a una partida");
                 }
                 console.log("Respuesta de la API: ", response.data);
