@@ -3,7 +3,8 @@
         <div class="game-layout">
             <!-- Lista de barcos para colocar -->
             <div class="ships-dock">
-                <h3>Barcos Disponibles</h3>
+                <h3><bold>POSICIONA LOS BARCOS DISPONIBLES</bold></h3>
+                <hr class="separator" />
                 <div class="ships-container">
                     <div
                         v-for="(ship, index) in availableShips"
@@ -253,8 +254,17 @@ const emit = defineEmits(["placement-confirmed"]);
 
 .ships-dock h3 {
     color: var(--white-color);
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem; /* Reducido para dar espacio al separador */
     text-align: center;
+}
+
+.separator {
+    border: none;
+    height: 2px;
+    background-color: var(--primary-color);
+    width: 100%;
+    opacity: 1;
+    margin: 0;
 }
 
 .ships-container {
