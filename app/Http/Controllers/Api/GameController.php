@@ -85,7 +85,7 @@ class GameController extends Controller
 
     */
 
-    public function playFunction(Request $request){
+    public function findGameFunction(Request $request){
 
         // Inclusión de los datos pasados por parámetro
         $gameType = $request->input('gameType');
@@ -137,6 +137,12 @@ class GameController extends Controller
                 'game' => null
             ]);
         }
+
+        // Response OK
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User ready to play a game'
+        ]);
 
         // Jugar partida
         if($gameType == "public"){
