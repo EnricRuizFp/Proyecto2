@@ -182,12 +182,11 @@ class GameController extends Controller
             
         }
 
-        // OK
+        // No game type selected
         return response()->json([
             'status'  => 'failed',
             'message' => 'No game type selected'
         ]);
-
 
     }
 
