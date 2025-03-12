@@ -7,7 +7,9 @@
         <button style="padding: 10px; background-color: yellow;" @click="joinPrivateGame">Join game</button>
 
         <h2>PLAY FUNCTION</h2>
-        <button style="padding: 10px; background-color: yellow;" @click="playFunction('public',this.gameCode)">Play game</button>
+        <button style="padding: 10px; background-color: yellow;" @click="playFunction('public')">Play game</button>
+        <button style="padding: 10px; background-color: yellow;" @click="playFunction('private',this.gameCode)">Create game</button>
+        
     </div>
 </template>
 
@@ -29,7 +31,7 @@ export default {
                 return;
             }
             try {
-                const response = await axios.post("http://127.0.0.1:8000/api/games/play-public", { user: authStore().user });
+                const response = await axios.post("/api/games/play-public", { user: authStore().user });
                 console.log("Respuesta de la API: ", response.data);
             } catch (error) {
                 console.error("Error al llamar a la API: ", error);
@@ -41,7 +43,7 @@ export default {
                 return;
             }
             try {
-                const response = await axios.post("http://127.0.0.1:8000/api/games/create-private", { user: authStore().user });
+                const response = await axios.post("/api/games/create-private", { user: authStore().user });
                 console.log("Respuesta de la API: ", response.data);
             } catch (error) {
                 console.error("Error al llamar a la API: ", error);
@@ -57,7 +59,7 @@ export default {
                 return;
             }
             try {
-                const response = await axios.post("http://127.0.0.1:8000/api/games/join-private", { user: authStore().user, code: this.gameCode });
+                const response = await axios.post("/api/games/join-private", { user: authStore().user, code: this.gameCode });
                 console.log("Respuesta de la API: ", response.data);
             } catch (error) {
                 console.error("Error al llamar a la API: ", error);
@@ -66,7 +68,10 @@ export default {
         async playFunction(gameType, gameCode) {
 
             try {
-                const response = await axios.post("http://127.0.0.1:8000/api/games/play-function", { gameType: gameType, gameCode: gameCode, user: authStore().user });
+                const response = await axios.post("/api/games/play-function", { gameType: gameType, gameCode: gameCode, user: authStore().user });
+                if(response.data.status = 'success'){
+                    console.log("Usuario unido a una partida");
+                }
                 console.log("Respuesta de la API: ", response.data);
             } catch (error) {
                 console.error("Error al llamar a la API: ", error);
