@@ -3,12 +3,15 @@
         <div class="game-container">
             <!-- Fase de colocación de barcos -->
             <ShipPlacement
-                v-if="gamePhase === 'placement'"
+                v-if="gamePhase === 'placement' && !gameMode"
                 @placement-confirmed="startGame"
             />
 
+            <!-- Componente de partida privada -->
+            <CreateMatch v-if="gameMode === 'create'" />
+
             <!-- Panel de pruebas convertido en componente -->
-            <PruebasComponent />
+            <PruebasComponent v-if="!gameMode && gamePhase !== 'placement'" />
         </div>
 
         <!-- Botones temporales para pruebas -->
@@ -36,6 +39,8 @@ import ShipPlacement from "../../components/gameComponents/ShipPlacement.vue";
 import GameWin from "../../components/gameComponents/GameWin.vue";
 import GameOver from "../../components/gameComponents/GameOver.vue";
 import PruebasComponent from "../../components/PruebasComponent.vue";
+import CreateMatch from "../../components/privateMatch/CreateMatch.vue";
+import { useGameStore } from "../../store/game";
 
 export default {
     name: "GameView",
@@ -44,20 +49,33 @@ export default {
         GameWin,
         GameOver,
         PruebasComponent,
+        CreateMatch,
+    },
+    setup() {
+        const gameStore = useGameStore();
+
+        return {
+            gameStore,
+        };
     },
     data() {
         return {
-            gamePhase: "placement", // 'placement', 'playing', 'finished'
-            playerBoard: null,
-            currentLevel: 1,
             showWin: false,
             showGameOver: false,
         };
     },
+    computed: {
+        gamePhase() {
+            return this.gameStore.gamePhase;
+        },
+        gameMode() {
+            return this.gameStore.gameMode;
+        },
+    },
     methods: {
         startGame(boardConfiguration) {
-            this.playerBoard = boardConfiguration;
-            this.gamePhase = "playing";
+            this.gameStore.playerBoard = boardConfiguration;
+            this.gameStore.setGamePhase("playing");
         },
         nextLevel() {
             this.currentLevel++;

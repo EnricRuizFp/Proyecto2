@@ -60,6 +60,7 @@
 <script>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useGameStore } from "../../store/game";
 import JoinMatchModal from "../privateMatch/JoinMatchModal.vue";
 
 export default {
@@ -69,19 +70,23 @@ export default {
     setup() {
         const router = useRouter();
         const showJoinModal = ref(false);
+        const gameStore = useGameStore();
 
         const irAlJuego = () => {
+            gameStore.resetGame();
             router.push({ name: "game" });
         };
 
         const crearPartidaPrivada = () => {
-            router.push({ name: "private-match.create" });
+            gameStore.setGameMode("create");
+            router.push({ name: "game" });
         };
 
         const handleJoinMatch = (code) => {
-            console.log("Uniendo a partida con código:", code);
             showJoinModal.value = false;
-            // Aquí irá la lógica para unirse a la partida
+            gameStore.setGameMode("join");
+            gameStore.setMatchCode(code);
+            router.push({ name: "game" });
         };
 
         return {
