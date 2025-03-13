@@ -1,5 +1,4 @@
 <template>
-
     <div id="mainPageContainer">
         <div id="mainPageContent" class="container-fluid">
             <div class="row container-fluid">
@@ -12,7 +11,7 @@
                             <myProfileMenuComponent />
                         </div>
                     </div>
-                    
+
                     <div id="globalRankingComponent" class="col-sm-12 col-xl-6">
                         <globalRankingComponent />
                     </div>
@@ -20,15 +19,10 @@
             </div>
         </div>
     </div>
-
-     
-
 </template>
 
 <script setup>
-
-    import playComponent from "../../components/playComponents/playComponent.vue";
-    import myProfileMenuComponent from "../../components/playComponents/myProfileMenuComponent.vue";
-    import globalRankingComponent from "../../components/playComponents/globalRankingComponent.vue";
-
+import playComponent from "../../components/playComponents/playComponent.vue";
+import myProfileMenuComponent from "../../components/playComponents/myProfileMenuComponent.vue";
+import globalRankingComponent from "../../components/playComponents/globalRankingComponent.vue";
 </script>

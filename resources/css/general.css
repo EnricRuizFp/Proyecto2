@@ -1,8 +1,36 @@
 /* -- THIS FILE CONTAINS GENERAL CSS DATA -- */
 
+/* -- ROOT settings -- */
+:root {
+    /* - Color palette - */
+    --primary-color: #7048ec;
+    --primary-v2-color: #5523e6;
+    --primary-v3-color: #c6b7f7;
+    --secondary-color: #f43c6b;
+    --secondary-v2-color: #f3174f;
+
+    --neutral-color: #131217;
+    --neutral-color-1: #2a292f;
+
+    --link-color: #00ccc0;
+
+    /* - Defaults - */
+    --black-color: #000000;
+    --white-color: #ffffff;
+    --white-color-1: #f1f1f1;
+    --red-color: #ff0000;
+    --green-color: #00ff00;
+    --blue-color: #0000ff;
+}
+
+/* -- Global font family -- */
+* {
+    font-family: "Rubik", sans-serif;
+}
+
 /* 
 
-    ///// FONTS /////
+    ///// FONTS ///// 
 
 */
 
@@ -158,7 +186,7 @@
 
 /*
 
-    ///// COLORS /////
+    ///// COLORS ///// 
     
 */
 
@@ -229,7 +257,7 @@
 
 /*
 
-    ///// BUTTONS /////
+    ///// BUTTONS ///// 
 
 */
 
@@ -243,5 +271,67 @@
     font-size: 20px;
     font-weight: bold;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.3s ease;
+}
+
+/* - BUTTON HOVER EFFECTS - */
+.hover-transform {
+    transition: all 0.3s ease;
+}
+
+.hover-transform:hover {
+    transform: translateY(-3px);
+}
+
+.hover-shadow {
+    transition: all 0.3s ease;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 4px 12px rgba(112, 72, 236, 0.2);
+}
+
+.hover-scale {
+    transition: all 0.3s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}
+
+.hover-primary {
+    transition: all 0.3s ease;
+}
+
+.hover-primary:hover {
+    background-color: var(--primary-v2-color);
+}
+
+.hover-glow {
+    transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+    box-shadow: 0 0 15px var(--primary-v3-color);
+}
+
+/* - BUTTON COMBINATIONS - */
+.hover-elevated {
+    transition: all 0.3s ease;
+}
+
+.hover-elevated:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(112, 72, 236, 0.2);
+    background-color: var(--primary-v2-color);
+}
+
+.hover-emphasis {
+    transition: all 0.3s ease;
+}
+
+.hover-emphasis:hover {
+    transform: scale(1.05);
+    background-color: var(--primary-v2-color);
+    box-shadow: 0 0 15px var(--primary-v3-color);
 }
