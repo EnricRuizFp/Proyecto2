@@ -116,6 +116,12 @@ export default [
                 component: () =>
                     import("../components/privateMatch/CreateMatch.vue"),
             },
+            {
+                path: "profile",
+                name: "profile",
+                component: () => import("../views/profile/Index.vue"),
+                beforeEnter: requireLogin,
+            },
         ],
     },
 
