@@ -1,5 +1,5 @@
 <template>
-    <div id="mainPageContainer">
+    <div id="mainPageContainer" class="app-background-primary">
         <div id="mainPageContent" class="container-fluid">
             <div class="row container-fluid">
                 <div class="col-sm-10 col-lg-8 mx-auto row">
@@ -7,7 +7,7 @@
                         <div id="playMenu">
                             <playComponent />
                         </div>
-                        <div id="myProfileComponent">
+                        <div>
                             <myProfileMenuComponent />
                         </div>
                     </div>

@@ -1,5 +1,5 @@
 <template>
-    <div class="game-view neutral-background">
+    <div class="game-view app-background-primary">
         <div class="game-container">
             <!-- Fase de colocación de barcos -->
             <ShipPlacement
@@ -102,15 +102,12 @@ export default {
 .game-view {
     width: 100%;
     min-height: 100vh;
-    background-color: var(--neutral-color);
     color: var(--white-color);
-    position: relative; /* Cambiado de fixed a relative */
+    position: relative;
     overflow-y: auto;
 }
 
 .game-container {
-    padding: 20px;
-    padding-top: 40px; /* Reducido de 121px a 111px */
     display: flex;
     flex-direction: column;
     align-items: center;

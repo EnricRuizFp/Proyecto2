@@ -154,7 +154,7 @@ export default {
 }
 
 #tituloPlayComponent h1 {
-    font-size: min(7vw, 50px);
+    font-size: 3rem;
     text-shadow: 0 0 10px rgba(112, 72, 236, 0.5);
     letter-spacing: min(0.5vw, 4px);
     margin: 0;

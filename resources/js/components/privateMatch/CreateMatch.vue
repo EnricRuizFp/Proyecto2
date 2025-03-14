@@ -1,5 +1,5 @@
 <template>
-    <div class="create-match">
+    <div class="create-match app-background-primary">
         <h3 class="h3-dark page-title">Creando Partida Privada</h3>
 
         <!-- Mensajes de error/éxito -->
@@ -239,19 +239,18 @@ onMounted(() => {
 
 <style scoped>
 .create-match {
-    padding: 2rem;
+    padding-bottom: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center; /* Añadido para centrar verticalmente */
     gap: 2rem;
-    background: var(--neutral-color);
     min-height: 100vh;
 }
 
 .match-setup {
     margin-top: -3rem; /* Aumentado el margen negativo para subir más el contenedor */
-    background: var(--neutral-v2-color);
+    background: var(--background-primary);
     padding: 2rem;
     border-radius: 8px;
     min-width: 300px;
@@ -278,18 +277,25 @@ onMounted(() => {
 }
 
 .player-card {
-    width: 100%; /* Asegurar que la tarjeta ocupe todo el espacio disponible */
+    width: 100%;
     min-width: 250px;
-    max-width: 300px; /* Limitar el ancho máximo */
+    max-width: 300px;
+    height: 120px; /* Altura fija para ambas tarjetas */
     display: flex;
     align-items: center;
     padding: 1.5rem;
-    background: var(
-        --neutral-color-1
-    ); /* Cambiado de neutral-color a neutral-color-1 */
+    background: var(--neutral-color-1);
     border-radius: 8px;
-    border: 2px solid transparent;
+    border: 2px solid var(--primary-color);
     transition: all 0.3s ease;
+}
+
+.guest-player {
+    border-color: var(--secondary-color); /* Borde distintivo para el guest */
+}
+
+.player-ready {
+    border-color: var(--primary-color);
 }
 
 .player-avatar {
@@ -448,28 +454,28 @@ onMounted(() => {
 
 /* Estado de carga */
 .loading-state {
-    position: relative;
-    min-height: 300px;
+    position: fixed; /* Cambiado de relative a fixed */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
 }
 
 .loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(19, 18, 23, 0.8);
+    position: relative; /* Cambiado de absolute a relative */
+    width: 300px; /* Añadido ancho fijo */
+    padding: 2rem;
+    background: var(--background-secondary);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 1rem;
     border-radius: 8px;
-}
-
-.loading-overlay i {
-    font-size: 3rem;
-    color: var(--primary-color);
 }
 
 /* Efecto pulse para el avatar de espera */
@@ -604,7 +610,7 @@ onMounted(() => {
 }
 
 .page-title {
-    margin-bottom: 3rem; /* Reducido de 5rem a 
+    margin-bottom: 3rem; /* Reducido de 5rem a
 3rem */
 }
 </style>

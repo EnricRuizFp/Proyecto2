@@ -70,7 +70,7 @@ class Avatar extends Model implements HasMedia
     public function users()
     {
         return $this->belongsToMany(User::class, 'user_avatars')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     // Método helper para obtener la URL del avatar de manera segura
@@ -79,7 +79,7 @@ class Avatar extends Model implements HasMedia
         try {
             return $this->url ?? asset('storage/avatars/default.png');
         } catch (\Exception $e) {
-            \Log::error('Error getting avatar URL: ' . $e->getMessage());
+            Log::error('Error getting avatar URL: ' . $e->getMessage());
             return asset('images/placeholder.jpg');
         }
     }
@@ -88,11 +88,11 @@ class Avatar extends Model implements HasMedia
     public function scopeAvailableFor($query, $userId)
     {
         return $query->where('type', self::TYPE_DEFAULT)
-            ->orWhere(function($q) use ($userId) {
+            ->orWhere(function ($q) use ($userId) {
                 $q->where('type', self::TYPE_CUSTOM)
-                  ->whereHas('users', function($subQ) use ($userId) {
-                      $subQ->where('users.id', $userId);
-                  });
+                    ->whereHas('users', function ($subQ) use ($userId) {
+                        $subQ->where('users.id', $userId);
+                    });
             });
     }
 }

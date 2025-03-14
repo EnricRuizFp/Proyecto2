@@ -1,5 +1,5 @@
 <template>
-    <div class="ship-placement">
+    <div class="ship-placement app-background-primary">
         <div class="game-layout">
             <!-- Temporizador -->
             <div class="timer-container">
@@ -270,7 +270,6 @@ const emit = defineEmits(["placement-confirmed"]);
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    background: var(--neutral-color);
     min-height: 100vh;
 }
 
@@ -286,7 +285,7 @@ const emit = defineEmits(["placement-confirmed"]);
     justify-content: center;
     flex-wrap: wrap;
     width: 100%;
-    background: var(--neutral-v2-color);
+    background: var(--background-primary);
     border-radius: 12px;
 }
 
@@ -331,7 +330,7 @@ const emit = defineEmits(["placement-confirmed"]);
     padding: 1.5rem;
     border-radius: 12px;
     border: 2px solid var(--primary-color);
-    background: var(--neutral-color-1);
+    background: var(--background-secondary);
     display: flex;
     align-items: center;
     justify-content: center;

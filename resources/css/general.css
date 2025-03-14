@@ -11,6 +11,8 @@
 
     --neutral-color: #131217;
     --neutral-color-1: #2a292f;
+    --background-primary: #2c2c2c;
+    --background-secondary: #202020;
 
     --link-color: #00ccc0;
 
@@ -224,6 +226,20 @@
 }
 .white-background {
     background-color: var(--white-color) !important;
+}
+
+.app-background-primary {
+    background-color: var(--background-primary) !important;
+}
+
+.app-background-secondary {
+    background-color: var(--background-secondary) !important;
+}
+
+.app-background-primary-full {
+    background-color: var(--background-primary) !important;
+    min-height: 100vh;
+    width: 100%;
 }
 
 /* - Class colors - */

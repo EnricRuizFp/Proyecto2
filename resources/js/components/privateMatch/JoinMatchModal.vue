@@ -1,7 +1,7 @@
 <template>
     <Transition name="modal">
         <div v-if="visible" class="join-match-overlay">
-            <div class="join-match-modal neutral-background">
+            <div class="join-match-modal app-background-primary">
                 <button class="close-button" @click="$emit('close')">
                     <i class="fas fa-times"></i>
                 </button>

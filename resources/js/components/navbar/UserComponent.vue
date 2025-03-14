@@ -23,7 +23,7 @@
             </a>
             <div
                 id="userProfileMenu"
-                class="dropdown-menu dropdown-menu-start neutral-background white-border"
+                class="dropdown-menu dropdown-menu-start app-background-primary white-border"
             >
                 <div>
                     <router-link
@@ -54,19 +54,36 @@
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
             >
-                <img
-                    src="../../../../public/images/icons/user-icon-dark.svg"
-                    alt="User avatar"
-                />
-                <!-- Reemplazar por imagen real cuando estén relacionadas con el usuario -->
-                {{ authStore().user?.name }}
-                <p class="p4">
-                    {{ userPoints }}
-                    <img
-                        src="../../../../public/images/icons/trophy-icon-dark.svg"
-                        alt="Trophy icon"
-                    />
-                </p>
+                <div class="profile-content">
+                    <div class="left-side">
+                        <div class="userImageContainer">
+                            <img
+                                :src="getAvatarUrl()"
+                                :alt="authStore().user?.name"
+                                @error="
+                                    (e) =>
+                                        (e.target.src =
+                                            '/images/icons/user-icon-dark.svg')
+                                "
+                                class="user-avatar"
+                            />
+                        </div>
+                        <div class="usernameContainer">
+                            <span class="username">{{
+                                authStore().user?.name
+                            }}</span>
+                        </div>
+                    </div>
+                    <div class="pointsContainer">
+                        <span class="points">
+                            {{ userPoints }}
+                            <img
+                                src="../../../../public/images/icons/trophy-icon-dark.svg"
+                                alt="Trophy icon"
+                            />
+                        </span>
+                    </div>
+                </div>
             </a>
             <div
                 id="userProfileMenu"
@@ -111,22 +128,109 @@
 /* -- IMPORTS -- */
 import { onMounted, ref } from "vue";
 import useAuth from "@/composables/auth";
+import useUsers from "@/composables/users";
 import { authStore } from "../../store/auth";
 import useRankings from "@/composables/rankings.js";
 
 /* -- VARIABLES -- */
 const { processing, logout } = useAuth();
 const { getRanking } = useRankings();
-const userPoints = ref(null); // Declaramos userPoints como una variable reactiva
+const { getUser } = useUsers();
+const userPoints = ref(null);
+const userAvatar = ref(null);
 
 /* -- FUNCTIONS -- */
-onMounted(() => {
+const updateUserData = async () => {
     if (authStore().user?.id) {
-        getRanking(authStore().user?.id).then((data) => {
-            if (data.points) {
-                userPoints.value = data.points;
+        try {
+            const userData = await getUser(authStore().user?.id);
+            if (userData) {
+                userAvatar.value = userData.avatar;
+                console.log("Avatar URL:", userData.avatar); // Debug
             }
-        });
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
+    }
+};
+
+const getAvatarUrl = () => {
+    return userAvatar.value || "/images/icons/user-icon-dark.svg";
+};
+
+onMounted(async () => {
+    if (authStore().user?.id) {
+        // Obtener puntos
+        const rankingData = await getRanking(authStore().user?.id);
+        if (rankingData.points) {
+            userPoints.value = rankingData.points;
+        }
+
+        // Actualizar datos del usuario
+        await updateUserData();
     }
 });
 </script>
+
+<style scoped>
+#userContent {
+    width: 100%;
+    min-width: 250px;
+}
+
+#userProfile {
+    width: 100%;
+}
+
+.profile-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem;
+}
+
+.left-side {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.userImageContainer {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.usernameContainer {
+    padding-left: 0.5rem;
+}
+
+.pointsContainer {
+    display: flex;
+    align-items: center;
+}
+
+.points {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.points img {
+    height: 24px;
+    width: 24px;
+}
+
+.user-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+</style>
