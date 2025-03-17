@@ -132,7 +132,11 @@ const handleAvatarError = (e) => {
 <style scoped>
 #globalRankingMenuContainer {
     width: 100%;
-    padding: 1rem;
+    padding: 1rem 0 0 2rem;
+}
+
+#globalRankingMenuTitle {
+    padding: 0;
 }
 
 .rankingContainer {
@@ -191,6 +195,7 @@ const handleAvatarError = (e) => {
     align-items: center;
     gap: 0.5rem;
     white-space: nowrap;
+    margin-right: 0.5rem;
 }
 
 .pointsContainer img {
@@ -201,9 +206,62 @@ const handleAvatarError = (e) => {
 
 /* Estilos responsivos */
 @media (max-width: 768px) {
+    #globalRankingMenuContainer {
+        padding: 1rem;
+    }
+
     .rankingContainer {
-        margin-bottom: 1rem;
+        padding: 0.75rem;
+        margin-bottom: 0;
+    }
+
+    .userImageContainer {
+        width: 35px;
+        height: 35px;
+        margin: 0 0.5rem;
+    }
+
+    .usernameContainer {
+        padding: 0 0.5rem;
+    }
+
+    .pointsContainer {
+        min-width: 80px;
+        padding-left: 0.5rem;
+    }
+
+    .points img {
+        height: 20px;
+        width: 20px;
+    }
+
+    .indexContainer {
+        width: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    #globalRankingMenuContainer {
         padding: 0.5rem;
+    }
+
+    .rankingContainer {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .userImageContainer {
+        width: 30px;
+        height: 30px;
+    }
+
+    .pointsContainer {
+        min-width: 70px;
+    }
+
+    .points img {
+        height: 18px;
+        width: 18px;
     }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
     <div id="playComponent">
         <div id="tituloPlayComponent">
-            <h1 class="boldest white-color">DE BATTLESHIP</h1>
+            <h1 class="bold white-color">DE BATTLESHIP</h1>
         </div>
         <button
             id="botonJugarPartida"
@@ -27,7 +27,7 @@
         </button>
         <div id="partidasPrivadasComponent">
             <div id="tituloPartidaPrivada">
-                <h2 class="boldest white-color">PARTIDA PRIVADA</h2>
+                <h2 class="bold white-color">PARTIDA PRIVADA</h2>
             </div>
             <div id="botonesPartidaPrivada">
                 <button
@@ -148,6 +148,10 @@ export default {
 </script>
 
 <style scoped>
+#playComponent {
+    margin-top: 0.5rem;
+}
+
 #tituloPlayComponent {
     width: 100%;
     text-align: center;

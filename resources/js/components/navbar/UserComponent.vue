@@ -1,8 +1,9 @@
 <template>
     <!-- No session -->
     <div
-        v-if="!authStore().user?.name"
+        v-if="!authStore().user?.username"
         class="nav-item dropdown"
+        :class="variant"
         id="userComponent"
     >
         <div id="userContent">
@@ -44,7 +45,7 @@
     </div>
 
     <!-- Session already started -->
-    <div v-if="authStore().user?.name" id="userComponent">
+    <div v-if="authStore().user?.username" id="userComponent" :class="variant">
         <div id="userContent">
             <a
                 id="userProfile"
@@ -70,7 +71,7 @@
                         </div>
                         <div class="usernameContainer">
                             <span class="username">{{
-                                authStore().user?.name
+                                authStore().user?.username
                             }}</span>
                         </div>
                     </div>
@@ -139,6 +140,13 @@ const { getUser } = useUsers();
 const userPoints = ref(null);
 const userAvatar = ref(null);
 
+const props = defineProps({
+    variant: {
+        type: String,
+        default: "sidebar", // 'sidebar' o 'profile'
+    },
+});
+
 /* -- FUNCTIONS -- */
 const updateUserData = async () => {
     if (authStore().user?.id) {
@@ -173,46 +181,117 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Estilos base compartidos */
+#userComponent {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+    justify-content: center;
+    align-items: center; /* Añadido para centrar verticalmente */
+}
+
+#userComponent:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
 #userContent {
     width: 100%;
-    min-width: 250px;
+    max-width: 800px; /* Limitar el ancho máximo */
+    margin: 0 auto; /* Centrar horizontalmente */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; /* Centrar contenido interno */
 }
 
 #userProfile {
     width: 100%;
+    height: 100%;
+}
+
+#userContent {
+    width: 100%;
+    min-width: 300px;
+}
+
+/* Variante sidebar */
+.sidebar {
+    border: none;
+    border-radius: 0;
+    padding: 0.5rem;
+}
+
+.sidebar .userImageContainer {
+    width: 40px;
+    height: 40px;
+}
+
+/* Variante profile */
+.profile {
+    min-height: 150px;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 1rem 0 1rem;
+}
+
+.profile .userImageContainer {
+    width: 90px;
+    height: 90px;
+}
+
+.profile .points {
+    margin-right: 0.5rem;
 }
 
 .profile-content {
+    height: 100%;
     display: flex;
-    justify-content: space-between;
     align-items: center;
     width: 100%;
+    justify-content: center;
+    max-width: 800px;
+    margin: 0 auto;
     padding: 0.5rem;
 }
 
 .left-side {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    flex: 1;
+    min-width: 0;
 }
 
 .userImageContainer {
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
+    margin: 0 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .usernameContainer {
-    padding-left: 0.5rem;
+    flex: 1;
+    padding: 0 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .pointsContainer {
     display: flex;
     align-items: center;
+    min-width: 100px;
+    padding-left: 1rem;
+    justify-content: flex-end;
 }
 
 .points {
@@ -223,6 +302,7 @@ onMounted(async () => {
 }
 
 .points img {
+    margin-left: 0.5rem;
     height: 24px;
     width: 24px;
 }
@@ -232,5 +312,11 @@ onMounted(async () => {
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+    #userComponent {
+        padding: 0.5rem;
+    }
 }
 </style>
