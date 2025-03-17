@@ -23,6 +23,11 @@
     --red-color: #ff0000;
     --green-color: #00ff00;
     --blue-color: #0000ff;
+
+    /* - Ranking colors - */
+    --gold-color: #FFD700;
+    --silver-color: #C0C0C0;
+    --bronze-color: #CD7F32;
 }
 
 /* -- Global font family -- */
@@ -189,7 +194,7 @@
 /*
 
     ///// COLORS ///// 
-    
+   
 */
 
 /* -- ROOT colors -- */
@@ -213,6 +218,11 @@
     --red-color: #ff0000;
     --green-color: #00ff00;
     --blue-color: #0000ff;
+
+    /* - Ranking colors - */
+    --gold-color: #FFD700;
+    --silver-color: #C0C0C0;
+    --bronze-color: #CD7F32;
 }
 
 /* - Backgrounds - */

@@ -101,4 +101,149 @@ class RankingController extends Controller
             'message' => 'Ranking deleted successfully',
         ]);
     }
+
+    /**
+     * Obtiene la posición global del usuario autenticado
+     */
+    public function getGlobalPosition(Request $request)
+    {
+        try {
+            $userId = $request->user()->id;
+            
+            // Obtener todos los rankings ordenados por puntos
+            $rankings = Ranking::orderBy('points', 'desc')->get();
+            
+            // Encontrar la posición del usuario
+            $position = null;
+            foreach ($rankings as $index => $ranking) {
+                if ($ranking->user_id === $userId) {
+                    $position = $index + 1;
+                    break;
+                }
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'position' => $position
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error al obtener la posición global'
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtiene la posición nacional del usuario autenticado
+     */
+    public function getNationalPosition(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $userNationality = $user->nationality;
+            
+            // Obtener rankings de usuarios con la misma nacionalidad
+            $rankings = Ranking::with('user')
+                ->whereHas('user', function($query) use ($userNationality) {
+                    $query->where('nationality', $userNationality);
+                })
+                ->orderBy('points', 'desc')
+                ->get();
+            
+            // Encontrar la posición del usuario
+            $position = null;
+            foreach ($rankings as $index => $ranking) {
+                if ($ranking->user_id === $user->id) {
+                    $position = $index + 1;
+                    break;
+                }
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'position' => $position
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error al obtener la posición nacional'
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtiene los puntos del usuario autenticado
+     */
+    public function getUserPoints(Request $request)
+    {
+        try {
+            $userId = $request->user()->id;
+            $ranking = Ranking::where('user_id', $userId)->first();
+            
+            return response()->json([
+                'status' => 'success',
+                'points' => $ranking ? $ranking->points : 0
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error al obtener los puntos del usuario'
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtiene el historial de las últimas 100 partidas del usuario
+     */
+    public function getMatchHistory(Request $request)
+    {
+        try {
+            $userId = $request->user()->id;
+            $games = Game::where('player1_id', $userId)
+                ->orWhere('player2_id', $userId)
+                ->with(['player1', 'player2'])
+                ->orderBy('created_at', 'desc')
+                ->take(100)
+                ->get()
+                ->map(function ($game) use ($userId) {
+                    $opponent = $game->player1_id === $userId ? $game->player2 : $game->player1;
+                    $result = '';
+                    
+                    if ($game->winner_id === $userId) {
+                        $result = 'victory';
+                    } elseif ($game->winner_id === null) {
+                        $result = 'draw';
+                    } else {
+                        $result = 'defeat';
+                    }
+
+                    return [
+                        'opponent' => $opponent->username,
+                        'date' => $game->created_at->format('d/m/Y H:i'),
+                        'result' => $result
+                    ];
+                });
+
+            $message = null;
+            $count = count($games);
+            
+            if ($count === 0) {
+                $message = "¡Tu barco está tan nuevo que aún tiene el plástico protector!";
+            } elseif ($count < 10) {
+                $message = "¡El mar es grande y tú apenas estás mojando los pies!";
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $games,
+                'message' => $message
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error al obtener el historial de partidas'
+            ], 500);
+        }
+    }
 }

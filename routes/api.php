@@ -66,6 +66,14 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('user-avatars', [UserController::class, 'getUserAvatars']);
     Route::get('users/{userId}/avatars', [UserController::class, 'getUserAvatar']);
     Route::delete('users/{userId}/avatars/{avatarId}', [UserController::class, 'removeAvatar']);
+
+    // Rutas de obtención de posiciones globales y nacionales
+    Route::get('/rankings/global-position', [RankingController::class, 'getGlobalPosition']);
+    Route::get('/rankings/national-position', [RankingController::class, 'getNationalPosition']);
+    // Ruta de obtención de la cantidad de puntos del usuario
+    Route::get('/rankings/user-points', [RankingController::class, 'getUserPoints']);
+    // Ruta de obtención del historial de partidas
+    Route::get('/games/user-match-history', [GameController::class, 'getUserMatchHistory']);
 });
 
 Route::get('category-list', [CategoryController::class, 'getList']);
