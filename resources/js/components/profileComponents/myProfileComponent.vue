@@ -238,7 +238,13 @@ watchEffect(() => {
             surname1: postData.value.surname1,
             surname2: postData.value.surname2,
             role_id: postData.value.role_id,
-            avatar: postData.value.avatar
+            avatar: postData.value.avatar,
+            nationality: postData.value.nationality ? postData.value.nationality.charAt(0).toUpperCase() + postData.value.nationality.slice(1) : '',
+            created_at: postData.value.created_at ? new Date(postData.value.created_at).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }) : ''
         };
     }
 });

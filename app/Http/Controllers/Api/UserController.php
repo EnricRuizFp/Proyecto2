@@ -391,4 +391,19 @@ class UserController extends Controller
             'message' => 'Avatar removed successfully from user'
         ]);
     }
+
+    /**
+     * Obtiene el username de un usuario por su ID
+     */
+    public function getUsernameById($userId)
+    {
+        try {
+
+            // Obtener el ID por parámetro
+            $user = User::find($userId);
+            return $user ? $user->username : 'Desconocido';
+        } catch (\Exception $e) {
+            return 'No se ha encontrado el usuario';
+        }
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Game;
 use App\Models\GamePlayer;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 
 class GameController extends Controller
@@ -373,50 +374,34 @@ class GameController extends Controller
     {
         try {
             $userId = $request->user()->id;
+            $userController = new UserController();
             
-            // Obtener las últimas 100 partidas donde el usuario participó
-            $games = Game::whereHas('players', function($query) use ($userId) {
+            $games = Game::query()
+                ->whereHas('players', function($query) use ($userId) {
                     $query->where('user_id', $userId);
                 })
-                ->with(['players.user'])
-                ->orderBy('created_at', 'desc')
+                ->orderByDesc('creation_date')
                 ->take(100)
                 ->get()
-                ->map(function ($game) use ($userId) {
-                    // Encontrar al oponente (el otro jugador que no es el usuario actual)
-                    $opponent = $game->players
-                        ->where('user_id', '!=', $userId)
-                        ->first();
-
-                    // Determinar el resultado
-                    $result = 'draw';
-                    if ($game->winner_id === $userId) {
-                        $result = 'victory';
-                    } elseif ($game->winner_id && $game->winner_id !== $userId) {
-                        $result = 'defeat';
-                    }
+                ->map(function ($game) use ($userController) {
+                    $winnerUsername = $game->winner ? 
+                        $userController->getUsernameById($game->winner) : 
+                        'Empate';
 
                     return [
-                        'opponent' => $opponent ? $opponent->user->username : 'Desconocido',
-                        'date' => $game->created_at->format('d/m/Y H:i'),
-                        'result' => $result
+                        'date' => $game->creation_date->format('d/m/Y'),  // Cambiado el formato
+                        'is_public' => $game->is_public ? 'Pública' : 'Privada',
+                        'winner_id' => $game->winner,
+                        'winner' => $winnerUsername,
+                        'id' => $game->id
                     ];
                 });
 
-            $message = null;
-            $count = count($games);
-            
-            if ($count === 0) {
-                $message = "¡Tu barco está tan nuevo que aún tiene el plástico protector!";
-            } elseif ($count < 10) {
-                $message = "¡El mar es grande y tú apenas estás mojando los pies!";
-            }
-
             return response()->json([
                 'status' => 'success',
-                'data' => $games,
-                'message' => $message
+                'data' => $games
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',

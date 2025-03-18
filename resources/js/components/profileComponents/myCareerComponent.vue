@@ -7,7 +7,7 @@
             <div class="ranking-overview-container">
                 <!-- Posición Global -->
                 <div class="ranking-box">
-                    <div class="ranking-title">Global</div>
+                    <div class="h4">Global</div>
                     <div class="rank-number">
                         <template v-if="globalPosition">
                             <span class="rank-symbol" :class="getRankingColor(globalPosition)">#</span>
@@ -21,7 +21,7 @@
 
                 <!-- Posición Nacional -->
                 <div class="ranking-box">
-                    <div class="ranking-title">Nacional</div>
+                    <div class="h4">Nacional</div>
                     <div class="rank-number">
                         <template v-if="nationalPosition">
                             <span class="rank-symbol" :class="getRankingColor(nationalPosition)">#</span>
@@ -40,21 +40,46 @@
 
         <!-- Contenedor derecho - Historial -->
         <div class="right-section">
-            <h3 class="section-title h4 white-color">Historial de Partidas</h3>
+            <h3 class="section-title h4 white-color">Historial de partidas</h3>
             <div class="match-history-container">
-                <div v-if="motivationalMessage" class="motivational-message">
-                    {{ motivationalMessage }}
-                </div>
-                <div class="match-list" v-else>
-                    <div v-for="(game, index) in matchHistory" :key="index" 
-                         :class="['match-item', game.result]">
-                        <div class="match-opponent">vs {{ game.opponent }}</div>
-                        <div class="match-date">{{ game.date }}</div>
-                        <div class="match-result">
-                            <span v-if="game.result === 'victory'">Victoria</span>
-                            <span v-else-if="game.result === 'defeat'">Derrota</span>
-                            <span v-else>Empate</span>
+                <div class="match-list">
+                    <!-- Mostrar partidas siempre que haya al menos una -->
+                    <template v-if="matchHistory.length > 0">
+                        <table class="match-history-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Ganador</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="game in displayedGames" :key="game.id">
+                                    <td class="match-date">{{ game.date }}</td>
+                                    <td>{{ game.is_public }}</td>
+                                    <td class="match-result">
+                                        {{ isCurrentUser(game.winner_id) ? 'Tú' : game.winner }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Botón mostrar más -->
+                        <div v-if="matchHistory.length > 10" class="show-more-container">
+                            <button @click="toggleShowAll" class="show-more-btn">
+                                {{ showAll ? 'Mostrar menos' : `Ver ${matchHistory.length - 10} más` }}
+                            </button>
                         </div>
+
+                        <!-- Mensaje motivacional después de la lista si hay menos de 10 partidas -->
+                        <div v-if="matchHistory.length < 10" class="motivational-message">
+                            ¡El mar es grande y tú apenas estás mojando los pies!
+                        </div>
+                    </template>
+                    
+                    <!-- Mostrar mensaje solo si no hay partidas -->
+                    <div v-else class="motivational-message">
+                        ¡Tu barco está tan nuevo que aún tiene el plástico protector!
                     </div>
                 </div>
             </div>
@@ -64,7 +89,7 @@
 
 <script setup>
 // Importación de recursos
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
 // Variables reactivas para los datos con funciones ASYNC
@@ -73,6 +98,16 @@ const nationalPosition = ref(null);
 const userPoints = ref(null);
 const matchHistory = ref([]);
 const motivationalMessage = ref(null);
+const showAll = ref(false);
+const userId = ref(null);
+
+const displayedGames = computed(() => {
+    return showAll.value ? matchHistory.value : matchHistory.value.slice(0, 10);
+});
+
+const toggleShowAll = () => {
+    showAll.value = !showAll.value;
+};
 
 // Obtener la posición global del usuario
 const getGlobalPosition = async () => {
@@ -111,12 +146,11 @@ const getUserPoints = async () => {
 const getMatchHistory = async () => {
     try {
         const response = await axios.get("/api/games/user-match-history");
+        console.log("Historial de partidas:", response.data.data);
         matchHistory.value = response.data.data;
-        motivationalMessage.value = response.data.message;
     } catch (error) {
         console.error("Error obteniendo el historial de partidas:", error);
         matchHistory.value = [];
-        motivationalMessage.value = null;
     }
 };
 
@@ -130,72 +164,18 @@ const getRankingColor = (position) => {
     }
 };
 
+const isCurrentUser = (winnerId) => {
+    return winnerId === userId.value;
+};
+
 // Al cargar el componente, ejecutar las 3 funciones del componente
-onMounted(() => {
+onMounted(async () => {
+    const user = await axios.get('/api/user');
+    userId.value = user.data.id;
+    
     getGlobalPosition();
     getNationalPosition();
     getUserPoints();
     getMatchHistory();
 });
 </script>
-
-<style scoped>
-.match-history-container {
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 10px;
-}
-
-.match-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    margin-bottom: 5px;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.match-item.victory {
-    border-left: 3px solid #4CAF50;
-}
-
-.match-item.defeat {
-    border-left: 3px solid #f44336;
-}
-
-.match-item.draw {
-    border-left: 3px solid #FFC107;
-}
-
-.motivational-message {
-    text-align: center;
-    padding: 20px;
-    font-style: italic;
-    color: #ffffff80;
-}
-
-.match-opponent {
-    font-weight: bold;
-}
-
-.match-date {
-    color: #ffffff80;
-    font-size: 0.9em;
-}
-
-.match-result {
-    font-weight: bold;
-}
-
-.victory .match-result {
-    color: #4CAF50;
-}
-
-.defeat .match-result {
-    color: #f44336;
-}
-
-.draw .match-result {
-    color: #FFC107;
-}
-</style>
