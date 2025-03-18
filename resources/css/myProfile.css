@@ -16,18 +16,21 @@
 */
 #myProfilePageContent{
     background-color: var(--background-primary);
-    min-height: calc(100vh - 101px);
-    padding-bottom: 50px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 #myProfilePageContainer{
     padding-top: 100px;
+    flex: 1;
 }
 
 #myProfileBox{
     border: 1px solid var(--white-color);
     border-radius: 10px;
     padding: 25px;
+    height: calc(100% - 60px); /* Altura total menos el espacio del título */
 }
 
 /*
@@ -47,6 +50,11 @@
 .myProfileLateralBarButton{
     background-color: var(--background-primary);
     border: 0px;
+}
+
+/* Estilo por defecto para el botón activo en vista desktop */
+.myProfileLateralBarButton.activeButton {
+    font-weight: bold;
 }
 
 /*
@@ -647,6 +655,81 @@
     }
 }
 
+@media screen and (max-width: 770px) {
+    /* Contenedor principal ajustado para nueva disposición */
+    #myProfileBox {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        padding: 0;
+        border-radius: 10px; /* Asegurar que todo el contenedor tiene bordes redondeados */
+    }
+
+    /* Menú lateral convertido a superior */
+    #myProfileLateralBar {
+        order: -1;
+        width: 100%;
+        border-right: none;
+        padding: 15px;
+        margin: 0;
+        background: var(--background-primary);
+        border-radius: 10px 10px 0 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Ajustes de los botones del menú */
+    .myProfileLateralBarButtons {
+        margin: 0 10px;
+        display: inline-block;
+    }
+
+    .myProfileLateralBarButton {
+        padding: 8px 15px;
+        border-radius: 5px;
+        background-color: var(--background-primary);
+        transition: background-color 0.3s;
+    }
+
+    .myProfileLateralBarButton:hover, .myProfileLateralBarButton.activeButton {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Sobrescribir el estilo en vista móvil */
+    .myProfileLateralBarButton.activeButton {
+        font-weight: normal;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Contenedor del contenido principal */
+    #myProfilePageMenuContainer {
+        width: 100%;
+        padding: 20px;
+        background-color: var(--background-primary);
+        border-radius: 0 0 10px 10px; /* Añadir bordes redondeados en la parte inferior */
+    }
+
+    /* Ajustes específicos para los componentes */
+    #image\&settings {
+        padding-left: 0;
+    }
+
+    .user-info-section {
+        padding: 0;
+    }
+
+    .career-container {
+        padding: 10px;
+    }
+
+    .assistance-container {
+        padding: 10px;
+    }
+}
+
 @media screen and (max-width: 767px) {
     #myProfilePageContainer {
         width: 95%;
@@ -680,8 +763,7 @@
         padding: 0 5px;
     }
 
-    .match-history-table th:nth-child(2),
-    .match-history-table td:nth-child(2) {
+    .match-history-table th:nth-child(2), .match-history-table td:nth-child(2) {
         display: none; /* Ocultar columna de tipo en móvil */
     }
 }
@@ -728,6 +810,12 @@
 
     .match-date {
         min-width: 100px;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    .myProfileLateralBarButton {
+        font-size: 15px; /* Reducción de 5px del tamaño base de 20px */
     }
 }
 
