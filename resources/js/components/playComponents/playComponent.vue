@@ -201,25 +201,17 @@ export default {
     background-color: var(--secondary-color);
     border: none;
     border-radius: 10px;
-    padding: 20px 35px; /* Aumentado el padding vertical */
+    height: 65px;
+    padding: 0 35px;
     display: flex;
     align-items: center;
     justify-content: center; /* Centrar contenido */
     gap: 15px; /* Aumentar espacio entre texto e icono */
-    min-width: 200px; /* Asegurar ancho mínimo */
     transition: all 0.3s ease;
     flex: 1;
-    max-width: 250px; /* Limitar el ancho máximo de cada botón */
-}
-
-.botonPartida {
-    width: 220px; /* Aumentado de 180px/200px a 220px */
-    min-width: 220px; /* Ajustado para mantener consistencia */
-    padding: 0 25px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
+    width: calc(50% - 0.5rem);
+    min-width: 0;
+    max-width: none;
 }
 
 .botonPartida img {
@@ -262,40 +254,43 @@ export default {
     width: 100%;
 }
 
-.botonPartida {
-    background-color: var(--secondary-color);
-    border: none;
-    border-radius: 10px;
-    height: 65px;
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: all 0.3s ease;
-    flex: 1;
-    width: calc(
-        50% - 0.5rem
-    ); /* Cada botón ocupa la mitad del espacio menos el gap */
-    min-width: 0; /* Eliminar min-width para permitir encogimiento */
-    max-width: none; /* Eliminar max-width para permitir crecimiento */
-}
-
-/* Eliminar referencias al tamaño de fuente en los media queries */
 @media (max-width: 768px) {
+    #playComponent {
+        padding: 0 1rem;
+    }
+
     #botonJugarPartida {
         min-width: 200px;
         padding: 0 25px;
+        margin: 2rem 0 3rem 0; /* Reducido el margin-bottom de 4rem a 3rem */
+        height: 60px;
+        font-size: 22px; /* Igualado al tamaño de los otros botones */
+    }
+
+    #tituloPlayComponent h1 {
+        font-size: 2.5rem;
     }
 
     .botonPartida {
         width: 100%;
-        height: 55px;
+        height: 60px !important; /* Reducido de 65px a 60px */
+        min-height: 60px; /* Reducido de 65px a 60px */
+        font-size: 22px; /* Reducido el tamaño de fuente */
+        gap: 10px; /* Reducir espacio entre texto e ícono */
+    }
+
+    .botonPartida svg {
+        height: 24px; /* Reducir tamaño del ícono */
+        width: 24px;
     }
 
     #botonesPartidaPrivada {
         flex-direction: column;
-        gap: 1rem;
+        gap: 1rem; /* Reducido de 1.5rem */
+    }
+
+    #tituloPartidaPrivada h2 {
+        margin-bottom: 1rem; /* Reducido de 1.5rem */
     }
 
     #espacio4 {
@@ -304,15 +299,28 @@ export default {
 }
 
 @media (max-width: 480px) {
+    #playComponent {
+        padding: 0 0.5rem;
+    }
+
     #botonJugarPartida,
     .botonPartida {
-        height: 55px;
-        font-size: 24px;
+        height: 60px; /* Mantener altura consistente */
+        font-size: 20px; /* Mantener el mismo tamaño en todas las resoluciones */
+    }
+
+    #tituloPlayComponent h1 {
+        font-size: 2.75rem;
     }
 
     #botonJugarPartida svg {
-        height: 28px;
-        width: 28px;
+        height: 24px;
+        width: 24px;
+    }
+
+    .botonPartida {
+        height: 60px !important; /* Reducido aún más para pantallas más pequeñas */
+        font-size: 20px;
     }
 
     .botonPartida svg {
@@ -326,7 +334,7 @@ export default {
     .botonPartida {
         min-width: 180px;
         padding: 0 20px;
-        font-size: 20px;
+        font-size: 22px; /* Mantener el mismo tamaño */
     }
 }
 </style>

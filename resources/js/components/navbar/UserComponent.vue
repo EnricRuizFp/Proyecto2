@@ -70,19 +70,21 @@
                             />
                         </div>
                         <div class="usernameContainer">
-                            <span class="username">{{
-                                authStore().user?.username
-                            }}</span>
+                            <div class="username-wrapper">
+                                <span class="username">{{
+                                    authStore().user?.username
+                                }}</span>
+                                <div class="pointsContainer">
+                                    <span class="points">
+                                        {{ userPoints }}
+                                        <img
+                                            src="../../../../public/images/icons/trophy-icon-dark.svg"
+                                            alt="Trophy icon"
+                                        />
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="pointsContainer">
-                        <span class="points">
-                            {{ userPoints }}
-                            <img
-                                src="../../../../public/images/icons/trophy-icon-dark.svg"
-                                alt="Trophy icon"
-                            />
-                        </span>
                     </div>
                 </div>
             </a>
@@ -281,17 +283,16 @@ onMounted(async () => {
 .usernameContainer {
     flex: 1;
     padding: 0 1rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: flex;
+    align-items: flex-start; /* Alinear al inicio del contenedor */
 }
 
 .pointsContainer {
     display: flex;
     align-items: center;
-    min-width: 100px;
-    padding-left: 1rem;
-    justify-content: flex-end;
+    min-width: fit-content;
+    padding: 0;
+    justify-content: flex-start;
 }
 
 .points {
@@ -314,9 +315,50 @@ onMounted(async () => {
     border-radius: 50%;
 }
 
+.username-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Alinear al inicio */
+    gap: 0.5rem;
+    width: 100%;
+}
+
 @media (max-width: 768px) {
     #userComponent {
         padding: 0.5rem;
+    }
+
+    .profile .profile-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .profile .left-side {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .profile .usernameContainer {
+        text-align: left;
+        padding: 0.5rem;
+    }
+
+    .profile .pointsContainer {
+        padding: 0;
+        justify-content: flex-start;
+    }
+
+    .profile .username-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .profile .pointsContainer {
+        padding: 0;
+        justify-content: center;
     }
 }
 </style>

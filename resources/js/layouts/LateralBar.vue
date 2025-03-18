@@ -62,3 +62,21 @@ onMounted(() => {
 
 defineExpose({ dropdownOpen, toggleDropdown });
 </script>
+
+<style scoped>
+#mobileMenuButton {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background-color: var(--background-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#mobileMenuButton:hover {
+    background-color: var(--background-secondary);
+}
+</style>

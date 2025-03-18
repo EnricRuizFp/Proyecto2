@@ -55,14 +55,12 @@
     background-color: var(--secondary-color);
     border-radius: 10px;
     border: none;
-    height: 50px;
     width: 49%;
     margin-top: 0px;
 }
 
 #espacio4 {
     width: 2%;
-    height: 50px;
 }
 
 /*

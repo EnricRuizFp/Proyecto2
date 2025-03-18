@@ -25,9 +25,9 @@
     --blue-color: #0000ff;
 
     /* - Ranking colors - */
-    --gold-color: #FFD700;
-    --silver-color: #C0C0C0;
-    --bronze-color: #CD7F32;
+    --gold-color: #ffd700;
+    --silver-color: #c0c0c0;
+    --bronze-color: #cd7f32;
 }
 
 /* -- Global font family -- */
@@ -85,6 +85,12 @@
     font-size: 30px;
     font-weight: bold;
     color: var(--white-color);
+}
+@media (max-width: 480px) {
+    .h4,
+    .h4-dark {
+        font-size: 20px;
+    }
 }
 /* - PARAGRAPHS - */
 .p1 {
@@ -220,9 +226,9 @@
     --blue-color: #0000ff;
 
     /* - Ranking colors - */
-    --gold-color: #FFD700;
-    --silver-color: #C0C0C0;
-    --bronze-color: #CD7F32;
+    --gold-color: #ffd700;
+    --silver-color: #c0c0c0;
+    --bronze-color: #cd7f32;
 }
 
 /* - Backgrounds - */

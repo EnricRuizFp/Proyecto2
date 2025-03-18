@@ -1,8 +1,8 @@
 <template>
     <div class="ship-placement app-background-primary">
         <div class="game-layout">
-            <!-- Temporizador -->
-            <div class="timer-container">
+            <!-- Temporizador solo visible en desktop -->
+            <div class="timer-container desktop-only">
                 <div class="timer" :class="{ 'timer-warning': timeLeft <= 10 }">
                     <i class="fas fa-clock"></i>
                     <span class="timer-text">{{ formatTime(timeLeft) }}</span>
@@ -25,6 +25,7 @@
                         }"
                         :style="{
                             width: `${ship.size * 40}px`,
+                            '--width': `${ship.size * 40}px`,
                         }"
                         draggable="true"
                         @dragstart="handleDragStart($event, ship)"
@@ -43,6 +44,15 @@
 
             <!-- Controles -->
             <div class="controls">
+                <!-- Temporizador para móvil -->
+                <div
+                    class="timer mobile-only"
+                    :class="{ 'timer-warning': timeLeft <= 10 }"
+                >
+                    <i class="fas fa-clock"></i>
+                    <span class="timer-text">{{ formatTime(timeLeft) }}</span>
+                </div>
+
                 <button
                     @click="rotateShip"
                     class="control-button"
@@ -266,7 +276,7 @@ const emit = defineEmits(["placement-confirmed"]);
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1rem;
+    padding: 6.5rem 1rem 1rem 1rem;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
@@ -401,7 +411,7 @@ const emit = defineEmits(["placement-confirmed"]);
 .ship-item:hover {
     border-color: var(--primary-color);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(112, 72, 236, 0.2);
+    box-shadow: 0 4px 12px rgba(112, 72, 236, calc(0.2 * var(--ship-size, 1)));
 }
 
 .ship-item:active {
@@ -487,7 +497,7 @@ const emit = defineEmits(["placement-confirmed"]);
 
 .control-button.primary {
     background: var(--primary-color);
-    color: var(--white-color);
+    color: var (--white-color);
 }
 
 .control-button.primary:hover {
@@ -529,22 +539,227 @@ const emit = defineEmits(["placement-confirmed"]);
 @media (max-width: 480px) {
     .ship-placement {
         padding: 1rem;
+        min-height: auto;
     }
 
     .game-layout {
-        gap: 1rem;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        flex-direction: column;
+    }
+
+    .board-container {
+        width: 320px;
+        height: 320px;
+        padding: 0.5rem;
+    }
+
+    .board-grid {
+        width: 300px;
+        height: 300px;
+    }
+
+    .board-cell {
+        width: 30px;
+        height: 30px;
     }
 
     .ships-dock {
-        width: 100%;
-        max-width: 400px;
-    }
-    .ships-dock,
-    .board-container {
-        width: 100%;
-        max-width: 450px;
+        width: 320px;
+        min-height: 120px; /* Reducido aún más al usar dos columnas */
         height: auto;
-        min-height: 450px;
+        padding: 0.5rem 0.25rem; /* Ajustar padding para dar más espacio al título */
+        margin-bottom: 0.5rem;
+        overflow: hidden; /* Evitar desbordamiento */
+    }
+
+    .ships-container {
+        display: grid; /* Cambio a grid */
+        grid-template-columns: repeat(2, 1fr); /* Dos columnas */
+        gap: 0.15rem;
+        padding: 0.15rem;
+        justify-items: center;
+        align-items: center;
+        max-width: 100%; /* Asegurar que no exceda el contenedor */
+        overflow-x: hidden; /* Evitar scroll horizontal */
+    }
+
+    .ship-item {
+        --ship-size: calc(var(--width, 40px) / 40);
+        transform: scale(0.8); /* Aumentado para mejor visibilidad */
+        transform-origin: center;
+        margin: 0;
+        padding: 0.25rem;
+        width: auto; /* Cambiado para ajuste automático */
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--neutral-color-1); /* Añadido el fondo */
+        border: 1px solid var(--primary-color); /* Añadido borde */
+        border-radius: 6px; /* Ajustado el radio del borde */
+    }
+
+    .ship-preview {
+        justify-content: center;
+        height: 100%;
+        gap: 1px;
+        display: flex;
+        align-items: center;
+        padding: 0.1rem; /* Añadido padding pequeño */
+    }
+
+    .ship-segment {
+        width: 28px; /* Ajustado para mantener proporción con el tablero */
+        height: 28px;
+        margin: 0;
+        flex: 0 0 auto; /* Evita que los segmentos se estiren */
+        border-radius: 4px;
+        background-color: var(--secondary-color);
+    }
+
+    .controls {
+        width: 320px; /* Mismo ancho que board-container y ships-dock */
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between; /* Cambio para mejor distribución */
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .control-button {
+        width: 36px; /* Reducido ligeramente */
+        height: 36px;
+        flex: 0 0 auto;
+    }
+
+    .timer {
+        padding: 0.5rem 1rem;
+        font-size: 16px;
+        margin: 0;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .timer-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .desktop-only {
+        display: none;
+    }
+
+    .mobile-only {
+        display: flex;
+    }
+
+    .timer.mobile-only {
+        max-width: 120px; /* Limitar el ancho del timer */
+        padding: 0.5rem;
+        font-size: 14px;
+        margin: 0;
+        flex: 0 0 auto; /* Evitar que se expanda */
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 0.5rem;
+        width: 100%;
+    }
+
+    .control-button {
+        flex: 0 0 auto;
+    }
+
+    .timer-container.desktop-only {
+        display: none;
+    }
+
+    .timer.mobile-only {
+        display: flex;
+        padding: 0.5rem 1rem;
+        font-size: 16px;
+        margin: 0;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .dock-title {
+        font-size: 13px; /* Reducido para mejor ajuste */
+        margin-bottom: 0.15rem;
+        padding: 0 0.25rem;
+        line-height: 1.2;
+        white-space: normal;
+    }
+
+    .ships-container {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.1rem;
+        padding: 0.15rem;
+        width: 100%;
+        max-width: 310px; /* Ajustado al ancho del dock menos los paddings */
+        margin: 0 auto;
+    }
+
+    .ship-item {
+        transform: scale(0.45); /* Reducido más para evitar desbordamiento */
+        transform-origin: center;
+        margin: 0;
+        padding: 0.1rem;
+        width: 100%;
+        max-width: 150px; /* Limitar ancho máximo */
+    }
+
+    .ship-segment {
+        width: 18px; /* Reducido */
+        height: 18px;
+        margin: 1px;
+    }
+}
+
+/* Clases base de visibilidad */
+.desktop-only {
+    display: flex;
+}
+
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 480px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: flex !important;
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 0.5rem;
+        width: 100%;
+    }
+
+    .timer.mobile-only {
+        padding: 0.5rem 1rem;
+        font-size: 16px;
+        margin: 0;
+        flex: 1;
+        justify-content: center;
     }
 }
 
