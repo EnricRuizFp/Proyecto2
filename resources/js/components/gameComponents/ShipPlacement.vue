@@ -403,13 +403,13 @@ const emit = defineEmits(["placement-confirmed"]);
     padding: 0.5rem;
     border-radius: 8px;
     transition: all 0.3s ease;
-    background: var(--neutral-color); /* Fondo para el contenedor del barco */
-    border: 2px solid transparent;
-    margin: 0.25rem; /* Reducido de 0.5rem */
+    background: transparent; /* Cambiado de neutral-color a transparent */
+    border: none; /* Quitado el borde */
+    margin: 0.25rem;
 }
 
 .ship-item:hover {
-    border-color: var(--primary-color);
+    border: none; /* Quitado el borde en hover */
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(112, 72, 236, calc(0.2 * var(--ship-size, 1)));
 }
@@ -586,36 +586,57 @@ const emit = defineEmits(["placement-confirmed"]);
 
     .ship-item {
         --ship-size: calc(var(--width, 40px) / 40);
-        transform: scale(0.8); /* Aumentado para mejor visibilidad */
+        transform: scale(0.8);
         transform-origin: center;
         margin: 0;
         padding: 0.25rem;
-        width: auto; /* Cambiado para ajuste automático */
-        height: 35px;
+        width: auto;
+        height: 40px; /* Aumentado de 35px */
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--neutral-color-1); /* Añadido el fondo */
-        border: 1px solid var(--primary-color); /* Añadido borde */
-        border-radius: 6px; /* Ajustado el radio del borde */
+        background: transparent; /* Cambiado a transparente */
+        border: none; /* Quitado el borde */
+        border-radius: 8px;
+        cursor: grab;
+        transition: all 0.3s ease;
     }
 
     .ship-preview {
-        justify-content: center;
-        height: 100%;
-        gap: 1px;
         display: flex;
+        flex-direction: row;
+        background: transparent;
+        border-radius: 4px;
+        position: relative;
+        height: 100%;
+        width: 100%;
+        justify-content: center;
         align-items: center;
-        padding: 0.1rem; /* Añadido padding pequeño */
+        gap: 1px; /* Reducido para que los segmentos estén más juntos */
     }
 
     .ship-segment {
-        width: 28px; /* Ajustado para mantener proporción con el tablero */
-        height: 28px;
-        margin: 0;
-        flex: 0 0 auto; /* Evita que los segmentos se estiren */
-        border-radius: 4px;
-        background-color: var(--secondary-color);
+        width: 34px; /* Aumentado de 28px */
+        height: 34px; /* Aumentado de 28px */
+        margin: 1px;
+        border-radius: 3px;
+        flex: 0 0 auto;
+    }
+
+    .ship-item:hover {
+        border: none; /* Quitado el borde en hover */
+        transform: scale(0.8) translateY(-2px);
+        box-shadow: 0 4px 12px
+            rgba(112, 72, 236, calc(0.2 * var(--ship-size, 1)));
+    }
+
+    .ship-item.selected .ship-segment {
+        background-color: var(--primary-color);
+    }
+
+    .ship-item.placed {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     .controls {
@@ -726,13 +747,51 @@ const emit = defineEmits(["placement-confirmed"]);
     }
 }
 
-/* Clases base de visibilidad */
-.desktop-only {
-    display: flex;
-}
+@media (max-width: 480px) {
+    .ships-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        padding: 0.5rem;
+        justify-items: center;
+        align-items: center;
+        width: 100%;
+    }
 
-.mobile-only {
-    display: none !important;
+    .ship-item {
+        margin: 0;
+        padding: 0.25rem;
+        width: auto;
+        height: auto; /* Cambiado a auto para ajustarse al contenido */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent; /* Cambiado a transparente */
+        border: none; /* Quitado el borde */
+        border-radius: 8px;
+        cursor: grab;
+        transition: all 0.3s ease;
+    }
+
+    .ship-preview {
+        display: flex;
+        flex-direction: row;
+        background: transparent;
+        position: relative;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+        gap: 2px;
+    }
+
+    .ship-segment {
+        width: 36px;
+        height: 36px;
+        margin: 0;
+        border-radius: 4px;
+        flex: 0 0 auto;
+        background-color: var(--secondary-color);
+    }
 }
 
 @media (max-width: 480px) {
@@ -809,5 +868,26 @@ const emit = defineEmits(["placement-confirmed"]);
 
 .timer-warning i {
     color: var(--secondary-color);
+}
+
+/* Clases base de visibilidad */
+.desktop-only {
+    display: none;
+}
+
+.mobile-only {
+    display: none;
+}
+
+@media (min-width: 481px) {
+    .desktop-only {
+        display: flex;
+    }
+}
+
+@media (max-width: 480px) {
+    .mobile-only {
+        display: flex;
+    }
 }
 </style>
