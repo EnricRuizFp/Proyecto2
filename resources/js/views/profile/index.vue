@@ -1,5 +1,5 @@
 <template>
-    <div id="myProfilePageContent" class="container-fluid">
+    <div id="myProfilePageContent">
         <div id="myProfilePageContainer" class="col-8 mx-auto container-fluid">
             <h3 class="h3 white-color">MI CUENTA</h3>
 
