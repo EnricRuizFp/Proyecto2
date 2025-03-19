@@ -109,7 +109,9 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
+import { authStore } from "../../store/auth";
 import JoinMatchModal from "../privateMatch/JoinMatchModal.vue";
+import axios from "axios";
 
 export default {
     components: {
@@ -120,21 +122,40 @@ export default {
         const showJoinModal = ref(false);
         const gameStore = useGameStore();
 
-        const irAlJuego = () => {
+        const checkAndNavigate = async (gameType, gameCode = null) => {
+            try {
+                const response = await axios.post('/api/games/check-user-requirements', {
+                    gameType: gameType,
+                    gameCode: gameCode,
+                    user: authStore().user
+                });
+
+                if (response.data.status === 'success') {
+                    console.log('OK: Usuario listo para jugar');
+                    router.push({ name: "game" });
+                } else {
+                    console.error('No se puede unir:', response.data.message);
+                }
+            } catch (error) {
+                console.error('Error al verificar requisitos:', error);
+            }
+        };
+
+        const irAlJuego = async () => {
             gameStore.resetGame();
-            router.push({ name: "game" });
+            await checkAndNavigate('public');
         };
 
-        const crearPartidaPrivada = () => {
+        const crearPartidaPrivada = async () => {
             gameStore.setGameMode("create");
-            router.push({ name: "game" });
+            await checkAndNavigate('private');
         };
 
-        const handleJoinMatch = (code) => {
+        const handleJoinMatch = async (code) => {
             showJoinModal.value = false;
             gameStore.setGameMode("join");
             gameStore.setMatchCode(code);
-            router.push({ name: "game" });
+            await checkAndNavigate('private', code);
         };
 
         return {
