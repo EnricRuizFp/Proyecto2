@@ -3,7 +3,8 @@
         <TopBar />
         <div id="mainPageContent" class="container-fluid">
             <div class="row container-fluid">
-                <div class="col-sm-10 col-lg-8 mx-auto row">
+                <div class="col-sm-11 col-lg-9 mx-auto row">
+                    <!-- Cambiado de col-sm-10 col-lg-8 -->
                     <div
                         class="col-sm-12 col-xl-6 d-flex flex-column justify-content-between"
                     >

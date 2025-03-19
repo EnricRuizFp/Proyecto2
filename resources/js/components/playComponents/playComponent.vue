@@ -5,7 +5,7 @@
             {{ errorMessage }}
             <button class="close-button" @click="errorMessage = ''">×</button>
         </div>
-        
+
         <div id="tituloPlayComponent">
             <h1 class="bold white-color">DE BATTLESHIP</h1>
         </div>
@@ -112,7 +112,6 @@
 </template>
 
 <script setup>
-
 /* -- IMPORTS -- */
 import { ref } from "vue";
 import { useRouter } from "vue-router";
@@ -125,7 +124,7 @@ import axios from "axios";
 const router = useRouter();
 const showJoinModal = ref(false);
 const gameStore = useGameStore();
-const errorMessage = ref('');
+const errorMessage = ref("");
 
 /* -- FUNCTIONS -- */
 
@@ -133,36 +132,39 @@ const errorMessage = ref('');
 const checkAndNavigate = async (gameType, gameCode = null) => {
     try {
         // Verificar requisitos del usuario llamando a la API
-        const response = await axios.post('/api/games/check-user-requirements', {
-            gameType: gameType,
-            gameCode: gameCode,
-            user: authStore().user ?? null
-        });
+        const response = await axios.post(
+            "/api/games/check-user-requirements",
+            {
+                gameType: gameType,
+                gameCode: gameCode,
+                user: authStore().user ?? null,
+            }
+        );
 
         // Procesar la respuesta
-        if (response.data.status === 'success') {
-            console.log('OK: User ready to play.');
-            router.push({ name: "game" }); 
+        if (response.data.status === "success") {
+            console.log("OK: User ready to play.");
+            router.push({ name: "game" });
         } else {
-            console.log('FAIL:', response.data.message);
+            console.log("FAIL:", response.data.message);
             errorMessage.value = response.data.message;
         }
     } catch (error) {
         // En caso de que haya un error no contemplado, mostrar mensaje genérico
-        errorMessage.value = 'Error al verificar requisitos del juego';
+        errorMessage.value = "Error al verificar requisitos del juego";
     }
 };
 
 // Iniciar partida pública
 const irAlJuego = async () => {
     gameStore.resetGame();
-    await checkAndNavigate('public');
+    await checkAndNavigate("public");
 };
 
 // Crear partida privada
 const crearPartidaPrivada = async () => {
     gameStore.setGameMode("create");
-    await checkAndNavigate('private');
+    await checkAndNavigate("private");
 };
 
 // Mostrar modal para unirse a partida privada
@@ -170,7 +172,7 @@ const handleJoinMatch = async (code) => {
     showJoinModal.value = false;
     gameStore.setGameMode("join");
     gameStore.setMatchCode(code);
-    await checkAndNavigate('private', code);
+    await checkAndNavigate("private", code);
 };
 </script>
 
@@ -178,7 +180,6 @@ const handleJoinMatch = async (code) => {
 #playComponent {
     width: 100%;
     margin-top: 0.5rem;
-    padding: 1rem 0 0 2rem;
 }
 
 #tituloPlayComponent {

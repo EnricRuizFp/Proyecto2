@@ -276,6 +276,17 @@ onMounted(async () => {
     border: none;
     border-radius: 10px;
     padding: 1rem 1rem 0 1rem;
+    background-color: rgba(
+        255,
+        255,
+        255,
+        0.05
+    ); /* Añadido para coincidir con rankingContainer */
+}
+
+.profile:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
 }
 
 .profile .userImageContainer {
