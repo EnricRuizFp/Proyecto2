@@ -1,9 +1,10 @@
 <template>
     <nav id="lateralBar" :class="{ closed: !dropdownOpen }">
-        <UserComponent variant="sidebar" />
-        <div id="menuItems">
-            <hr class="dropdown-divider" />
-            <MenuComponent />
+        <div class="lateral-content">
+            <div id="menuItems">
+                <UserComponent variant="sidebar" />
+                <MenuComponent />
+            </div>
         </div>
         <!-- Botón de abrir/cerrar en desktop -->
         <div
@@ -64,6 +65,32 @@ defineExpose({ dropdownOpen, toggleDropdown });
 </script>
 
 <style scoped>
+#lateralBar {
+    width: 280px;
+    height: 100vh;
+    background-color: var(--background-primary);
+    transition: width 0.3s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999; /* Aseguramos que esté por encima de todo */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Opcional: añade sombra para mejor separación visual */
+}
+
+.lateral-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#menuItems {
+    flex: 1;
+    overflow-y: auto;
+    padding-top: 4rem;
+    padding-left: 2rem; /* Reducido de 2rem */
+}
+
 #mobileMenuButton {
     position: fixed;
     top: 1rem;

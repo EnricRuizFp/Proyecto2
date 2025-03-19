@@ -186,14 +186,12 @@ onMounted(async () => {
 /* Estilos base compartidos */
 #userComponent {
     width: 100%;
-    height: 100%;
     display: flex;
     padding: 0.5rem;
     border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
     justify-content: center;
-    align-items: center; /* Añadido para centrar verticalmente */
+    align-items: center;
 }
 
 #userComponent:hover {
@@ -223,14 +221,53 @@ onMounted(async () => {
 
 /* Variante sidebar */
 .sidebar {
+    height: 90px; /* Aumentado de 80px */
+    min-height: unset; /* Eliminar altura mínima */
+    flex-shrink: 0; /* Evitar que se encoja */
     border: none;
     border-radius: 0;
-    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0 1rem;
+    transform: none !important; /* Prevenir cualquier transformación */
+}
+
+.sidebar:hover {
+    background-color: transparent !important;
+    transform: none !important;
+}
+
+.sidebar #userContent {
+    min-width: unset; /* Eliminar el ancho mínimo */
+}
+
+.sidebar .profile-content {
+    padding: 0;
+    max-width: unset;
+    justify-content: flex-start; /* Alinear contenido a la izquierda */
 }
 
 .sidebar .userImageContainer {
-    width: 40px;
-    height: 40px;
+    width: 65px;
+    height: 65px;
+    margin: 0 0.75rem 0 0; /* Eliminado margen izquierdo */
+}
+
+.sidebar .username {
+    font-size: 1.2rem; /* Aumentado de 1.1rem */
+}
+
+.sidebar .points {
+    font-size: 1.1rem; /* Aumentado de 1rem */
+}
+
+.sidebar .points img {
+    width: 24px; /* Aumentado de 20px */
+    height: 24px; /* Aumentado de 20px */
+    margin-left: 0.3rem; /* Ajustado el margen */
+}
+
+.sidebar .left-side {
+    justify-content: flex-start; /* Alinear a la izquierda */
 }
 
 /* Variante profile */
