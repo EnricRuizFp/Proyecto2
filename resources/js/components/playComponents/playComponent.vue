@@ -149,7 +149,9 @@ export default {
 
 <style scoped>
 #playComponent {
+    width: 100%;
     margin-top: 0.5rem;
+    padding: 1rem 0 0 2rem;
 }
 
 #tituloPlayComponent {
@@ -254,9 +256,15 @@ export default {
     width: 100%;
 }
 
+@media (max-width: 1200px) {
+    #playComponent {
+        padding: 1rem;
+    }
+}
+
 @media (max-width: 768px) {
     #playComponent {
-        padding: 0 1rem;
+        padding: 1rem;
     }
 
     #botonJugarPartida {
@@ -300,7 +308,7 @@ export default {
 
 @media (max-width: 480px) {
     #playComponent {
-        padding: 0 0.5rem;
+        padding: 0.5rem;
     }
 
     #botonJugarPartida,

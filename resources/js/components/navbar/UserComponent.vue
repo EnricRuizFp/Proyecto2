@@ -329,15 +329,13 @@ onMounted(async () => {
     }
 
     .profile .profile-content {
-        flex-direction: column;
-        gap: 1rem;
+        flex-direction: row; /* Cambiado de column a row */
+        gap: 0;
     }
 
     .profile .left-side {
-        display: flex;
         flex-direction: row;
-        align-items: center;
-        justify-content: center;
+        justify-content: flex-start; /* Cambiado de center a flex-start */
     }
 
     .profile .usernameContainer {
@@ -354,11 +352,6 @@ onMounted(async () => {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
-    }
-
-    .profile .pointsContainer {
-        padding: 0;
-        justify-content: center;
     }
 }
 </style>

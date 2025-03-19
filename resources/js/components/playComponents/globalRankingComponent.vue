@@ -205,6 +205,12 @@ const handleAvatarError = (e) => {
 }
 
 /* Estilos responsivos */
+@media (max-width: 1200px) {
+    #globalRankingMenuContainer {
+        padding: 1rem;
+    }
+}
+
 @media (max-width: 768px) {
     #globalRankingMenuContainer {
         padding: 1rem;
