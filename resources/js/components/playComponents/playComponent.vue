@@ -1,5 +1,11 @@
 <template>
     <div id="playComponent">
+        <!-- Alerta de error -->
+        <div v-if="errorMessage" class="error-alert">
+            {{ errorMessage }}
+            <button class="close-button" @click="errorMessage = ''">×</button>
+        </div>
+        
         <div id="tituloPlayComponent">
             <h1 class="bold white-color">DE BATTLESHIP</h1>
         </div>
@@ -105,45 +111,66 @@
     </div>
 </template>
 
-<script>
+<script setup>
+
+/* -- IMPORTS -- */
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
+import { authStore } from "../../store/auth";
 import JoinMatchModal from "../privateMatch/JoinMatchModal.vue";
+import axios from "axios";
 
-export default {
-    components: {
-        JoinMatchModal,
-    },
-    setup() {
-        const router = useRouter();
-        const showJoinModal = ref(false);
-        const gameStore = useGameStore();
+/* -- VARIABLES -- */
+const router = useRouter();
+const showJoinModal = ref(false);
+const gameStore = useGameStore();
+const errorMessage = ref('');
 
-        const irAlJuego = () => {
-            gameStore.resetGame();
-            router.push({ name: "game" });
-        };
+/* -- FUNCTIONS -- */
 
-        const crearPartidaPrivada = () => {
-            gameStore.setGameMode("create");
-            router.push({ name: "game" });
-        };
+// Verificar requisitos del usuario y navegar a la página del juego
+const checkAndNavigate = async (gameType, gameCode = null) => {
+    try {
+        // Verificar requisitos del usuario llamando a la API
+        const response = await axios.post('/api/games/check-user-requirements', {
+            gameType: gameType,
+            gameCode: gameCode,
+            user: authStore().user ?? null
+        });
 
-        const handleJoinMatch = (code) => {
-            showJoinModal.value = false;
-            gameStore.setGameMode("join");
-            gameStore.setMatchCode(code);
-            router.push({ name: "game" });
-        };
+        // Procesar la respuesta
+        if (response.data.status === 'success') {
+            console.log('OK: User ready to play.');
+            router.push({ name: "game" }); 
+        } else {
+            console.log('FAIL:', response.data.message);
+            errorMessage.value = response.data.message;
+        }
+    } catch (error) {
+        // En caso de que haya un error no contemplado, mostrar mensaje genérico
+        errorMessage.value = 'Error al verificar requisitos del juego';
+    }
+};
 
-        return {
-            irAlJuego,
-            crearPartidaPrivada,
-            showJoinModal,
-            handleJoinMatch,
-        };
-    },
+// Iniciar partida pública
+const irAlJuego = async () => {
+    gameStore.resetGame();
+    await checkAndNavigate('public');
+};
+
+// Crear partida privada
+const crearPartidaPrivada = async () => {
+    gameStore.setGameMode("create");
+    await checkAndNavigate('private');
+};
+
+// Mostrar modal para unirse a partida privada
+const handleJoinMatch = async (code) => {
+    showJoinModal.value = false;
+    gameStore.setGameMode("join");
+    gameStore.setMatchCode(code);
+    await checkAndNavigate('private', code);
 };
 </script>
 
@@ -344,5 +371,34 @@ export default {
         padding: 0 20px;
         font-size: 22px; /* Mantener el mismo tamaño */
     }
+}
+
+.error-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--error-color, #ff4444);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.close-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+}
+
+.close-button:hover {
+    opacity: 0.8;
 }
 </style>
