@@ -94,14 +94,14 @@ class GameController extends Controller
         $user = $request->input('user');
 
         /*
-            ///// COMRPOBACIONES PRE PARTIDA /////
+            ///// COMPROBACIONES PRE PARTIDA /////
         */
 
-        // Usuario registrado
-        if(!$user){
+        // Usuario registrado - Validación más estricta
+        if(!$user || !isset($user['id']) || !$user['username']) {
             return response()->json([
                 'status'  => 'failed',
-                'message' => 'You are not logged in.',
+                'message' => 'You must be logged in to play.',
                 'game' => null
             ]);
         }
@@ -134,7 +134,7 @@ class GameController extends Controller
 
             return response()->json([
                 'status'  => 'failed',
-                'message' => 'Your user is currently in a game. Unfinished match has been finished. Wait some seconds.',
+                'message' => 'Your user is currently in a game. Try again later.',
                 'game' => null
             ]);
         }
