@@ -86,6 +86,18 @@ class GameController extends Controller
 
     */
 
+    /**
+     * CHECK USER REQUIREMENTS
+     * Esta función comprueba si el usuario cumple con los requisitos para jugar una partida.
+     * 
+     * 
+     * Summary of checkUserRequirements
+     * @param \Illuminate\Http\Request $request
+     *
+     * Summary of checkUserRequirements
+     * @param \Illuminate\Http\Request $request
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
     public function checkUserRequirements(Request $request){
 
         // Inclusión de los datos pasados por parámetro
@@ -144,6 +156,35 @@ class GameController extends Controller
             'status' => 'success',
             'message' => 'User ready to play a game'
         ]);
+    }
+
+    /**
+     * FIND MATCH FUNCTION
+     * Esta función tiene diversas salidas.
+     * Partida pública: Si no hay partidas públicas disponibles, crea una nueva y conecta al usuario.
+     *                 Si hay partidas públicas disponibles, conecta al usuario a la primera que encuentre.
+     * 
+     * Partida privada: Si no se pasa el código, crea una nueva partida privada y conecta al usuario.
+     *                 Si se pasa el código, intenta unirse a la partida privada.
+     * 
+     * Summary of findMatch
+     * @param \Illuminate\Http\Request $request
+     *
+     * Summary of findMatch
+     * @param \Illuminate\Http\Request $request
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
+    public function findMatchFunction(Request $request){
+
+        // Inclusión de los datos pasados por parámetro
+        $gameType = $request->input('gameType');
+        $gameCode = $request->input('gameCode');
+        $user = $request->input('user');
+
+        // DISCLAIMER:
+        // Las comprobaciones del usuario ya se han hecho previamente.
+        // Todos los datos se pasan correctamente porque ya se ha hecho un check anteriormente.
+
 
         // Jugar partida
         if($gameType == "public"){

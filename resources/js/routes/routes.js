@@ -58,11 +58,10 @@ async function requireAdmin(to, from, next) {
 export default [
     {
         path: "/",
-        // redirect: { name: 'login' },
         component: GuestLayout,
         children: [
             {
-                path: "/",
+                path: "",
                 name: "home",
                 component: () => import("../views/home/index.vue"),
             },
@@ -122,15 +121,19 @@ export default [
                 component: () => import("../views/profile/index.vue"),
                 beforeEnter: requireLogin,
             },
+            {
+                path: "/game/:gameType/:gameCode?",  // el ? hace que gameCode sea opcional
+                name: "game",
+                component: () => import("../views/game/Index.vue"),
+                props: true,  // esto permite que los parámetros se pasen como props
+                beforeEnter: requireLogin  // asegurar que el usuario esté logueado
+            },
         ],
     },
 
     {
         path: "/app",
         component: AuthenticatedUserLayout,
-        // redirect: {
-        //     name: 'admin.index'
-        // },
         name: "app",
         beforeEnter: requireLogin,
         meta: { breadCrumb: "Dashboard" },
@@ -139,9 +142,6 @@ export default [
     {
         path: "/admin",
         component: AuthenticatedLayout,
-        // redirect: {
-        //     name: 'admin.index'
-        // },
         beforeEnter: requireAdmin,
         meta: { breadCrumb: "Dashboard" },
         children: [
@@ -289,16 +289,6 @@ export default [
                             import("../views/admin/authors/Index.vue"),
                         meta: { breadCrumb: "Listado Autores" },
                     },
-                    // {
-                    //     name: "authors.create",
-                    //     path: "create",
-                    //     component: () =>
-                    //         import("../views/admin/authors/Create.vue"),
-                    //     meta: {
-                    //         breadCrumb: "Create Autor",
-                    //         linked: false,
-                    //     },
-                    // },
                     {
                         name: "authors.edit",
                         path: "edit/:id",

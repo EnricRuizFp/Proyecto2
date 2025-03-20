@@ -126,31 +126,24 @@ const showJoinModal = ref(false);
 const gameStore = useGameStore();
 const errorMessage = ref("");
 
-/* -- FUNCTIONS -- */
-
 // Verificar requisitos del usuario y navegar a la página del juego
 const checkAndNavigate = async (gameType, gameCode = null) => {
     try {
-        // Verificar requisitos del usuario llamando a la API
-        const response = await axios.post(
-            "/api/games/check-user-requirements",
-            {
-                gameType: gameType,
-                gameCode: gameCode,
-                user: authStore().user ?? null,
-            }
-        );
+        const response = await axios.post('/api/games/check-user-requirements', {
+            gameType: gameType,
+            gameCode: gameCode,
+            user: authStore().user ?? null
+        });
 
-        // Procesar la respuesta
-        if (response.data.status === "success") {
-            console.log("OK: User ready to play.");
-            router.push({ name: "game" });
+        if (response.data.status === 'success') {
+            console.log('OK: User ready to play.');
+            // Modificar la navegación para usar la ruta correcta
+            router.push(`/game/${gameType}/${gameCode || 'null'}`);
         } else {
-            console.log("FAIL:", response.data.message);
+            console.log("FAILED:", response.data.message);
             errorMessage.value = response.data.message;
         }
     } catch (error) {
-        // En caso de que haya un error no contemplado, mostrar mensaje genérico
         errorMessage.value = "Error al verificar requisitos del juego";
     }
 };
@@ -163,8 +156,8 @@ const irAlJuego = async () => {
 
 // Crear partida privada
 const crearPartidaPrivada = async () => {
-    gameStore.setGameMode("create");
-    await checkAndNavigate("private");
+    gameStore.resetGame(); // Añadido para mantener consistencia con irAlJuego
+    await checkAndNavigate("private", null);
 };
 
 // Mostrar modal para unirse a partida privada

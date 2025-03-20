@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 export const useGameStore = defineStore("game", {
     state: () => ({
         gameMode: null,
-        gamePhase: "placement",
+        gamePhase: "loading", // Cambiado el estado inicial a 'loading'
         matchCode: null,
         playerBoard: null,
     }),
