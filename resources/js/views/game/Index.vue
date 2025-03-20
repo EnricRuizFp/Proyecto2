@@ -1,6 +1,12 @@
 <template>
     <div class="game-view app-background-primary">
         <div class="game-container">
+
+            <!-- Fase de carga de la partida -->
+            <GameLoadingComponent 
+                v-if="gamePhase === 'loading'"
+            />
+
             <!-- Fase de colocación de barcos -->
             <ShipPlacement
                 v-if="gamePhase === 'placement' && !gameMode"
@@ -11,7 +17,7 @@
             <CreateMatch v-if="gameMode === 'create'" />
 
             <!-- Panel de pruebas convertido en componente -->
-            <PruebasComponent v-if="!gameMode && gamePhase !== 'placement'" />
+            <PruebasComponent v-if="false" />
         </div>
 
         <!-- Botones temporales para pruebas -->
@@ -34,68 +40,71 @@
     </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useGameStore } from "../../store/game";
+import { authStore } from "../../store/auth";
 import ShipPlacement from "../../components/gameComponents/ShipPlacement.vue";
 import GameWin from "../../components/gameComponents/GameWin.vue";
 import GameOver from "../../components/gameComponents/GameOver.vue";
 import PruebasComponent from "../../components/PruebasComponent.vue";
 import CreateMatch from "../../components/privateMatch/CreateMatch.vue";
-import { useGameStore } from "../../store/game";
+import GameLoadingComponent from '../../components/gameComponents/GameLoadingComponent.vue';
 
-export default {
-    name: "GameView",
-    components: {
-        ShipPlacement,
-        GameWin,
-        GameOver,
-        PruebasComponent,
-        CreateMatch,
-    },
-    setup() {
-        const gameStore = useGameStore();
+const route = useRoute();
+const router = useRouter();
+const gameStore = useGameStore();
+const showWin = ref(false);
+const showGameOver = ref(false);
 
-        return {
-            gameStore,
-        };
-    },
-    data() {
-        return {
-            showWin: false,
-            showGameOver: false,
-        };
-    },
-    computed: {
-        gamePhase() {
-            return this.gameStore.gamePhase;
-        },
-        gameMode() {
-            return this.gameStore.gameMode;
-        },
-    },
-    methods: {
-        startGame(boardConfiguration) {
-            this.gameStore.playerBoard = boardConfiguration;
-            this.gameStore.setGamePhase("playing");
-        },
-        nextLevel() {
-            this.currentLevel++;
-            this.showWin = false;
-        },
-        restartLevel() {
-            this.showWin = false;
-            this.showGameOver = false;
-        },
-        goToMenu() {
-            this.$router.push("/menu");
-        },
-        testWin() {
-            this.showWin = true;
-        },
-        testGameOver() {
-            this.showGameOver = true;
-        },
-    },
+// Computed properties
+const gamePhase = computed(() => gameStore.gamePhase);
+const gameMode = computed(() => gameStore.gameMode);
+
+// Game methods
+const startGame = (boardConfiguration) => {
+    gameStore.playerBoard = boardConfiguration;
+    gameStore.setGamePhase("playing");
 };
+
+const nextLevel = () => {
+    currentLevel.value++;
+    showWin.value = false;
+};
+
+const restartLevel = () => {
+    showWin.value = false;
+    showGameOver.value = false;
+};
+
+const goToMenu = () => {
+    router.push("/menu");
+};
+
+const testWin = () => {
+    showWin.value = true;
+};
+
+const testGameOver = () => {
+    showGameOver.value = true;
+};
+
+// ON MOUNTED
+onMounted(() => {
+
+    // Verificación de usuario autenticado y tipo de juego
+    if (!authStore().user || !route.params.gameType) {
+        gameStore.setGameMode(null);
+        gameStore.setMatchCode(null);
+        router.push('/');
+        return;
+    }
+
+    console.log('Game Type:', route.params.gameType);
+    console.log('Game Code:', route.params.gameCode);
+    gameStore.setGamePhase("loading");
+});
 </script>
 
 <style scoped>
