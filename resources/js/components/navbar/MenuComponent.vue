@@ -3,53 +3,62 @@
     <div id="lateralMenu">
         <hr class="dropdown-divider" />
         <div class="tituloBarraLateral">
-            <router-link class="color-white h3 bolder" to="/"
-                >INICIO</router-link
-            >
+            <h2 class="bolder menu-item">
+                <i class="fas fa-home"></i>
+                <span class="menu-text">INICIO</span>
+            </h2>
         </div>
         <div class="subtituloBarraLateral">
             <div class="contenidoSubtituloBarraLateral">
-                <router-link class="color-white p3" to="/public_game"
-                    >Partida pública</router-link
-                >
+                <router-link class="menu-item" to="/public_game">
+                    <i class="fas fa-globe"></i>
+                    <span class="menu-text">Partida pública</span>
+                </router-link>
             </div>
             <hr class="dropdown-divider" />
             <div class="contenidoSubtituloBarraLateral">
-                <router-link class="color-white p3" to="/create_game"
-                    >Crear partida</router-link
-                >
+                <router-link class="menu-item" to="/create_game">
+                    <i class="fas fa-plus"></i>
+                    <span class="menu-text">Crear partida</span>
+                </router-link>
             </div>
             <hr class="dropdown-divider" />
             <div class="contenidoSubtituloBarraLateral">
-                <router-link class="color-white p3" to="/join_game"
-                    >Unirse a partida</router-link
-                >
+                <router-link class="menu-item" to="/join_game">
+                    <i class="fas fa-users"></i>
+                    <span class="menu-text">Unirse a partida</span>
+                </router-link>
             </div>
             <hr class="dropdown-divider" />
             <div class="contenidoSubtituloBarraLateral">
-                <router-link class="color-white p3" to="/view_game"
-                    >Observar partida</router-link
-                >
+                <router-link class="menu-item" to="/view_game">
+                    <i class="fas fa-eye"></i>
+                    <span class="menu-text">Observar partida</span>
+                </router-link>
             </div>
             <hr class="dropdown-divider" />
         </div>
 
         <div class="tituloBarraLateral">
-            <h2 class="bolder">RANKING</h2>
+            <h2 class="bolder menu-item">
+                <i class="fas fa-trophy"></i>
+                <span class="menu-text">RANKING</span>
+            </h2>
         </div>
         <div class="subtituloBarraLateral">
             <div class="contenidoSubtituloBarraLateral">
-                <router-link class="color-white p3" to="/global_ranking"
-                    >Ranking global</router-link
-                >
+                <router-link class="menu-item" to="/global_ranking">
+                    <i class="fas fa-globe-americas"></i>
+                    <span class="menu-text">Ranking global</span>
+                </router-link>
             </div>
             <hr class="dropdown-divider" />
             <div class="contenidoSubtituloBarraLateral">
-                <router-link class="color-white p3" to="/national_ranking"
-                    >Ranking nacional</router-link
-                >
+                <router-link class="menu-item" to="/national_ranking">
+                    <i class="fas fa-flag"></i>
+                    <span class="menu-text">Ranking nacional</span>
+                </router-link>
             </div>
-            <hr class="dropdown-divider" />
         </div>
     </div>
 </template>
@@ -79,10 +88,39 @@
 
 .dropdown-divider {
     opacity: 0.25; /* Más delgado */
-    margin: 0.4rem 0; /* Aumentado margen */
+    margin: 0.4rem 1rem; /* Aumentado margen */
 }
 
 #lateralMenu > .dropdown-divider:first-child {
     opacity: 0.75;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--white-color);
+    text-decoration: none;
+    font-size: 1.4rem; /* Aumentado de 1.25rem a 1.4rem */
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+}
+
+.menu-item i {
+    font-size: 1.5rem; /* Aumentado de 1.3rem a 1.5rem */
+    min-width: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+/* Estilo específico para los títulos */
+h2.menu-item {
+    margin: 0;
+    font-size: 1.8rem; /* Tamaño más grande para los títulos */
+}
+
+.menu-item:hover {
+    color: var(--primary-color);
 }
 </style>

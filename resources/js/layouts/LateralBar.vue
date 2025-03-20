@@ -77,6 +77,24 @@ defineExpose({ dropdownOpen, toggleDropdown });
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Opcional: añade sombra para mejor separación visual */
 }
 
+#lateralBar.closed {
+    width: 70px;
+}
+
+#lateralBar.closed :deep(.menu-text) {
+    display: none;
+}
+
+#lateralBar.closed :deep(.menu-item) {
+    justify-content: center;
+}
+
+#lateralBar.closed :deep(.tituloBarraLateral),
+#lateralBar.closed :deep(.subtituloBarraLateral) {
+    padding-left: 0;
+    text-align: center;
+}
+
 .lateral-content {
     height: 100%;
     display: flex;
