@@ -115,6 +115,7 @@
 
 #lateralBar.closed #menuItems {
     padding: 0;
+    padding-top: 4rem;
 }
 
 #menuItems hr {
