@@ -325,7 +325,6 @@ onMounted(async () => {
     justify-content: center;
     border-radius: 50%;
     overflow: hidden;
-    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .usernameContainer {
@@ -356,11 +355,22 @@ onMounted(async () => {
     width: 24px;
 }
 
+/* Estilos base para user-avatar */
 .user-avatar {
-    width: 100%;
-    height: 100%;
     object-fit: cover;
     border-radius: 50%;
+}
+
+/* Estilos específicos para la versión profile */
+.profile .user-avatar {
+    width: 100%;
+    height: 100%;
+}
+
+/* Estilos específicos para la versión sidebar */
+.sidebar .user-avatar {
+    width: 50px;
+    height: 50px;
 }
 
 .username-wrapper {
@@ -402,4 +412,110 @@ onMounted(async () => {
         gap: 0.5rem;
     }
 }
+
+/* Limpiar estilos anteriores y usar solo estos para el menú cerrado */
+:deep(#lateralBar.closed) .sidebar {
+    height: auto;
+    padding: 0;
+    width: 100%;
+}
+
+:deep(#lateralBar.closed) .sidebar #userContent {
+    min-width: 0;
+}
+
+:deep(#lateralBar.closed) .sidebar .profile-content {
+    justify-content: center;
+}
+
+:deep(#lateralBar.closed) .sidebar .left-side {
+    width: auto;
+    justify-content: center;
+}
+
+:deep(#lateralBar.closed) .sidebar .userImageContainer {
+    width: 45px;
+    height: 45px;
+    margin: 0;
+    padding: 0;
+    border: 2px solid var(--white-color);
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+:deep(#lateralBar.closed) .sidebar .user-avatar {
+    width: 41px;
+    height: 41px;
+    object-fit: cover;
+}
+
+:deep(#lateralBar.closed) .sidebar .usernameContainer,
+:deep(#lateralBar.closed) .sidebar .pointsContainer,
+:deep(#lateralBar.closed) .sidebar .username-wrapper {
+    display: none !important;
+}
+
+/* Eliminar todos los demás estilos relacionados con #lateralBar.closed */
+
+/* Estilos específicos para el menú cerrado */
+:deep(#lateralBar.closed) .sidebar {
+    height: 80px; /* Altura fija para mantener simetría */
+    width: 100%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+:deep(#lateralBar.closed) .sidebar #userContent {
+    min-width: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+:deep(#lateralBar.closed) .sidebar .profile-content {
+    width: 50px; /* Reducido para mantener proporción */
+    height: 50px; /* Igual que el width */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+:deep(#lateralBar.closed) .sidebar .left-side {
+    width: 50px; /* Igual que el contenedor padre */
+    height: 50px; /* Igual que el width */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+:deep(#lateralBar.closed) .sidebar .userImageContainer {
+    width: 50px; /* Mismo tamaño que los contenedores */
+    height: 50px; /* Mismo tamaño que el width */
+    margin: 0;
+    padding: 0;
+    border: 2px solid var(--white-color);
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+:deep(#lateralBar.closed) .sidebar .user-avatar {
+    width: 46px; /* 50px - 4px (border) */
+    height: 46px; /* Igual que el width */
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Eliminar todos los estilos duplicados anteriores */
 </style>

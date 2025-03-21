@@ -123,4 +123,41 @@ h2.menu-item {
 .menu-item:hover {
     color: var(--primary-color);
 }
+
+/* Estilos para el menú cerrado */
+:deep(#lateralBar.closed) .menu-text {
+    display: none;
+}
+
+:deep(#lateralBar.closed) .menu-item {
+    justify-content: center;
+    padding: 0.5rem 0;
+}
+
+:deep(#lateralBar.closed) .menu-item i {
+    margin: 0;
+    font-size: 1.6rem;
+}
+
+:deep(#lateralBar.closed) h2.menu-item {
+    font-size: 1.6rem;
+}
+
+:deep(#lateralBar.closed) .dropdown-divider {
+    margin: 0.4rem 0.5rem;
+}
+
+:deep(#lateralBar.closed) .tituloBarraLateral {
+    padding-left: 0;
+    text-align: center;
+}
+
+:deep(#lateralBar.closed) .subtituloBarraLateral {
+    padding: 0.5rem 0;
+}
+
+:deep(#lateralBar.closed) .contenidoSubtituloBarraLateral {
+    padding: 0.25rem 0;
+    text-align: center;
+}
 </style>
