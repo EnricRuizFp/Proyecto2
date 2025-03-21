@@ -87,7 +87,7 @@ Route::get('notes', [NoteController::class, 'index'])->name('notes.index');
 Route::post('notes', [NoteController::class, 'store'])->name('notes.store');
 Route::get('notes/{id}', [NoteController::class, 'show'])->name(name: 'notes.show');
 Route::put('notes/{id}', [NoteController::class, 'update'])->name(name: 'notes.update');
-Route::delete('notes/{id}', [NoteController::class, 'destroy'])->name(name: 'notes.destroy');
+Route::delete('notes/{id}', [NoteController::class, 'destroy'])->name('notes.destroy');
 
 Route::get('authors', [AuthorController::class, 'index'])->name('authors.index');
 Route::post('authors', [AuthorController::class, 'store'])->name('authors.store');
@@ -115,6 +115,10 @@ Route::post('/games/play-public', [GameController::class, 'playPublicGame']);
 Route::post('/games/create-private', [GameController::class, 'createPrivateGame']);
 // Join a private game (ruta personalizada)
 Route::post('/games/join-private', [GameController::class, 'joinPrivateGame']);
+// Find match function (nueva ruta)
+Route::post('/games/find-match', [GameController::class, 'findMatchFunction']);
+// Check match status
+Route::post('/games/check-match-status', [GameController::class, 'checkMatchStatus']);
 // Games (después de la personalizada)
 Route::apiResource('games', GameController::class);
 

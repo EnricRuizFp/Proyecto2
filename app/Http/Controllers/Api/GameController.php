@@ -167,42 +167,41 @@ class GameController extends Controller
      * Partida privada: Si no se pasa el código, crea una nueva partida privada y conecta al usuario.
      *                 Si se pasa el código, intenta unirse a la partida privada.
      * 
-     * Summary of findMatch
-     * @param \Illuminate\Http\Request $request
      *
-     * Summary of findMatch
+     * Summary of findMatchFunction
      * @param \Illuminate\Http\Request $request
      * @return mixed|\Illuminate\Http\JsonResponse
      */
-    public function findMatchFunction(Request $request){
-
-        // Inclusión de los datos pasados por parámetro
+    public function findMatchFunction(Request $request)
+    {
+        // Validar los datos recibidos y settearlos en variables separadas
+        $request->validate([
+            'gameType' => 'required|string|in:public,private',
+            'user' => 'required|array',
+            'user.id' => 'required|integer',
+            'gameCode' => 'nullable|string'
+        ]);
         $gameType = $request->input('gameType');
         $gameCode = $request->input('gameCode');
         $user = $request->input('user');
 
-        // DISCLAIMER:
-        // Las comprobaciones del usuario ya se han hecho previamente.
-        // Todos los datos se pasan correctamente porque ya se ha hecho un check anteriormente.
+        // Función según tipo
+        if ($gameType === "public") {
 
-
-        // Jugar partida
-        if($gameType == "public"){
-
-            $response = GameController::playPublicGame($user);
-            
+            // Unirse a una partida pública
+            $response = $this->playPublicGame($user);
             return response()->json([
                 'status' => 'success',
                 'message' => 'Joined to a game',
                 'game' =>  $response->getData()->data
             ]);
 
-        }else if($gameType == "private"){
+        } else if ($gameType === "private") {
 
-            if(!$gameCode){
+            if ($gameCode == "null") {
 
-                $response = GameController::createPrivateGame(new Request(['user' => $user]));
-
+                // Crear una partida privada
+                $response = $this->createPrivateGame(new Request(['user' => $user]));
                 return response()->json([
                     'status'  => 'success',
                     'message' => 'Creando partida privada.',
@@ -210,34 +209,28 @@ class GameController extends Controller
                 ]);
             }
 
-            $response = GameController::joinPrivateGame(new Request(['user' => $user, 'code' => $gameCode]));
-
-            if($response->getData()->status == 'failed'){
-
+            // Unirse a una partida privada
+            $response = $this->joinPrivateGame(new Request(['user' => $user, 'code' => $gameCode]));
+            if ($response->getData()->status === 'failed') {
                 return response()->json([
                     'status' => 'failed',
                     'message' => $response->getData()->message,
                     'game' => null
                 ]);
-
             }
-
-            return response()->json(data: [
+            return response()->json([
                 'status'  => 'success',
                 'message' => 'Entrando a partida privada.',
                 'game' => $response->getData()
             ]);
-            
         }
 
-        // No game type selected
+        // Tipo de juego no válido
         return response()->json([
             'status'  => 'failed',
-            'message' => 'No game type selected'
+            'message' => 'Tipo de juego no válido'
         ]);
-
     }
-
 
     /**
      * PLAY A PUBLIC GAME
@@ -406,6 +399,34 @@ class GameController extends Controller
             ]);
         }
 
+    }
+
+    /**
+     * CHECK MATCH STATUS
+     * Verifica el estado actual de la partida y devuelve todos sus datos
+     */
+    public function checkMatchStatus(Request $request) {
+        $gameCode = $request->input('gameCode');
+        
+        // Buscar la partida con las mismas relaciones que otras funciones
+        $game = Game::where('code', $gameCode)
+                    ->with(['players', 'observers']) 
+                    ->withCount('players')
+                    ->first();
+        
+        if (!$game) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Partida no encontrada'
+            ]);
+        }
+
+        // Devolver respuesta en el mismo formato que otras funciones
+        return response()->json([
+            'status' => 'success',
+            'message' => $game->players_count >= 2 ? 'user joined' : 'waiting',
+            'game' => $game
+        ]);
     }
 
     /**

@@ -58,7 +58,7 @@
                     <p class="p3-dark">CÓDIGO DE LA PARTIDA</p>
                     <div class="code-display">
                         <div class="code-number">
-                            <span class="code-text">{{ formattedMatchCode }}</span>
+                            <span class="code-text">{{ matchCode }}</span>
                             <button
                                 class="copy-button"
                                 @click="copyMatchCode"
@@ -75,18 +75,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch, computed, onUnmounted } from "vue";
 import axios from "axios";
 import useUsers from "../../composables/users";
 import { authStore } from "../../store/auth"; // Añadir importación del auth store
 import { useRoute } from 'vue-router';
 import UserComponent from '../navbar/UserComponent.vue';
 
-const currentPlayer = ref(null);
 const matchCode = ref("XXXX-XXXX");
 const isLoading = ref(true);
 const error = ref(null);
-const { getUser, user } = useUsers();
 const auth = authStore();
 const route = useRoute();
 
@@ -103,8 +101,11 @@ const loadingTitle = computed(() => {
     return 'Cargando...';
 });
 
+// Modificar el computed para mostrar el código solo cuando sea partida privada y no haya gameCode
 const isPrivateGame = computed(() => {
-    return route.params.gameType === 'private';
+    const isPrivate = route.params.gameType === 'private';
+    const hasNoCode = !route.params.gameCode || route.params.gameCode === 'null';
+    return isPrivate && hasNoCode;
 });
 
 // Sistema de notificaciones
@@ -125,91 +126,12 @@ const showNotification = (message, type = "info") => {
     }, 3000);
 };
 
-const handleAvatarError = (e) => {
-    e.target.src = "/images/placeholder.jpg";
-};
-
 const retry = () => {
     error.value = null;
-    getCurrentUser();
+    findMatch();
 };
 
-const getCurrentUser = async () => {
-    try {
-        isLoading.value = true;
-        // Primero verificamos si el usuario está autenticado
-        if (!auth.authenticated) {
-            throw new Error("No autenticado");
-        }
-
-        // Utilizamos el usuario del auth store
-        if (auth.user) {
-            console.log("Auth user:", auth.user);
-            await getUser(auth.user.id);
-            console.log("User from composable:", user.value);
-
-            // Asignar directamente los valores que necesitamos
-            currentPlayer.value = {
-                username: user.value.username,
-                name: `${user.value.name} ${user.value.surname1}`,
-                avatar: user.value.avatar,
-                nationality: user.value.nationality,
-            };
-
-            console.log("Current player set to:", currentPlayer.value);
-            generateMatchCode();
-        } else {
-            throw new Error("Usuario no encontrado");
-        }
-    } catch (err) {
-        console.error("Error completo:", err);
-        error.value = "Debes iniciar sesión para crear una partida privada";
-
-        // Mostrar notificación antes de redirigir
-        showNotification("Sesión no iniciada. Redirigiendo...", "error");
-
-        // Retrasar la redirección para que se vea la notificación
-        setTimeout(() => {
-            window.location.href = "/login";
-        }, 2000);
-    } finally {
-        isLoading.value = false;
-    }
-};
-
-// Observador para actualizar currentPlayer cuando cambie user.value
-watch(
-    () => user.value,
-    (newValue) => {
-        if (newValue) {
-            currentPlayer.value = {
-                username: newValue.username,
-                name: `${newValue.name} ${newValue.surname1}`,
-                avatar: newValue.avatar,
-                nationality: newValue.nationality,
-            };
-        }
-    },
-    { immediate: true }
-);
-
-// Generar código aleatorio de 4 dígitos alfanuméricos
-const generateMatchCode = () => {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-    for (let i = 0; i < 4; i++) {
-        result += characters.charAt(
-            Math.floor(Math.random() * characters.length)
-        );
-    }
-    matchCode.value = result;
-};
-
-// Computed property para el código formateado
-const formattedMatchCode = computed(() => {
-    return matchCode.value.toUpperCase();
-});
-
+// Función para copiar el código de la partida al portapapeles
 const copyMatchCode = () => {
     navigator.clipboard
         .writeText(matchCode.value)
@@ -222,8 +144,107 @@ const copyMatchCode = () => {
         });
 };
 
+const MAX_WAIT_TIME = 120000; // 2 minutos
+const POLLING_INTERVAL = 5000; // 5 segundos
+let startTime = null;
+
+// Función recursiva para verificar el estado de la partida
+const pollMatchStatus = async () => {
+    try {
+        if (Date.now() - startTime >= MAX_WAIT_TIME) {
+            console.log('Tiempo de espera agotado (2 minutos)');
+            error.value = "Tiempo de espera agotado";
+            return;
+        }
+
+        const response = await axios.post('/api/games/check-match-status', {
+            gameCode: matchCode.value,
+            user: auth.user
+        });
+        
+        // Log detallado del estado de la partida
+        console.log('Estado de la partida:', {
+            timestamp: new Date().toLocaleTimeString(),
+            message: response.data.message
+        });
+
+        // Si se ha unido otro usuario, obtener sus datos
+        if (response.data.message === 'user joined') {
+
+            console.log("Usuario actual: ", authStore().user?.id);
+            console.log("Datos del juego: ", response.data.game.players);
+
+            // Encontrar al otro jugador (el que no es el usuario actual)
+            const otherPlayer = response.data.game.players.find(
+                player => player.id !== authStore().user?.id
+            );
+
+            if (otherPlayer) {
+                console.log("Oponente: ", otherPlayer.username);
+                return; // Detener el polling una vez encontrado el oponente
+            }
+        }
+
+        // Esperar 5 segundos antes de la siguiente verificación
+        await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL));
+        
+        // Llamada recursiva
+        await pollMatchStatus();
+
+    } catch (err) {
+        console.error('Error al verificar estado de la partida:', err);
+        error.value = "Error al verificar el estado de la partida";
+    }
+};
+
+// Modificar findMatch para iniciar el polling
+const findMatch = async () => {
+    isLoading.value = true;
+    try {
+        const response = await axios.post('/api/games/find-match', {
+            gameType: route.params.gameType,
+            gameCode: route.params.gameCode,
+            user: auth.user
+        });
+        
+        console.log('Find Match Response:', response.data);
+        
+        if (response.data.status === 'success') {
+            if (response.data.game && response.data.game.code) {
+                matchCode.value = response.data.game.code;
+                
+                // Iniciar polling solo si es partida privada sin gameCode
+                if (route.params.gameType === 'private' && route.params.gameCode == "null") {
+                    startTime = Date.now();
+                    pollMatchStatus();
+                }
+            }
+            isLoading.value = false;
+        } else {
+            error.value = response.data.message;
+            isLoading.value = false;
+        }
+    } catch (err) {
+        console.error('Error finding match:', err);
+        error.value = "Error al buscar partida";
+        isLoading.value = false;
+    }
+};
+
+// Limpiar el intervalo cuando el componente se desmonte
+onUnmounted(() => {
+    if (checkStatusInterval) {
+        clearInterval(checkStatusInterval);
+    }
+});
+
+// Función ONMOUNTED
 onMounted(() => {
-    getCurrentUser();
+
+    // Buscar partida (con los datos de: gameType, gameCode y user)
+    findMatch();
+
+    
 });
 </script>
 
@@ -534,6 +555,7 @@ onMounted(() => {
 
 .player-info {
     flex-grow: 1;
+    display: block;
 }
 
 .player-ready {
@@ -577,6 +599,13 @@ onMounted(() => {
     flex-direction: row-reverse;
     justify-content: flex-start;
     background: transparent; /* Asegurar que no haya fondo en el contenedor */
+}
+
+/* Ajustar el color del texto del guest player */
+.guest-player .player-info p {
+    color: var(--white-color);
+    font-size: 1.1rem;
+    font-weight: bold;
 }
 
 /* Ajustar los media queries para la nueva disposición */
