@@ -146,7 +146,7 @@ class GameController extends Controller
 
             return response()->json([
                 'status'  => 'failed',
-                'message' => 'Your user is currently in a game. Try again later.',
+                'message' => 'Your user is leaving the game. Wait a few seconds.',
                 'game' => null
             ]);
         }

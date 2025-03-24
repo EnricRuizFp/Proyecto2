@@ -43,7 +43,7 @@
                         <div class="player-card guest-player waiting">
                             <div class="player-content">
                                 <div class="player-info">
-                                    <p class="p2-dark">Esperando oponente...</p>
+                                    <p class="p2-dark">{{ opponentText }}</p>
                                 </div>
                                 <div class="player-avatar pulse">
                                     <i class="fas fa-spinner fa-spin"></i>
@@ -87,6 +87,7 @@ const isLoading = ref(true);
 const error = ref(null);
 const auth = authStore();
 const route = useRoute();
+const opponentText = ref("Esperando oponente...");
 
 const loadingTitle = computed(() => {
     const gameType = route.params.gameType;
@@ -181,6 +182,7 @@ const pollMatchStatus = async () => {
 
             if (otherPlayer) {
                 console.log("Oponente: ", otherPlayer.username);
+                opponentText.value = otherPlayer.username;
                 return; // Detener el polling una vez encontrado el oponente
             }
         }
