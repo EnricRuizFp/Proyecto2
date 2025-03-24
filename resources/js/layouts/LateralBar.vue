@@ -2,7 +2,10 @@
     <nav id="lateralBar" :class="{ closed: !dropdownOpen }">
         <div class="lateral-content">
             <div id="menuItems">
-                <UserComponent variant="sidebar" />
+                <UserComponent
+                    variant="sidebar"
+                    :is-lateral-bar-closed="!dropdownOpen"
+                />
                 <MenuComponent />
             </div>
         </div>
@@ -68,7 +71,9 @@ defineExpose({ dropdownOpen, toggleDropdown });
 #lateralBar {
     width: 280px;
     height: 100vh;
-    background-color: var(--background-primary);
+    background-color: var(
+        --background-secondary
+    ); /* Cambiado de background-primary a background-secondary */
     transition: width 0.3s ease;
     position: fixed;
     top: 0;
@@ -100,6 +105,12 @@ defineExpose({ dropdownOpen, toggleDropdown });
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.lateral-content::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
 }
 
 #menuItems {
@@ -107,6 +118,38 @@ defineExpose({ dropdownOpen, toggleDropdown });
     overflow-y: auto;
     padding-top: 4rem;
     padding-left: 2rem; /* Reducido de 2rem */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+#menuItems::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+#closeButton {
+    position: absolute;
+    top: 50%;
+    right: -50px;
+    transform: translateY(-50%);
+    background-color: var(
+        --background-secondary
+    ); /* Cambiado de neutral-color */
+    border: 1px solid var(--white-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, right 0.3s ease-in-out;
+}
+
+/* Cambiar color al pasar el cursor */
+#closeButton:hover {
+    background-color: var(
+        --background-primary
+    ); /* Cambiado para mejor contraste */
 }
 
 #mobileMenuButton {

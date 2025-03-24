@@ -12,15 +12,25 @@
                 class="nav-link p1"
                 href="#"
                 role="button"
-                data-bs-toggle="dropdown"
+                :data-bs-toggle="canOpenMenu ? 'dropdown' : ''"
                 aria-expanded="false"
             >
-                <img
-                    src="../../../../public/images/icons/user-icon-dark.svg"
-                    alt="Default avatar"
-                />
-                <!-- Not logged user image -->
-                Login now
+                <div class="profile-content">
+                    <div class="left-side">
+                        <div class="userImageContainer">
+                            <img
+                                src="../../../../public/images/icons/user-icon-dark.svg"
+                                alt="Default avatar"
+                                class="user-avatar"
+                            />
+                        </div>
+                        <div class="usernameContainer">
+                            <div class="username-wrapper">
+                                <span class="username">Login now</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </a>
             <div
                 id="userProfileMenu"
@@ -52,7 +62,7 @@
                 class="nav-link p1 white-color"
                 href="#"
                 role="button"
-                data-bs-toggle="dropdown"
+                :data-bs-toggle="canOpenMenu ? 'dropdown' : ''"
                 aria-expanded="false"
             >
                 <div class="profile-content">
@@ -92,7 +102,8 @@
                 id="userProfileMenu"
                 class="dropdown-menu dropdown-menu-start neutral-background white-border"
             >
-                <div>
+                <!-- Solo mostrar el enlace Admin si el usuario tiene rol de admin -->
+                <div v-if="isAdmin">
                     <router-link
                         class="dropdown-item white-color neutral-hover"
                         to="/admin"
@@ -104,13 +115,6 @@
                         class="dropdown-item white-color neutral-hover"
                         to="/profile"
                         >Mi Perfil</router-link
-                    >
-                </div>
-                <div>
-                    <router-link
-                        to="/admin/posts"
-                        class="dropdown-item white-color neutral-hover"
-                        >Post</router-link
                     >
                 </div>
                 <div><hr class="dropdown-divider white-background" /></div>
@@ -129,7 +133,7 @@
 
 <script setup>
 /* -- IMPORTS -- */
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed, watch } from "vue";
 import useAuth from "@/composables/auth";
 import useUsers from "@/composables/users";
 import { authStore } from "../../store/auth";
@@ -147,26 +151,64 @@ const props = defineProps({
         type: String,
         default: "sidebar", // 'sidebar' o 'profile'
     },
+    isLateralBarClosed: {
+        type: Boolean,
+        default: false,
+    },
+});
+
+// Función para comprobar si el usuario es admin
+const isAdmin = computed(() => {
+    const user = authStore().user;
+    if (!user || !user.roles) return false;
+    return user.roles.some((role) => role.name.toLowerCase().includes("admin"));
+});
+
+// Computed para controlar cuándo se puede abrir el menú
+const canOpenMenu = computed(() => {
+    return props.variant === "sidebar" ? !props.isLateralBarClosed : true;
 });
 
 /* -- FUNCTIONS -- */
 const updateUserData = async () => {
+    userAvatar.value = null; // Resetear el avatar antes de actualizar
     if (authStore().user?.id) {
         try {
-            const userData = await getUser(authStore().user?.id);
-            if (userData) {
+            const userData = await getUser(authStore().user.id);
+            if (userData?.avatar) {
                 userAvatar.value = userData.avatar;
-                console.log("Avatar URL:", userData.avatar); // Debug
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
+            userAvatar.value = null;
         }
     }
 };
 
 const getAvatarUrl = () => {
+    if (!authStore().user?.id) return "/images/icons/user-icon-dark.svg";
     return userAvatar.value || "/images/icons/user-icon-dark.svg";
 };
+
+// Observador para detectar cambios en el usuario
+watch(
+    () => authStore().user?.id,
+    async (newUserId) => {
+        if (newUserId) {
+            await updateUserData();
+            // Actualizar también los puntos
+            const rankingData = await getRanking(newUserId);
+            if (rankingData?.points) {
+                userPoints.value = rankingData.points;
+            }
+        } else {
+            // Resetear datos cuando no hay usuario
+            userAvatar.value = null;
+            userPoints.value = null;
+        }
+    },
+    { immediate: true }
+);
 
 onMounted(async () => {
     if (authStore().user?.id) {
@@ -207,6 +249,7 @@ onMounted(async () => {
     flex-direction: column;
     justify-content: center;
     align-items: center; /* Centrar contenido interno */
+    position: relative; /* Añadido para establecer contexto de posicionamiento */
 }
 
 #userProfile {
@@ -229,6 +272,7 @@ onMounted(async () => {
     margin-bottom: 0.5rem;
     padding: 0 1rem;
     transform: none !important; /* Prevenir cualquier transformación */
+    position: relative; /* Añadido para posicionamiento del menú */
 }
 
 .sidebar:hover {
@@ -268,6 +312,34 @@ onMounted(async () => {
 
 .sidebar .left-side {
     justify-content: flex-start; /* Alinear a la izquierda */
+}
+
+/* Estilos para el menú desplegable - versión sidebar */
+.sidebar #userProfileMenu {
+    position: absolute;
+    top: 85px;
+    left: 40px; /* Alineado con el padding del contenedor padre */
+    transform: none;
+    min-width: 160px; /* Reducido de 200px */
+    width: auto;
+    background-color: var(--background-secondary) !important;
+    border: 1px solid var(--white-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 99999;
+    padding: 0.25rem 0; /* Reducido de 0.5rem */
+}
+
+.sidebar #userProfileMenu .dropdown-item {
+    padding: 0.5rem 1rem; /* Reducido de 0.75rem 1.5rem */
+    font-size: 0.9rem; /* Reducido de 1rem */
+    white-space: nowrap;
+}
+
+.sidebar #userProfileMenu .dropdown-divider {
+    margin: 0.25rem 0; /* Reducido de 0.5rem */
+    opacity: 0.2;
+    border-top: 1px solid var(--white-color);
 }
 
 /* Variante profile */
@@ -517,5 +589,66 @@ onMounted(async () => {
     border-radius: 50%;
 }
 
-/* Eliminar todos los estilos duplicados anteriores */
+/* Aplicar los mismos estilos para usuario no logueado */
+:deep(#lateralBar.closed) .sidebar:not(.logged-in) .userImageContainer {
+    width: 50px;
+    height: 50px;
+    margin: 0;
+    padding: 0;
+    border: 2px solid var(--white-color);
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+:deep(#lateralBar.closed) .sidebar:not(.logged-in) .user-avatar {
+    width: 46px;
+    height: 46px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+:deep(#lateralBar.closed) .sidebar:not(.logged-in) .usernameContainer {
+    display: none !important;
+}
+
+/* Estilos para el menú desplegable */
+#userProfileMenu {
+    background-color: var(--background-secondary) !important;
+    z-index: 99999; /* Aumentado para asegurar que esté por encima */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: auto; /* Cambiado de 100% a auto */
+    min-width: 180px; /* Reducido de 200px */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Añadido sombra */
+}
+
+.dropdown-menu {
+    border: 1px solid var(--white-color);
+    border-radius: 8px;
+    position: relative;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0; /* Añadido padding vertical */
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem; /* Ajustado el padding */
+    font-size: 0.9rem; /* Reducido el tamaño de fuente */
+}
+
+/* Estilo para el separador del menú */
+.dropdown-divider {
+    width: 100% !important;
+    margin: 0.5rem 0;
+    opacity: 0.2;
+}
+
+/* Estilos específicos para el menú cerrado */
+:deep(#lateralBar.closed) .sidebar #userProfileMenu {
+    left: 80px; /* Ancho del menú lateral cerrado */
+    transform: none;
+}
 </style>
