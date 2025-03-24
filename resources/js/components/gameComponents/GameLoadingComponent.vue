@@ -43,7 +43,8 @@
                         <div class="player-card guest-player waiting">
                             <div class="player-content">
                                 <div class="player-info">
-                                    <p class="p2-dark">Esperando oponente...</p>
+                                    <p v-if="opponentText=='Esperando oponente...'" class="p2-dark">{{ opponentText }}</p>
+                                    <p v-else style="font-size: 26px;">{{ opponentText }}</p>
                                 </div>
                                 <div class="player-avatar pulse">
                                     <i class="fas fa-spinner fa-spin"></i>
@@ -79,14 +80,20 @@ import { ref, onMounted, watch, computed, onUnmounted } from "vue";
 import axios from "axios";
 import useUsers from "../../composables/users";
 import { authStore } from "../../store/auth"; // Añadir importación del auth store
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router'; // Añadir useRouter a los imports
 import UserComponent from '../navbar/UserComponent.vue';
+import { useGameStore } from "../../store/game";
 
 const matchCode = ref("XXXX-XXXX");
 const isLoading = ref(true);
 const error = ref(null);
 const auth = authStore();
 const route = useRoute();
+const router = useRouter(); // Añadir router como constante
+const opponentText = ref("Esperando oponente...");
+const opponentPoints = ref("");
+const creatorUsername = ref(null); // Añadir nueva variable ref
+const gameStore = useGameStore();
 
 const loadingTitle = computed(() => {
     const gameType = route.params.gameType;
@@ -145,7 +152,7 @@ const copyMatchCode = () => {
 };
 
 const MAX_WAIT_TIME = 120000; // 2 minutos
-const POLLING_INTERVAL = 5000; // 5 segundos
+const POLLING_INTERVAL = 3000; // 3 segundos
 let startTime = null;
 
 // Función recursiva para verificar el estado de la partida
@@ -181,6 +188,62 @@ const pollMatchStatus = async () => {
 
             if (otherPlayer) {
                 console.log("Oponente: ", otherPlayer.username);
+                opponentText.value = otherPlayer.username;
+                opponentPoints.value = otherPlayer.name;
+
+                // Buscar si el usuario actual es el creador
+                if(response.data.game.created_by == authStore().user?.id) {
+
+                    console.log("Creador");
+                    
+                    // Si el usuario actual es el creador, crear timestamp en la 
+                    // base de datos dentro de 10 segundos
+                    const response = await axios.post('/api/games/create-timestamp', {
+                        gameCode: matchCode.value,
+                        data: "start_date"
+                    });
+                    console.log('Timestamp creado:', response.data);
+
+                    // Verificar si hay start_date
+                    if (response.data.status === 'success' && response.data.game.start_date) {
+
+                        // Esperar hasta que llegue el timestamp
+                        await waitForTimestamp(response.data.game.start_date);
+                        gameStore.setGamePhase('placement');
+                    } else {
+
+                        // Si no hay start_date, llevar al usuario a la página principal
+                        router.push('/');
+                    }
+
+                }else{
+
+                    console.log("Invitado");
+
+                    // Si el usuario actual no es el creador, esperar 3 segundos,
+                    // luego verificar el timestamp en la base de datos
+
+                    const response = await axios.post('/api/games/check-timestamp', {
+                        gameCode: matchCode.value,
+                        data: "start_date"
+                    });
+                    console.log('Timestamp obtenido:', response.data);
+
+                    const timestampInicioPartida = response.data.game.start_date;
+
+                    // Verificar si hay start_date
+                    if (response.data.status === 'success' && response.data.game.start_date) {
+
+                        // Esperar hasta que llegue el timestamp
+                        await waitForTimestamp(response.data.game.start_date);
+                        gameStore.setGamePhase('placement');
+                    } else {
+
+                        // Si no hay start_date, llevar al usuario a la página principal
+                        router.push('/');
+                    }
+                }
+
                 return; // Detener el polling una vez encontrado el oponente
             }
         }
@@ -197,27 +260,49 @@ const pollMatchStatus = async () => {
     }
 };
 
+// Función para esperar al timestamp
+const waitForTimestamp = async (timestamp) => {
+    const targetDate = new Date(timestamp);
+    const now = new Date();
+    
+    if (now < targetDate) {
+        const timeToWait = targetDate.getTime() - now.getTime();
+        await new Promise(resolve => setTimeout(resolve, timeToWait));
+    }
+};
+
 // Modificar findMatch para iniciar el polling
 const findMatch = async () => {
     isLoading.value = true;
     try {
+
+        // Llamar a la API con los 3 datos básicos
         const response = await axios.post('/api/games/find-match', {
             gameType: route.params.gameType,
             gameCode: route.params.gameCode,
             user: auth.user
         });
         
+        // Log de la respuesta de la API
         console.log('Find Match Response:', response.data);
         
         if (response.data.status === 'success') {
-            if (response.data.game && response.data.game.code) {
-                matchCode.value = response.data.game.code;
-                
-                // Iniciar polling solo si es partida privada sin gameCode
-                if (route.params.gameType === 'private' && route.params.gameCode == "null") {
-                    startTime = Date.now();
-                    pollMatchStatus();
+
+            matchCode.value = response.data.game.code;
+            
+            // Si nos estamos uniendo a una partida (tenemos gameCode)
+            if (route.params.gameCode !== "null") {
+                // Obtener el creador (primer jugador)
+                const creator = response.data.game.players[0];
+                if (creator) {
+                    opponentText.value = creator.username;
                 }
+            }
+            
+            // Iniciar polling solo si es partida privada sin gameCode o si la partida es pública
+            if (route.params.gameCode == "null" || route.params.gameCode == null) {
+                startTime = Date.now();
+                pollMatchStatus();
             }
             isLoading.value = false;
         } else {

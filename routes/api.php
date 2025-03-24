@@ -119,10 +119,13 @@ Route::post('/games/join-private', [GameController::class, 'joinPrivateGame']);
 Route::post('/games/find-match', [GameController::class, 'findMatchFunction']);
 // Check match status
 Route::post('/games/check-match-status', [GameController::class, 'checkMatchStatus']);
+// Create timestamp
+Route::post('/games/create-timestamp', [GameController::class, 'createTimestamp']);
+// Check timestamp
+Route::post('/games/check-timestamp', [GameController::class, 'checkTimestamp']);
+
 // Games (después de la personalizada)
 Route::apiResource('games', GameController::class);
-
-
 
 // Rankings
 Route::apiResource('rankings', RankingController::class);

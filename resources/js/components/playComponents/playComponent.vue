@@ -6,6 +6,12 @@
             <button class="close-button" @click="errorMessage = ''">×</button>
         </div>
 
+        <!-- Alerta de información -->
+        <div v-if="infoMessage" class="info-alert">
+            {{ infoMessage }}
+            <button class="close-button" @click="infoMessage = ''">×</button>
+        </div>
+
         <div id="tituloPlayComponent">
             <h1 class="bold white-color">DE BATTLESHIP</h1>
         </div>
@@ -59,7 +65,7 @@
                 </button>
                 <button
                     class="botonPartida white-color h4 bold"
-                    @click="showJoinModal = true"
+                    @click="showJoinMatchModal"
                 >
                     UNIRSE
                     <svg
@@ -125,6 +131,7 @@ const router = useRouter();
 const showJoinModal = ref(false);
 const gameStore = useGameStore();
 const errorMessage = ref("");
+const infoMessage = ref("");
 
 // Verificar requisitos del usuario y navegar a la página del juego
 const checkAndNavigate = async (gameType, gameCode = null) => {
@@ -140,8 +147,17 @@ const checkAndNavigate = async (gameType, gameCode = null) => {
             // Modificar la navegación para usar la ruta correcta
             router.push(`/game/${gameType}/${gameCode || 'null'}`);
         } else {
-            console.log("FAILED:", response.data.message);
-            errorMessage.value = response.data.message;
+
+            if(response.data.message == 'Your user is leaving the game. Wait a few seconds.'){
+
+                console.log("Failed without error: ", response.data.message);
+                infoMessage.value = response.data.message;
+
+            }else{
+                console.log("Failed with error:", response.data.message);
+                errorMessage.value = response.data.message;
+            }
+            
         }
     } catch (error) {
         errorMessage.value = "Error al verificar requisitos del juego";
@@ -166,6 +182,27 @@ const handleJoinMatch = async (code) => {
     gameStore.setGameMode("join");
     gameStore.setMatchCode(code);
     await checkAndNavigate("private", code);
+};
+
+// Nueva función para verificar requisitos antes de mostrar el modal
+const showJoinMatchModal = async () => {
+    try {
+        const response = await axios.post('/api/games/check-user-requirements', {
+            gameType: 'private',
+            gameCode: null,
+            user: authStore().user ?? null
+        });
+
+        if (response.data.status === 'success') {
+            console.log('OK: User ready to play.');
+            showJoinModal.value = true;
+        } else {
+            console.log("FAILED:", response.data.message);
+            errorMessage.value = response.data.message;
+        }
+    } catch (error) {
+        errorMessage.value = "Error al verificar requisitos del juego";
+    }
 };
 </script>
 
@@ -359,8 +396,7 @@ const handleJoinMatch = async (code) => {
 }
 
 @media (max-width: 360px) {
-    #botonJugarPartida,
-    .botonPartida {
+    #botonJugarPartida, .botonPartida {
         min-width: 180px;
         padding: 0 20px;
         font-size: 22px; /* Mantener el mismo tamaño */
@@ -372,8 +408,6 @@ const handleJoinMatch = async (code) => {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: var(--error-color, #ff4444);
-    color: white;
     padding: 1rem 2rem;
     border-radius: 8px;
     z-index: 1000;
@@ -381,6 +415,24 @@ const handleJoinMatch = async (code) => {
     align-items: center;
     gap: 1rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: var(--error-color, #ff4444);
+    color: white;
+}
+
+.info-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: var(--neutral-color-2);
+    color: white;
+    border: 1px solid var(--white-color);
 }
 
 .close-button {

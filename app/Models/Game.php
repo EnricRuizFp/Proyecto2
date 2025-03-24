@@ -20,6 +20,7 @@ class Game extends Model
     protected $fillable = [
         'code',
         'creation_date',
+        'start_date',  // Añadir nueva columna
         'is_public',
         'is_finished',
         'end_date',
@@ -31,6 +32,7 @@ class Game extends Model
         'is_public' => 'boolean',
         'is_finished' => 'boolean',
         'creation_date' => 'datetime',
+        'start_date' => 'datetime',    // Añadir casting
         'end_date' => 'datetime',
     ];
 
