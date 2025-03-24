@@ -15,6 +15,7 @@ return new class extends Migration
             $table->char('code', 4)->unique();
             // Usamos CURRENT_TIMESTAMP para que sea datetime.
             $table->dateTime('creation_date')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->dateTime('start_date')->nullable();
             $table->boolean('is_public')->default(true);
             $table->boolean('is_finished')->default(false);
             $table->dateTime('end_date')->nullable();

@@ -396,8 +396,7 @@ const showJoinMatchModal = async () => {
 }
 
 @media (max-width: 360px) {
-    #botonJugarPartida,
-    .botonPartida {
+    #botonJugarPartida, .botonPartida {
         min-width: 180px;
         padding: 0 20px;
         font-size: 22px; /* Mantener el mismo tamaño */

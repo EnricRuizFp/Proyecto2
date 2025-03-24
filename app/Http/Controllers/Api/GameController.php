@@ -472,4 +472,90 @@ class GameController extends Controller
         }
     }
 
+    /**
+     * CREATE TIMESTAMP
+     * Crea un timestamp para la partida después de 10 segundos
+     */
+    public function createTimestamp(Request $request) 
+    {
+        $gameCode = $request->input('gameCode');
+        $updateColumn = $request->input('data');
+        
+        try {
+            
+            // Buscar la partida
+            $game = Game::where('code', $gameCode)->first();
+            
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Partida no encontrada'
+                ]);
+            }
+
+            // Actualizar el timestamp solicitado con now() + 20 segundos
+            $game->update([
+                $updateColumn => now()->addSeconds(40)
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Timestamp creado correctamente',
+                'game' => $game
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error al crear el timestamp'
+            ]);
+        }
+    }
+
+    /**
+     * CHECK TIMESTAMP
+     * Verifica si existe el timestamp solicitado
+     */
+    public function checkTimestamp(Request $request)
+    {
+        $gameCode = $request->input('gameCode');
+        $checkColumn = $request->input('data');
+        
+        try {
+            // Esperar 3 segundos antes de verificar
+            sleep(20);
+            
+            // Buscar la partida
+            $game = Game::where('code', $gameCode)->first();
+            
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Partida no encontrada'
+                ]);
+            }
+
+            // Verificar si existe el timestamp
+            if ($game->$checkColumn) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Timestamp encontrado',
+                    'game' => $game
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Timestamp no encontrado',
+                'game' => $game
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error al verificar el timestamp'
+            ]);
+        }
+    }
+
 }
