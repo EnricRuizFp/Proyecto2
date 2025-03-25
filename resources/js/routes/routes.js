@@ -122,11 +122,16 @@ export default [
                 beforeEnter: requireLogin,
             },
             {
-                path: "/game/:gameType/:gameCode?",  // el ? hace que gameCode sea opcional
+                path: "/game/:gameType/:gameCode?", // el ? hace que gameCode sea opcional
                 name: "game",
                 component: () => import("../views/game/Index.vue"),
-                props: true,  // esto permite que los parámetros se pasen como props
-                beforeEnter: requireLogin  // asegurar que el usuario esté logueado
+                props: true, // esto permite que los parámetros se pasen como props
+                beforeEnter: requireLogin, // asegurar que el usuario esté logueado
+            },
+            {
+                path: "rankings",
+                name: "rankings.index",
+                component: () => import("../views/rankings/Index.vue"),
             },
         ],
     },

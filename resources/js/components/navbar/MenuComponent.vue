@@ -56,10 +56,14 @@
         </div>
 
         <div class="tituloBarraLateral">
-            <h2 class="bolder menu-item" title="Compite y alcanza la cima">
+            <router-link
+                to="/rankings"
+                class="bolder menu-item"
+                title="Compite y alcanza la cima"
+            >
                 <i class="fas fa-trophy"></i>
                 <span class="menu-text">RANKING</span>
-            </h2>
+            </router-link>
         </div>
         <div class="subtituloBarraLateral">
             <div class="contenidoSubtituloBarraLateral">
