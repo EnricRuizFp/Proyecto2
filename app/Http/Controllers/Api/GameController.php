@@ -8,6 +8,9 @@ use App\Models\GamePlayer;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 class GameController extends Controller
 {
     /**
@@ -482,10 +485,9 @@ class GameController extends Controller
         $updateColumn = $request->input('data');
         
         try {
-            
             // Buscar la partida
             $game = Game::where('code', $gameCode)->first();
-            
+
             if (!$game) {
                 return response()->json([
                     'status' => 'failed',
@@ -493,10 +495,17 @@ class GameController extends Controller
                 ]);
             }
 
-            // Actualizar el timestamp solicitado con now() + 20 segundos
+            // Habilitar log de consultas
+            DB::enableQueryLog();
+
+            // Actualizar el timestamp solicitado con now() + 15 segundos
             $game->update([
-                $updateColumn => now()->addSeconds(40)
+                $updateColumn => now()->addSeconds(5)
             ]);
+
+            // Obtener el log de la consulta ejecutada
+            $queries = DB::getQueryLog();
+            Log::info('SQL Executed TIMESTAMP/LOG: ', $queries);
 
             return response()->json([
                 'status' => 'success',
@@ -522,8 +531,6 @@ class GameController extends Controller
         $checkColumn = $request->input('data');
         
         try {
-            // Esperar 3 segundos antes de verificar
-            sleep(20);
             
             // Buscar la partida
             $game = Game::where('code', $gameCode)->first();
