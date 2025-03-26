@@ -245,8 +245,8 @@ class GameController extends Controller
         try {
             // Buscar la partida con sus jugadores
             $game = Game::where('code', $gameCode)
-                       ->with('players')
-                       ->first();
+                ->with('players')
+                ->first();
 
             if (!$game) {
                 return response()->json([
@@ -270,7 +270,6 @@ class GameController extends Controller
                 'message' => 'Game finished successfully',
                 'game' => $game
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',
@@ -605,27 +604,36 @@ class GameController extends Controller
     public function getAvailableGames()
     {
         try {
-            $games = Game::where('is_finished', false)
-                ->where('is_public', true)
-                ->with('players.user') // Cambiado para incluir la relación user de los jugadores
+            $games = DB::table('games as g')
+                ->select('g.id', 'g.code', 'u1.username as player1', 'u2.username as player2')
+                ->leftJoin('game_players as gp1', 'g.id', '=', 'gp1.game_id')
+                ->leftJoin('users as u1', 'gp1.user_id', '=', 'u1.id')
+                ->leftJoin('game_players as gp2', function ($join) {
+                    $join->on('g.id', '=', 'gp2.game_id')
+                        ->whereRaw('gp2.user_id > gp1.user_id');
+                })
+                ->leftJoin('users as u2', 'gp2.user_id', '=', 'u2.id')
+                ->where('g.is_finished', '=', false)        // Partida no acabada
+                ->where('g.is_public', '=', true)          // Partida pública
+                ->whereNotNull('g.game_started_at')        // Partida iniciada
+                ->whereNull('g.end_date')                  // No tiene fecha de finalización
+                ->whereNotNull('u1.username')              // Tiene jugador 1
+                ->whereNotNull('u2.username')              // Tiene jugador 2
                 ->get()
                 ->map(function ($game) {
-                    $players = $game->players->map(function ($player) {
-                        return $player->user->username ?? 'Usuario Desconocido';
-                    })->toArray();
-
                     return [
                         'id' => $game->id,
-                        'code' => $game->code,
-                        'player1' => $players[0] ?? 'Esperando...',
-                        'player2' => $players[1] ?? 'Esperando...',
-                        'status' => count($players) >= 2 ? 'En progreso' : 'Esperando jugador'
+                        'code' => $game->code ?? 'Sin código',
+                        'player1' => $game->player1,
+                        'player2' => $game->player2
                     ];
                 });
 
+            Log::info('Games fetched successfully:', ['count' => $games->count()]);
             return response()->json($games);
         } catch (\Exception $e) {
             Log::error('Error en getAvailableGames: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return response()->json([
                 'message' => 'Error al obtener las partidas disponibles',
                 'error' => $e->getMessage()
