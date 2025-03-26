@@ -7,7 +7,6 @@
                     <tr>
                         <th>Código de Partida</th>
                         <th>Jugadores</th>
-                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -15,7 +14,6 @@
                     <tr v-for="game in displayedGames" :key="game.id">
                         <td>{{ game.code }}</td>
                         <td>{{ game.player1 }} vs {{ game.player2 }}</td>
-                        <td>{{ game.status }}</td>
                         <td>
                             <button
                                 @click="watchGame(game.code)"
@@ -91,9 +89,9 @@ onMounted(() => {
 
 <style scoped>
 .view-games-container {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 2rem 0 2rem 2rem; /* Eliminado el padding derecho */
+    max-width: none; /* Eliminada la restricción de ancho */
+    margin: 0 0 0 auto; /* Eliminado el margen derecho */
     background-color: var(--background-primary);
     min-height: 100vh;
 }
@@ -112,6 +110,8 @@ onMounted(() => {
     padding-top: 3rem;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 1200px; /* Añadido ancho máximo */
+    margin: 0 auto; /* Centrar la tabla */
 }
 
 table {
@@ -217,7 +217,7 @@ tr:hover td {
 
 @media (max-width: 768px) {
     .view-games-container {
-        padding: 1rem;
+        padding: 1rem 0 1rem 1rem; /* Mantenemos el mismo patrón en móvil */
     }
 
     .view-games-container h2 {
