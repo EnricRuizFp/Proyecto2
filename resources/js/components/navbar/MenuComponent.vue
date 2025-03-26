@@ -3,10 +3,14 @@
     <div id="lateralMenu">
         <hr class="dropdown-divider" />
         <div class="tituloBarraLateral">
-            <h2 class="bolder menu-item" title="Menú principal del juego">
+            <router-link
+                to="/"
+                class="bolder menu-item"
+                title="Menú principal del juego"
+            >
                 <i class="fas fa-home"></i>
                 <span class="menu-text">INICIO</span>
-            </h2>
+            </router-link>
         </div>
         <div class="subtituloBarraLateral">
             <div class="contenidoSubtituloBarraLateral">
