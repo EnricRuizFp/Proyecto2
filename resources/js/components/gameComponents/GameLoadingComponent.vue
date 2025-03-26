@@ -69,8 +69,8 @@
 /* -- IMPORTS -- */
 import { ref, onMounted, watch, computed, onUnmounted } from "vue";
 import axios from "axios";
-import { authStore } from "../../store/auth"; // Añadir importación del auth store
-import { useRoute, useRouter } from 'vue-router'; // Añadir useRouter a los imports
+import { authStore } from "../../store/auth";
+import { useRoute, useRouter } from 'vue-router';
 import UserComponent from '../navbar/UserComponent.vue';
 import { useGameStore } from "../../store/game";
 
@@ -293,6 +293,7 @@ const setTimestampMatchCreator = async () => {
 
         // Redirigir a la página de ShipPlacement
         await waitForTimestamp(response.data.game.start_date);
+        gameStore.setMatchCode(matchCode.value);
         gameStore.setGamePhase('placement');
     }else{
         console.log("Error al subir el timestamp.");
@@ -332,6 +333,7 @@ const pollMatchStatusGuest = async () => {
 
         // Redirigir a la página de ShipPlacement
         await waitForTimestamp(response.data.game.start_date);
+        gameStore.setMatchCode(matchCode.value);
         gameStore.setGamePhase('placement');
 
     }else{

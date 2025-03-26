@@ -13,9 +13,6 @@
             <!-- Componente de partida -->
             <GameComponent v-if="gamePhase === 'playing'" />
 
-            <!-- Componente de partida privada -->
-            <CreateMatch v-if="gameMode === 'create'" />
-
             <!-- Panel de pruebas convertido en componente -->
             <PruebasComponent v-if="false" />
         </div>
@@ -45,11 +42,13 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
 import { authStore } from "../../store/auth";
-import ShipPlacement from "../../components/gameComponents/ShipPlacement.vue";
-import GameWin from "../../components/gameComponents/GameWin.vue";
-import GameOver from "../../components/gameComponents/GameOver.vue";
-import PruebasComponent from "../../components/PruebasComponent.vue";
 import GameLoadingComponent from "../../components/gameComponents/GameLoadingComponent.vue";
+import ShipPlacement from "../../components/gameComponents/ShipPlacement.vue";
+import GameComponent from "../../components/gameComponents/GameComponent.vue"
+import GameWin from "../../components/gameComponents/GameWinComponent.vue";
+import GameOver from "../../components/gameComponents/GameOverComponent.vue";
+import PruebasComponent from "../../components/PruebasComponent.vue";
+
 
 const route = useRoute();
 const router = useRouter();
@@ -59,7 +58,6 @@ const showGameOver = ref(false);
 
 // Computed properties
 const gamePhase = computed(() => gameStore.gamePhase);
-const gameMode = computed(() => gameStore.gameMode);
 
 // Game methods
 const startGame = (boardConfiguration) => {
@@ -91,6 +89,9 @@ const testGameOver = () => {
 
 // ON MOUNTED
 onMounted(() => {
+
+    console.log("BUENAS");
+
     // Verificación de usuario autenticado y tipo de juego
     if (!authStore().user || !route.params.gameType) {
         gameStore.setGameMode(null);

@@ -115,7 +115,15 @@
 </template>
 
 <script setup>
+
+/* -- IMPORTS -- */
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import { authStore } from "../../store/auth";
+import { useRoute, useRouter } from 'vue-router';
+
+/* -- VARIABLES -- */
+const route = useRoute();
+const router = useRouter();
 
 // Estado del tablero
 const board = ref(
@@ -166,6 +174,11 @@ const startTimer = () => {
 };
 
 onMounted(() => {
+
+    console.log("SHIP PLACEMENT.");
+    console.log("Game code:", route.params.gameCode);
+    console.log("User: ", authStore().user);
+
     loadShips();
     startTimer();
 });
