@@ -10,6 +10,9 @@
                 @placement-confirmed="startGame"
             />
 
+            <!-- Componente de partida -->
+            <GameComponent v-if="gamePhase === 'playing'" />
+
             <!-- Componente de partida privada -->
             <CreateMatch v-if="gameMode === 'create'" />
 
@@ -46,7 +49,6 @@ import ShipPlacement from "../../components/gameComponents/ShipPlacement.vue";
 import GameWin from "../../components/gameComponents/GameWin.vue";
 import GameOver from "../../components/gameComponents/GameOver.vue";
 import PruebasComponent from "../../components/PruebasComponent.vue";
-import CreateMatch from "../../components/privateMatch/CreateMatch.vue";
 import GameLoadingComponent from "../../components/gameComponents/GameLoadingComponent.vue";
 
 const route = useRoute();
