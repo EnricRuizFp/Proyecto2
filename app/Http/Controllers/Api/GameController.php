@@ -101,7 +101,8 @@ class GameController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return mixed|\Illuminate\Http\JsonResponse
      */
-    public function checkUserRequirements(Request $request){
+    public function checkUserRequirements(Request $request)
+    {
 
         // Inclusión de los datos pasados por parámetro
         $gameType = $request->input('gameType');
@@ -113,7 +114,7 @@ class GameController extends Controller
         */
 
         // Usuario registrado - Validación más estricta
-        if(!$user || !isset($user['id']) || !$user['username']) {
+        if (!$user || !isset($user['id']) || !$user['username']) {
             return response()->json([
                 'status'  => 'failed',
                 'message' => 'You must be logged in to play.',
@@ -122,23 +123,25 @@ class GameController extends Controller
         }
 
         // Usuario en otra partida
-        $unfinishedUserGames = Game::whereIn('id', function ($query) use ($user) {$query->select('game_id')->from('game_players')->where('user_id', $user);})->where('is_finished', false)->get();
-        if(count($unfinishedUserGames) > 0){
+        $unfinishedUserGames = Game::whereIn('id', function ($query) use ($user) {
+            $query->select('game_id')->from('game_players')->where('user_id', $user);
+        })->where('is_finished', false)->get();
+        if (count($unfinishedUserGames) > 0) {
 
             // Terminar todas las posibles partidas que tenga el usuario
             foreach ($unfinishedUserGames as $game) {
 
                 // Obtener los jugadores de la partida
                 $players = GamePlayer::where('game_id', $game->id)->get();
-    
+
                 // Si hay dos jugadores, asignar el ganador, si hay 1, dejar el ganador como null
                 if ($players->count() == 2) {
                     // El ganador es el otro jugador
                     $winner = $players->first()->user_id == $user ? $players->last()->user_id : $players->first()->user_id;
-                }else{
+                } else {
                     $winner = null;
                 }
-    
+
                 // Marcar la partida como finalizada
                 $game->update([
                     'is_finished' => true,
@@ -198,7 +201,6 @@ class GameController extends Controller
                 'message' => 'Joined to a game',
                 'game' =>  $response->getData()->data
             ]);
-
         } else if ($gameType === "private") {
 
             if ($gameCode == "null") {
@@ -285,16 +287,16 @@ class GameController extends Controller
      */
     public function playPublicGame($user)
     {
-        
+
         // Obtener el usuario del frontend
         //$user = $request->input('user');
 
         // Buscar todos los juegos públicos que no han comenzado
         $publicUnstartedGames = Game::where('is_public', true)
-                                    ->where('is_finished', false)
-                                    ->with(['players', 'observers']) // Cargar relaciones de jugadores y observadores
-                                    ->withCount('players') // Obtener el count de jugadores
-                                    ->get();
+            ->where('is_finished', false)
+            ->with(['players', 'observers']) // Cargar relaciones de jugadores y observadores
+            ->withCount('players') // Obtener el count de jugadores
+            ->get();
 
         // Para cada juego, revisamos la cantidad de jugadores
         foreach ($publicUnstartedGames as $publicGame) {
@@ -369,7 +371,6 @@ class GameController extends Controller
             'message' => 'New private game created and connected successfully',
             'data'    => $newPrivateGame
         ]);
-
     }
 
     /**
@@ -390,36 +391,34 @@ class GameController extends Controller
 
         // Buscar todos los juegos privados que no hay comenzado
         $privateGame = Game::where('code', $code)
-                                    ->with(['players', 'observers']) // Cargar relaciones de jugadores y observadores
-                                    ->withCount('players') // Obtener el count de jugadores
-                                    ->first();
-        
+            ->with(['players', 'observers']) // Cargar relaciones de jugadores y observadores
+            ->withCount('players') // Obtener el count de jugadores
+            ->first();
+
         // Si encuentra el juego lo devuelve
-        if($privateGame) {
+        if ($privateGame) {
 
             // Obtener el tipo de partida
-            if($privateGame->is_public){
+            if ($privateGame->is_public) {
 
                 // Devolver mensaje partida pública
                 return response()->json([
                     'status'  => 'failed',
                     'message' => 'Game found, but is public.'
                 ]);
-
-            }else{
+            } else {
 
                 // Obtener cantidad de jugadores
                 $playersCount = $privateGame->players_count;
 
-                if($playersCount > 1){
+                if ($playersCount > 1) {
 
                     // Si hay más de 1 jugador la partida está llena
                     return response()->json([
                         'status'  => 'failed',
                         'message' => 'Private game is full.'
                     ]);
-
-                }else{
+                } else {
 
                     // Unir al usuario a la partida
                     $privateGame->players()->attach($user['id'], [
@@ -434,8 +433,7 @@ class GameController extends Controller
                     ]);
                 }
             }
-
-        }else{
+        } else {
 
             // Partida no encontrada
             return response()->json([
@@ -443,22 +441,22 @@ class GameController extends Controller
                 'message' => 'Private game not found.'
             ]);
         }
-
     }
 
     /**
      * CHECK MATCH STATUS
      * Verifica el estado actual de la partida y devuelve todos sus datos
      */
-    public function checkMatchStatus(Request $request) {
+    public function checkMatchStatus(Request $request)
+    {
         $gameCode = $request->input('gameCode');
-        
+
         // Buscar la partida con las mismas relaciones que otras funciones
         $game = Game::where('code', $gameCode)
-                    ->with(['players', 'observers']) 
-                    ->withCount('players')
-                    ->first();
-        
+            ->with(['players', 'observers'])
+            ->withCount('players')
+            ->first();
+
         if (!$game) {
             return response()->json([
                 'status' => 'failed',
@@ -482,17 +480,17 @@ class GameController extends Controller
         try {
             $userId = $request->user()->id;
             $userController = new UserController();
-            
+
             $games = Game::query()
-                ->whereHas('players', function($query) use ($userId) {
+                ->whereHas('players', function ($query) use ($userId) {
                     $query->where('user_id', $userId);
                 })
                 ->orderByDesc('creation_date')
                 ->take(100)
                 ->get()
                 ->map(function ($game) use ($userController) {
-                    $winnerUsername = $game->winner ? 
-                        $userController->getUsernameById($game->winner) : 
+                    $winnerUsername = $game->winner ?
+                        $userController->getUsernameById($game->winner) :
                         'Empate';
 
                     return [
@@ -508,7 +506,6 @@ class GameController extends Controller
                 'status' => 'success',
                 'data' => $games
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',
@@ -521,11 +518,11 @@ class GameController extends Controller
      * CREATE TIMESTAMP
      * Crea un timestamp para la partida después de 10 segundos
      */
-    public function createTimestamp(Request $request) 
+    public function createTimestamp(Request $request)
     {
         $gameCode = $request->input('gameCode');
         $updateColumn = $request->input('data');
-        
+
         try {
             // Buscar la partida
             $game = Game::where('code', $gameCode)->first();
@@ -554,7 +551,6 @@ class GameController extends Controller
                 'message' => 'Timestamp creado correctamente',
                 'game' => $game
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',
@@ -571,12 +567,12 @@ class GameController extends Controller
     {
         $gameCode = $request->input('gameCode');
         $checkColumn = $request->input('data');
-        
+
         try {
-            
+
             // Buscar la partida
             $game = Game::where('code', $gameCode)->first();
-            
+
             if (!$game) {
                 return response()->json([
                     'status' => 'failed',
@@ -598,7 +594,6 @@ class GameController extends Controller
                 'message' => 'Timestamp no encontrado',
                 'game' => $game
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',
@@ -607,4 +602,34 @@ class GameController extends Controller
         }
     }
 
+    public function getAvailableGames()
+    {
+        try {
+            $games = Game::where('is_finished', false)
+                ->where('is_public', true)
+                ->with('players.user') // Cambiado para incluir la relación user de los jugadores
+                ->get()
+                ->map(function ($game) {
+                    $players = $game->players->map(function ($player) {
+                        return $player->user->username ?? 'Usuario Desconocido';
+                    })->toArray();
+
+                    return [
+                        'id' => $game->id,
+                        'code' => $game->code,
+                        'player1' => $players[0] ?? 'Esperando...',
+                        'player2' => $players[1] ?? 'Esperando...',
+                        'status' => count($players) >= 2 ? 'En progreso' : 'Esperando jugador'
+                    ];
+                });
+
+            return response()->json($games);
+        } catch (\Exception $e) {
+            Log::error('Error en getAvailableGames: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error al obtener las partidas disponibles',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

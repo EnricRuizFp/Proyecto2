@@ -3,54 +3,58 @@
     <div id="lateralMenu">
         <hr class="dropdown-divider" />
         <div class="tituloBarraLateral">
-            <h2 class="bolder menu-item" title="Menú principal del juego">
+            <router-link
+                to="/"
+                class="bolder menu-item"
+                title="Menú principal del juego"
+            >
                 <i class="fas fa-home"></i>
                 <span class="menu-text">INICIO</span>
-            </h2>
+            </router-link>
         </div>
         <div class="subtituloBarraLateral">
             <div class="contenidoSubtituloBarraLateral">
-                <router-link
+                <a
                     class="menu-item"
-                    to="/public_game"
+                    @click.prevent="handlePublicGame"
                     title="Únete a partidas públicas con otros jugadores"
                 >
                     <i class="fas fa-globe"></i>
                     <span class="menu-text">Partida pública</span>
-                </router-link>
+                </a>
             </div>
             <hr class="dropdown-divider" />
             <div class="contenidoSubtituloBarraLateral">
-                <router-link
+                <a
                     class="menu-item"
-                    to="/create_game"
+                    @click.prevent="handleCreateGame"
                     title="Crea tu propia partida personalizada"
                 >
                     <i class="fas fa-plus"></i>
                     <span class="menu-text">Crear partida</span>
-                </router-link>
+                </a>
             </div>
             <hr class="dropdown-divider" />
             <div class="contenidoSubtituloBarraLateral">
-                <router-link
+                <a
                     class="menu-item"
-                    to="/join_game"
+                    @click.prevent="handleJoinGame"
                     title="Únete a una partida privada con amigos"
                 >
                     <i class="fas fa-users"></i>
                     <span class="menu-text">Unirse a partida</span>
-                </router-link>
+                </a>
             </div>
             <hr class="dropdown-divider" />
             <div class="contenidoSubtituloBarraLateral">
-                <router-link
+                <a
                     class="menu-item"
-                    to="/view_game"
+                    @click.prevent="handleViewGame"
                     title="Observa partidas en curso"
                 >
                     <i class="fas fa-eye"></i>
                     <span class="menu-text">Observar partida</span>
-                </router-link>
+                </a>
             </div>
             <hr class="dropdown-divider" />
         </div>
@@ -89,14 +93,78 @@
             </div>
         </div>
     </div>
+
+    <!-- Error Message -->
+    <div v-if="errorMessage" class="error-alert">
+        {{ errorMessage }}
+        <button class="close-button" @click="errorMessage = ''">×</button>
+    </div>
 </template>
 
 <script setup>
 /* -- IMPORTS -- */
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useGameStore } from "../../store/game";
+import { authStore } from "../../store/auth";
+import axios from "axios";
 
 /* -- VARIABLES -- */
+const router = useRouter();
+const gameStore = useGameStore();
+const errorMessage = ref("");
+const infoMessage = ref("");
 
 /* -- FUNCTIONS -- */
+const checkAndNavigate = async (gameType, gameCode = null) => {
+    try {
+        const response = await axios.post(
+            "/api/games/check-user-requirements",
+            {
+                gameType: gameType,
+                gameCode: gameCode,
+                user: authStore().user ?? null,
+            }
+        );
+
+        if (response.data.status === "success") {
+            console.log("OK: User ready to play.");
+            router.push(`/game/${gameType}/${gameCode || "null"}`);
+        } else {
+            if (
+                response.data.message ==
+                "Your user is leaving the game. Wait a few seconds."
+            ) {
+                console.log("Failed without error: ", response.data.message);
+                infoMessage.value = response.data.message;
+            } else {
+                console.log("Failed with error:", response.data.message);
+                errorMessage.value = response.data.message;
+            }
+        }
+    } catch (error) {
+        errorMessage.value = "Error al verificar requisitos del juego";
+    }
+};
+
+// Handlers para cada tipo de juego
+const handlePublicGame = async () => {
+    gameStore.resetGame();
+    await checkAndNavigate("public");
+};
+
+const handleCreateGame = async () => {
+    gameStore.resetGame();
+    await checkAndNavigate("private", null);
+};
+
+const handleJoinGame = () => {
+    router.push("/join_game"); // Esta ruta mostrará el modal para unirse
+};
+
+const handleViewGame = () => {
+    router.push("/view-games");
+};
 </script>
 
 <style scoped>
@@ -242,5 +310,51 @@ h2.menu-item {
         opacity: 1;
         transform: translateY(-50%) translateX(0);
     }
+}
+
+/* Añadir estilos para la alerta de error */
+.error-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    background-color: var(--secondary-color);
+    color: white;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.close-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+}
+
+.close-button:hover {
+    opacity: 0.8;
+}
+
+.info-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: var(--neutral-color-2);
+    color: white;
+    border: 1px solid var(--white-color);
 }
 </style>

@@ -98,6 +98,8 @@ Route::put('authors/{author}', [AuthorController::class, 'update'])->name('autho
 /* -- APP ROUTES -- */
 
 /* - GAMES - */
+// Get available games for viewing
+Route::get('/games/available', [GameController::class, 'getAvailableGames']);
 // Check user requirements function
 Route::post('/games/check-user-requirements', [GameController::class, 'checkUserRequirements']);
 // Join user to game function

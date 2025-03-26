@@ -129,6 +129,12 @@ export default [
                 beforeEnter: requireLogin, // asegurar que el usuario esté logueado
             },
             {
+                path: "view-games",
+                name: "view-games",
+                component: () => import("../views/game/ViewGames.vue"),
+                beforeEnter: requireLogin,
+            },
+            {
                 path: "rankings",
                 name: "rankings.index",
                 component: () => import("../views/rankings/Index.vue"),

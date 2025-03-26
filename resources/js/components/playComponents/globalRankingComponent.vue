@@ -77,21 +77,12 @@ const ranking = ref([]);
 
 /* -- FUNCTIONS -- */
 const getAvatarUrl = (user) => {
-    // Depuración
-    console.log("User data in getAvatarUrl:", user);
-    console.log("User avatar URL:", user.user?.avatar);
-
-    // Si el usuario tiene un objeto user y ese objeto tiene un avatar, lo usamos
     if (user.user && user.user.avatar) {
-        // Asegurarnos de que la URL sea absoluta
         if (user.user.avatar.startsWith("http")) {
             return user.user.avatar;
         }
-        // Si la URL es relativa, la convertimos en absoluta
         return `${window.location.origin}${user.user.avatar}`;
     }
-
-    // URL por defecto
     return `${window.location.origin}/images/icons/user-icon-dark.svg`;
 };
 
@@ -101,7 +92,6 @@ const loadUserData = async (rankingUser) => {
         rankingUser.user = userData;
         return userData;
     } catch (error) {
-        console.error("Error loading user data:", error);
         return null;
     }
 };
@@ -109,18 +99,14 @@ const loadUserData = async (rankingUser) => {
 onMounted(async () => {
     if (authStore().user?.id) {
         const data = await getGlobalRanking(rankingLimit);
+
         if (data && data.data) {
-            // Cargar datos de usuarios
             const rankingData = data.data;
             for (let rankUser of rankingData) {
                 await loadUserData(rankUser);
             }
             ranking.value = rankingData;
-        } else {
-            console.log("No hay ranking.");
         }
-    } else {
-        console.log("No hay usuario logueado.");
     }
 });
 

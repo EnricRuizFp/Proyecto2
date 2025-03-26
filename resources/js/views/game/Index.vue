@@ -1,11 +1,8 @@
 <template>
     <div class="game-view app-background-primary">
         <div class="game-container">
-
             <!-- Fase de carga de la partida -->
-            <GameLoadingComponent 
-                v-if="gamePhase === 'loading'"
-            />
+            <GameLoadingComponent v-if="gamePhase === 'loading'" />
 
             <!-- Fase de colocación de barcos -->
             <ShipPlacement
@@ -41,8 +38,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
 import { authStore } from "../../store/auth";
 import ShipPlacement from "../../components/gameComponents/ShipPlacement.vue";
@@ -50,7 +47,7 @@ import GameWin from "../../components/gameComponents/GameWin.vue";
 import GameOver from "../../components/gameComponents/GameOver.vue";
 import PruebasComponent from "../../components/PruebasComponent.vue";
 import CreateMatch from "../../components/privateMatch/CreateMatch.vue";
-import GameLoadingComponent from '../../components/gameComponents/GameLoadingComponent.vue';
+import GameLoadingComponent from "../../components/gameComponents/GameLoadingComponent.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -92,17 +89,16 @@ const testGameOver = () => {
 
 // ON MOUNTED
 onMounted(() => {
-
     // Verificación de usuario autenticado y tipo de juego
     if (!authStore().user || !route.params.gameType) {
         gameStore.setGameMode(null);
         gameStore.setMatchCode(null);
-        router.push('/');
+        router.push("/");
         return;
     }
 
-    console.log('Game Type:', route.params.gameType);
-    console.log('Game Code:', route.params.gameCode);
+    console.log("Game Type:", route.params.gameType);
+    console.log("Game Code:", route.params.gameCode);
     gameStore.setGamePhase("loading");
 });
 </script>
