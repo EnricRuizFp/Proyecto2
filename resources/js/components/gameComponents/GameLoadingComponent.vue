@@ -119,6 +119,23 @@ const copyMatchCode = () => {
         });
 };
 
+// Sistema de notificaciones
+const notification = ref({
+    show: false,
+    message: "",
+    type: "info",
+});
+const showNotification = (message, type = "info") => {
+    notification.value = {
+        show: true,
+        message,
+        type,
+    };
+    setTimeout(() => {
+        notification.value.show = false;
+    }, 3000);
+};
+
 // Función sleep que devuelve una promesa
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
