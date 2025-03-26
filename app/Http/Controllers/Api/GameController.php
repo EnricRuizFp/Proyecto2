@@ -254,6 +254,14 @@ class GameController extends Controller
                     'message' => 'Game not found'
                 ]);
             }
+            // Verificar si la partida ya está terminada
+            if ($game->is_finished) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Game was already finished',
+                    'game' => $game
+                ]);
+            }
 
             // Encontrar el oponente (el jugador que no es el usuario actual)
             $opponent = $game->players->where('id', '!=', $user['id'])->first();
@@ -604,40 +612,44 @@ class GameController extends Controller
     public function getAvailableGames()
     {
         try {
+            // Primero obtenemos las partidas que tienen exactamente 2 jugadores
+            $twoPlayerGames = DB::table('game_players')
+                ->select('game_id')
+                ->groupBy('game_id')
+                ->havingRaw('COUNT(*) = 2')
+                ->pluck('game_id');
+
+            // Luego obtenemos los detalles de esas partidas
             $games = DB::table('games as g')
-                ->select('g.id', 'g.code', 'u1.username as player1', 'u2.username as player2')
-                ->leftJoin('game_players as gp1', 'g.id', '=', 'gp1.game_id')
-                ->leftJoin('users as u1', 'gp1.user_id', '=', 'u1.id')
-                ->leftJoin('game_players as gp2', function ($join) {
-                    $join->on('g.id', '=', 'gp2.game_id')
-                        ->whereRaw('gp2.user_id > gp1.user_id');
-                })
-                ->leftJoin('users as u2', 'gp2.user_id', '=', 'u2.id')
-                ->where('g.is_finished', '=', false)        // Partida no acabada
-                ->where('g.is_public', '=', true)          // Partida pública
-                ->whereNotNull('g.game_started_at')        // Partida iniciada
-                ->whereNull('g.end_date')                  // No tiene fecha de finalización
-                ->whereNotNull('u1.username')              // Tiene jugador 1
-                ->whereNotNull('u2.username')              // Tiene jugador 2
+                ->select([
+                    'g.id',
+                    'g.code',
+                    DB::raw('MIN(u.username) as player1'),
+                    DB::raw('MAX(u.username) as player2')
+                ])
+                ->join('game_players as gp', 'g.id', '=', 'gp.game_id')
+                ->join('users as u', 'gp.user_id', '=', 'u.id')
+                ->whereIn('g.id', $twoPlayerGames)
+                ->where('g.is_finished', false)
+                ->where('g.is_public', true)
+                ->whereNotNull('g.start_date')
+                ->whereNull('g.end_date')
+                ->groupBy('g.id', 'g.code')
                 ->get()
                 ->map(function ($game) {
                     return [
                         'id' => $game->id,
-                        'code' => $game->code ?? 'Sin código',
+                        'code' => $game->code,
                         'player1' => $game->player1,
                         'player2' => $game->player2
                     ];
                 });
 
-            Log::info('Games fetched successfully:', ['count' => $games->count()]);
+            Log::info('Partidas disponibles encontradas: ' . $games->count());
             return response()->json($games);
         } catch (\Exception $e) {
-            Log::error('Error en getAvailableGames: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
-            return response()->json([
-                'message' => 'Error al obtener las partidas disponibles',
-                'error' => $e->getMessage()
-            ], 500);
+            Log::info('No hay partidas disponibles para observar');
+            return response()->json([], 200);
         }
     }
 }
