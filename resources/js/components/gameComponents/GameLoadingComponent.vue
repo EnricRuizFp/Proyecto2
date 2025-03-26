@@ -34,7 +34,7 @@
                             <div class="player-content">
                                 <div class="player-info">
                                     <p v-if="opponentUsername=='Esperando oponente...'" class="p2-dark">{{ opponentUsername }}</p>
-                                    <p v-else style="font-size: 26px;">{{ opponentUsername }}</p>
+                                    <p v-else style="font-size: 26px; color: white;">{{ opponentUsername }}</p>
                                 </div>
                                 <div class="player-avatar pulse">
                                     <i class="fas fa-spinner fa-spin"></i>
@@ -151,6 +151,26 @@ onMounted(() => {
 
 });
 
+// Función para cuando se sale de la página terminar la partida
+window.addEventListener("beforeunload", () => {
+
+    // Generar los datos a subir
+    const url = '/api/games/finish-match';
+    const datos = {
+        gameCode: matchCode.value,
+        user: authStore().user
+    };
+
+    // Convertir los datos a formato JSON
+    const blob = new Blob([JSON.stringify(datos)], { type: "application/json" });
+
+    // Enviar la petición al servidor sin esperar respuesta
+    navigator.sendBeacon(url, blob);
+
+    console.log("Cerrando partida");
+});
+
+
 // Función FindMatch
 const findMatch = async () => {
     console.log("Finding match...");
@@ -192,7 +212,15 @@ const findMatch = async () => {
 
             }else{
                 console.log("Invitado a la partida.");
-                matchCode.value = response.data.game.data.code;
+                console.log("Partida: ", response.data.game);
+                if(route.params.gameType === 'private'){
+                    console.log("Private invitado");
+                    matchCode.value = route.params.gameCode;
+                    // matchCode.value = response.data.game.code;
+                }else{
+                    matchCode.value = response.data.game.code;
+                }
+                
 
                 // Buscar en la base de datos el timestamp de inicio de la partida
                 pollMatchStatusGuest();
@@ -220,8 +248,8 @@ const setTimestampMatchCreator = async () => {
 
     // Esperar a que se una un usuario
     do{
-        // Esperar 2.5 segundos entre pollings
-        await sleep(2500);
+        // Esperar 3 segundos entre pollings
+        await sleep(3000);
 
         const response = await axios.post('/api/games/check-match-status', {
             gameCode: matchCode.value,
@@ -264,15 +292,15 @@ const pollMatchStatusGuest = async () => {
     let response = null;
 
     do{
-        // Esperar 2.5 segundos entre pollings
-        await sleep(2500);
+        // Esperar 3 segundos entre pollings
+        await sleep(3000);
 
         // Obtener el timestamp de la DB
         response = await axios.post('/api/games/check-timestamp', {
             gameCode: matchCode.value,
             data: "start_date"
         });
-        console.log('Timestamp obtenido:', response.data);
+        // console.log('Timestamp obtenido:', response.data);
 
         console.log("Status: ", response.data.status);
 
@@ -282,7 +310,7 @@ const pollMatchStatusGuest = async () => {
     }while(matchStatus != 'success' && contador <= 50);
 
     // Si encuentra el timestamp, entra a la partida
-    if(matchStatus == "success"){
+    if(matchStatus == 'success'){
         console.log("Partida encontrada y unido");
 
         // Redirigir a la página de ShipPlacement
@@ -298,3 +326,260 @@ const pollMatchStatusGuest = async () => {
 
 
 </script>
+
+<style scoped>
+.create-match {
+    padding-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    min-height: 100vh;
+}
+
+.match-setup {
+    margin-top: -3rem;
+    background: var(--background-primary);
+    padding: 2rem;
+    border-radius: 8px;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    align-items: center;
+}
+
+.players-container {
+    display: grid;
+    grid-template-columns: minmax(250px, 1fr) auto minmax(250px, 1fr);
+    gap: 2rem;
+    padding: 1rem;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.player-side {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.player-card {
+    width: 100%;
+    min-width: 250px;
+    max-width: 300px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    background: var(--neutral-color-1);
+    border-radius: 8px;
+    border: 2px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.guest-player {
+    border-color: var(--secondary-color);
+}
+
+.player-avatar {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--neutral-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.vs-separator {
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.waiting .player-avatar {
+    color: var(--secondary-color);
+}
+
+.match-code {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding: 1.5rem 2rem;
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    background: var(--neutral-color-1);
+    min-width: 300px;
+}
+
+.code-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 60px;
+}
+
+.code-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    background: var(--neutral-color);
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+}
+
+.code-text {
+    text-align: center;
+    font-family: "Rubik", sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--white-color);
+}
+
+.copy-button {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-button:hover {
+    color: var(--primary-v2-color);
+    transform: scale(1.1);
+}
+
+.loading-state {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loading-overlay {
+    position: relative;
+    width: 300px;
+    padding: 2rem;
+    background: var(--background-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    border-radius: 8px;
+}
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+}
+
+.error-container i {
+    font-size: 3rem;
+    color: var(--secondary-color);
+}
+
+.player-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.player-info p {
+    color: var(--white-color);
+}
+
+.page-title {
+    margin-bottom: 3rem;
+}
+
+.player-side :deep(.profile) {
+    min-height: unset;
+    width: 100%;
+    padding: 1rem;
+    margin: 0;
+    background-color: var(--neutral-color-1);
+    border: 2px solid var(--primary-color);
+}
+
+.player-side :deep(.profile-content) {
+    height: auto;
+    padding: 0;
+}
+
+/* Pulse animation */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 600px) {
+    .players-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        justify-items: center;
+    }
+
+    .player-content {
+        flex-direction: column !important;
+        gap: 1rem;
+    }
+
+    .player-info {
+        text-align: center !important;
+    }
+
+    .player-card {
+        width: 100%;
+        max-width: 250px;
+    }
+}
+</style>

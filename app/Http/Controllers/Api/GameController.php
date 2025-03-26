@@ -235,6 +235,48 @@ class GameController extends Controller
         ]);
     }
 
+    public function finishMatchFunction(Request $request)
+    {
+        $gameCode = $request->input('gameCode');
+        $user = $request->input('user');
+
+        try {
+            // Buscar la partida con sus jugadores
+            $game = Game::where('code', $gameCode)
+                       ->with('players')
+                       ->first();
+
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ]);
+            }
+
+            // Encontrar el oponente (el jugador que no es el usuario actual)
+            $opponent = $game->players->where('id', '!=', $user['id'])->first();
+
+            // Actualizar la partida
+            $game->update([
+                'is_finished' => true,
+                'end_date' => now(),
+                'winner' => $opponent ? $opponent->id : null
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Game finished successfully',
+                'game' => $game
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error finishing the game'
+            ]);
+        }
+    }
+
     /**
      * PLAY A PUBLIC GAME
      * This function searches a public game to join. If there are no public games available, it creates a new one.

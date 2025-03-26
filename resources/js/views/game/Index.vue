@@ -9,7 +9,7 @@
 
             <!-- Fase de colocación de barcos -->
             <ShipPlacement
-                v-if="gamePhase === 'placement' && !gameMode"
+                v-if="gamePhase === 'placement'"
                 @placement-confirmed="startGame"
             />
 

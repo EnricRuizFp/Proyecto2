@@ -117,6 +117,8 @@ Route::post('/games/create-private', [GameController::class, 'createPrivateGame'
 Route::post('/games/join-private', [GameController::class, 'joinPrivateGame']);
 // Find match function (nueva ruta)
 Route::post('/games/find-match', [GameController::class, 'findMatchFunction']);
+// Finish match function
+Route::post('/games/finish-match', [GameController::class, 'finishMatchFunction']);
 // Check match status
 Route::post('/games/check-match-status', [GameController::class, 'checkMatchStatus']);
 // Create timestamp
