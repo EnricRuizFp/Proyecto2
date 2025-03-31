@@ -609,6 +609,11 @@ class GameController extends Controller
         }
     }
 
+    /**
+     * GET AVAILABLE GAMES
+     * Esta función obtiene las partidas disponibles para observar.
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
     public function getAvailableGames()
     {
         try {
@@ -650,6 +655,76 @@ class GameController extends Controller
         } catch (\Exception $e) {
             Log::info('No hay partidas disponibles para observar');
             return response()->json([], 200);
+        }
+    }
+
+    public function storeShipPlacement(Request $request)
+    {
+        try {
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array',
+                'user.id' => 'required|integer',
+                'shipsInfo' => 'required|string'
+            ]);
+
+            // Buscar la partida por código
+            $game = Game::where('code', $request->gameCode)
+                ->with('players')
+                ->first();
+
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ], 404);
+            }
+
+            // Verificar que el usuario es parte de la partida
+            $gamePlayer = $game->players()
+                ->where('user_id', $request->user['id'])
+                ->first();
+
+            if (!$gamePlayer) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'User is not part of this game'
+                ], 403);
+            }
+
+            // Actualizar la colocación de barcos
+            DB::enableQueryLog(); // Para debugging
+
+            $updated = $game->players()
+                ->where('user_id', $request->user['id'])
+                ->update(['coordinates' => $request->shipsInfo]);
+
+            Log::info('SQL Query Ships Placement: ', DB::getQueryLog());
+
+            if (!$updated) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Could not update ships placement'
+                ], 500);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Ships placement stored successfully',
+                'data' => [
+                    'game_code' => $game->code,
+                    'user_id' => $request->user['id']
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error storing ships placement: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error storing ships placement',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

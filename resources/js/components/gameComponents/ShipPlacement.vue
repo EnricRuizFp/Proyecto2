@@ -120,10 +120,19 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { authStore } from "../../store/auth";
 import { useRoute, useRouter } from 'vue-router';
+import { useGameStore } from "../../store/game";
 
 /* -- VARIABLES -- */
 const route = useRoute();
 const router = useRouter();
+const gameStore = useGameStore(); // Utilizado para settear las fases del juego
+
+/* -- FUNCIONES -- */
+
+// Función para volver a inicio
+const backToHome = () => {
+    router.push('/');
+};
 
 // Estado del tablero
 const board = ref(
@@ -152,7 +161,7 @@ const loadShips = async () => {
 };
 
 // Temporizador
-const timeLeft = ref(55);
+const timeLeft = ref(20);
 const timerInterval = ref(null);
 
 const formatTime = (seconds) => {
@@ -176,7 +185,7 @@ const startTimer = () => {
 onMounted(() => {
 
     console.log("SHIP PLACEMENT.");
-    console.log("Game code:", route.params.gameCode);
+    console.log("Game code:", gameStore.matchCode);
     console.log("User: ", authStore().user);
 
     loadShips();
@@ -262,9 +271,90 @@ const resetPlacement = () => {
     selectedShip.value = null;
 };
 
-const confirmPlacement = () => {
-    if (isPlacementComplete.value) {
-        emit("placement-confirmed", board.value);
+const getShipsPositions = () => {
+    const shipsInfo = {};
+    
+    // Recorremos el tablero buscando barcos
+    for (let row = 0; row < 10; row++) {
+        for (let col = 0; col < 10; col++) {
+            const shipName = board.value[row][col];
+            if (shipName && !shipsInfo[shipName]) {
+                const positions = [];
+                
+                // Verificar dirección horizontal
+                let isHorizontal = col + 1 < 10 && board.value[row][col + 1] === shipName;
+                
+                if (isHorizontal) {
+                    // Recolectar todas las posiciones horizontalmente (+1 para empezar desde 1)
+                    for (let c = col; c < 10 && board.value[row][c] === shipName; c++) {
+                        positions.push(`${row + 1},${c + 1}`);
+                    }
+                } else {
+                    // Recolectar todas las posiciones verticalmente (+1 para empezar desde 1)
+                    for (let r = row; r < 10 && board.value[r][col] === shipName; r++) {
+                        positions.push(`${r + 1},${col + 1}`);
+                    }
+                }
+                
+                shipsInfo[shipName] = positions;
+            }
+        }
+    }
+    return JSON.stringify(shipsInfo);
+};
+
+const verifyAllShipsPlaced = (shipsInfo) => {
+    // Convertir el JSON string a objeto
+    const placedShips = JSON.parse(shipsInfo);
+    
+    // Obtener nombres de los barcos colocados
+    const placedShipNames = Object.keys(placedShips);
+    
+    // Obtener nombres de los barcos disponibles
+    const availableShipNames = availableShips.value.map(ship => ship.name);
+    
+    // Verificar que todos los barcos disponibles están colocados
+    return availableShipNames.every(shipName => placedShipNames.includes(shipName));
+};
+
+const confirmPlacement = async () => {
+    if (isPlacementComplete.value || timeLeft.value <= 0) {
+        const shipsInfo = getShipsPositions();
+
+        if (shipsInfo === "{}") {
+            console.log("No ships have been placed.");
+            backToHome();
+        } else {
+            // Verificar que todos los barcos están colocados
+            if (!verifyAllShipsPlaced(shipsInfo)) {
+                console.log("Not all ships have been placed correctly.");
+                backToHome();
+                return;
+            }
+
+            // Mostrar por consola las coordenadas de los barcos
+            console.log("Ships placement data:", shipsInfo);
+
+            // Subir las coordenadas de los barcos a la DB
+            try {
+                const response = await axios.post('/api/games/store-ship-placement', {
+                    gameCode: gameStore.matchCode,
+                    user: authStore().user,
+                    shipsInfo: shipsInfo,
+                });
+                console.log("Respuesta de subir los barcos: ", response.data);
+
+                // En caso de haberse subido correctamente, esperar 5 segundos
+
+                // Verificar si el otro usuario ha subido barcos
+            } catch (error) {
+                console.error("Error al subir los barcos:", error);
+                backToHome();
+            }
+        }
+    } else {
+        console.log("Ships have not been placed.");
+        backToHome();
     }
 };
 

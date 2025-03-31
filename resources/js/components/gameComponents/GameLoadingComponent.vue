@@ -265,8 +265,8 @@ const setTimestampMatchCreator = async () => {
 
     // Esperar a que se una un usuario
     do{
-        // Esperar 3 segundos entre pollings
-        await sleep(3000);
+        // Esperar 2 segundos entre pollings
+        await sleep(2000);
 
         const response = await axios.post('/api/games/check-match-status', {
             gameCode: matchCode.value,
@@ -277,28 +277,43 @@ const setTimestampMatchCreator = async () => {
         matchStatus = response.data.message;
         contador++;
 
-    }while(matchStatus == "waiting" && contador <= 50);
+        // Mostrar por consola contador
+        if(contador % 10 === 0){
+            console.log("Quedan ", 40 - contador, " trys.");
+        }
 
-    console.log("Setting match timestamp as creator...");
+    }while(matchStatus == "waiting" && contador <= 40);
 
-    // Subir el timestamp a la DB
-    const response = await axios.post('/api/games/create-timestamp', {
-        gameCode: matchCode.value,
-        data: "start_date"
-    });
-
-    // Si se ha subido correctamente, redirigir a la página de ShipPlacement
-    if(response.data.status == "success"){
-        console.log("Timestamp uploaded: ", response.data.game.start_date);
-
-        // Redirigir a la página de ShipPlacement
-        await waitForTimestamp(response.data.game.start_date);
-        gameStore.setMatchCode(matchCode.value);
-        gameStore.setGamePhase('placement');
-    }else{
-        console.log("Error al subir el timestamp.");
+    // Definir si se ha unido algún usuario
+    if(matchStatus == "waiting"){
+        console.log("No user joined. Returning home.");
         backToHome();
+    }else{
+
+        console.log("Setting match timestamp as creator...");
+
+        // Subir el timestamp a la DB
+        const response = await axios.post('/api/games/create-timestamp', {
+            gameCode: matchCode.value,
+            data: "start_date"
+        });
+
+        // Si se ha subido correctamente, redirigir a la página de ShipPlacement
+        if(response.data.status == "success"){
+            console.log("Timestamp uploaded: ", response.data.game.start_date);
+
+            // Redirigir a la página de ShipPlacement
+            await waitForTimestamp(response.data.game.start_date);
+            gameStore.setMatchCode(matchCode.value);
+            gameStore.setGamePhase('placement');
+        }else{
+            console.log("Error al subir el timestamp.");
+            backToHome();
+        }
+
     }
+
+    
 
 };
 
@@ -310,8 +325,8 @@ const pollMatchStatusGuest = async () => {
     let response = null;
 
     do{
-        // Esperar 3 segundos entre pollings
-        await sleep(3000);
+        // Esperar 2 segundos entre pollings
+        await sleep(2000);
 
         // Obtener el timestamp de la DB
         response = await axios.post('/api/games/check-timestamp', {
@@ -325,7 +340,12 @@ const pollMatchStatusGuest = async () => {
         matchStatus =  response.data.status;
         contador++;
 
-    }while(matchStatus != 'success' && contador <= 50);
+        // Mostrar por consola contador
+        if(contador % 10 === 0){
+            console.log("Quedan ", 40 - contador, " polls.");
+        }
+
+    }while(matchStatus != 'success' && contador <= 40);
 
     // Si encuentra el timestamp, entra a la partida
     if(matchStatus == 'success'){

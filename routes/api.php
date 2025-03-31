@@ -128,6 +128,9 @@ Route::post('/games/create-timestamp', [GameController::class, 'createTimestamp'
 // Check timestamp
 Route::post('/games/check-timestamp', [GameController::class, 'checkTimestamp']);
 
+// Store ship placement
+Route::post('/games/store-ship-placement', [GameController::class, 'storeShipPlacement']);
+
 // Games (después de la personalizada)
 Route::apiResource('games', GameController::class);
 
