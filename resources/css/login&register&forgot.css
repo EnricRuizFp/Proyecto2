@@ -1,5 +1,5 @@
 /* IMPORT */
-@import url('general.css');
+@import url("general.css");
 
 /* -- GENERAL -- */
 * {
@@ -13,107 +13,145 @@
 
 */
 
-.loginFormField, .registerFormField, .forgotFormField{
+.loginFormField,
+.registerFormField,
+.forgotFormField {
     margin-top: 20px;
     margin-bottom: 20px;
 }
-.loginFormLabels, .registerFormLabels, .forgotFormLabels{
+.loginFormLabels,
+.registerFormLabels,
+.forgotFormLabels {
     color: var(--white-color);
     width: 100%;
     margin-bottom: 10px;
 }
-.loginFormFields, .registerFormFields, .forgotFormFields{
+.loginFormFields,
+.registerFormFields,
+.forgotFormFields {
     border: 1px solid var(--white-color);
     border-radius: 10px;
     color: var(--white-color) !important;
     padding: 5px 15px;
-    background-color: var(--neutral-color);
+    background-color: var(--background-secondary);
     width: 100%;
+    transition: border-color 0.2s ease;
+}
+/* Prevenir el fondo blanco en autocompletado */
+.loginFormFields:-webkit-autofill,
+.registerFormFields:-webkit-autofill,
+.forgotFormFields:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 30px var(--background-secondary) inset !important;
+    -webkit-text-fill-color: var(--white-color) !important;
+}
+.loginFormFields:focus,
+.registerFormFields:focus,
+.forgotFormFields:focus {
+    outline: none;
+    border-color: var(--primary-color);
 }
 ::-ms-reveal {
     filter: invert(100%);
-  }
+}
 
+/* Estilos para el select de nacionalidad */
+select.registerFormFields {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+select.registerFormFields[open],
+select.registerFormFields:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237048ec' d='M6 3L1 8h10z'/%3E%3C/svg%3E");
+}
+
+select.registerFormFields:active,
+select.registerFormFields:focus:active {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237048ec' d='M6 3L1 8h10z'/%3E%3C/svg%3E");
+}
 
 /*
 
     ///// LOGIN PAGE /////
 
 */
-#loginContainer{
+#loginContainer {
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: var(--neutral-color);
     height: calc(100vh - 101px);
 }
-#loginForm{
+#loginForm {
     padding: 100px;
     border: 1px solid var(--white-color);
     border-radius: 15px;
 }
-#loginFormTitle{
+#loginFormTitle {
     text-align: center;
     margin-bottom: 50px;
 }
-#rememberMeField{
+#rememberMeField {
     margin-top: 25px;
     margin-bottom: 15px;
 }
-#flexCheckIndeterminate{
+#flexCheckIndeterminate {
     margin-right: 10px;
 }
-#loginButton{
+#loginButton {
     margin-top: 25px;
     width: 100% !important;
 }
-#forgotPasswordText{
+#forgotPasswordText {
     margin-top: 15px;
 }
 
 /* -- MOBILE / TABLET SCREEN -- */
 @media (max-width: 1000px) {
-    #loginForm{
+    #loginForm {
         padding: 50px;
     }
 }
-
-
-
 
 /*
 
     ///// REGISTER PAGE /////
 
 */
-#registerContainer{
+#registerContainer {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--neutral-color);
+    background-color: var(--background-primary);
+    padding: 100px 20px;
+    min-height: calc(100vh - 101px);
 }
-#registerForm{
-    padding: 100px;
+#registerForm {
+    padding: 2rem;
     border: 1px solid var(--white-color);
     border-radius: 15px;
 }
-#registerFormTitle{
+#registerFormTitle {
     text-align: center;
 
     margin-bottom: 50px;
 }
 
-#contenedorTienesCuenta{
+#contenedorTienesCuenta {
     margin-top: 25px;
 }
-#registerButton{
+#registerButton {
     margin-top: 25px;
     width: 100% !important;
 }
 
 /* -- MOBILE / TABLET SCREEN -- */
 @media (max-width: 1000px) {
-    #registerForm{
+    #registerForm {
         padding: 50px;
     }
 }
@@ -123,19 +161,19 @@
     ///// FORGOT PASSWORD PAGE /////
 
 */
-#forgotContainer{
+#forgotContainer {
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: var(--neutral-color);
     height: calc(100vh - 101px);
 }
-#forgotForm{
+#forgotForm {
     padding: 100px;
     border: 1px solid var(--white-color);
     border-radius: 15px;
 }
-#forgotFormTitle{
+#forgotFormTitle {
     text-align: center;
 
     margin-bottom: 50px;

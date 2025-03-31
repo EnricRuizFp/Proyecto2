@@ -99,19 +99,26 @@
 
                     <!-- Nationality -->
                     <div class="registerFormField">
-                        <label
-                            for="nationality"
-                            class="registerFormLabels p4"
-                            >{{ $t("nationality") }}</label
-                        >
-                        <input
+                        <label for="nationality" class="registerFormLabels p4">
+                            {{ $t("nationality") }}
+                        </label>
+                        <select
                             v-model="registerForm.nationality"
                             id="nationality"
                             class="registerFormFields"
-                            type="text"
                             required
-                            autofocus
-                        />
+                        >
+                            <option value="" disabled selected>
+                                Selecciona tu continente
+                            </option>
+                            <option
+                                v-for="country in countries"
+                                :key="country.value"
+                                :value="country.value"
+                            >
+                                {{ country.label }}
+                            </option>
+                        </select>
                         <div
                             v-for="message in validationErrors?.nationality"
                             class="white-color"
@@ -143,17 +150,28 @@
 
                     <!-- Password -->
                     <div class="registerFormField">
-                        <label for="password" class="registerFormLabels p4">{{
-                            $t("password")
-                        }}</label>
-                        <input
-                            v-model="registerForm.password"
-                            id="password"
-                            class="registerFormFields"
-                            type="password"
-                            required
-                            autocomplete="new-password"
-                        />
+                        <label for="password" class="registerFormLabels p4">
+                            {{ $t("password") }}
+                        </label>
+                        <div class="password-field">
+                            <input
+                                v-model="registerForm.password"
+                                id="password"
+                                class="registerFormFields"
+                                :type="showPassword ? 'text' : 'password'"
+                                required
+                                autocomplete="new-password"
+                            />
+                            <i
+                                :class="
+                                    showPassword
+                                        ? 'fas fa-eye'
+                                        : 'fas fa-eye-slash'
+                                "
+                                class="password-toggle"
+                                @click="showPassword = !showPassword"
+                            ></i>
+                        </div>
                         <div
                             v-for="message in validationErrors?.password"
                             class="white-color"
@@ -163,20 +181,36 @@
                     </div>
 
                     <!-- Confirm Password -->
-                    <div id="registerFormField">
+                    <div class="registerFormField">
                         <label
                             for="password_confirmation"
                             class="registerFormLabels p4"
-                            >{{ $t("confirm_password") }}</label
                         >
-                        <input
-                            v-model="registerForm.password_confirmation"
-                            id="password_confirmation"
-                            class="registerFormFields"
-                            type="password"
-                            required
-                            autocomplete="new-password"
-                        />
+                            {{ $t("confirm_password") }}
+                        </label>
+                        <div class="password-field">
+                            <input
+                                v-model="registerForm.password_confirmation"
+                                id="password_confirmation"
+                                class="registerFormFields"
+                                :type="
+                                    showConfirmPassword ? 'text' : 'password'
+                                "
+                                required
+                                autocomplete="new-password"
+                            />
+                            <i
+                                :class="
+                                    showConfirmPassword
+                                        ? 'fas fa-eye'
+                                        : 'fas fa-eye-slash'
+                                "
+                                class="password-toggle"
+                                @click="
+                                    showConfirmPassword = !showConfirmPassword
+                                "
+                            ></i>
+                        </div>
                         <div
                             v-for="message in validationErrors?.password_confirmation"
                             class="white-color"
@@ -213,10 +247,22 @@
 <script setup>
 import useAuth from "@/composables/auth";
 import { useRouter } from "vue-router";
+import { ref } from "vue";
 
 const router = useRouter();
 const { registerForm, validationErrors, processing, submitRegister } =
     useAuth();
+
+const countries = ref([
+    { value: "africa", label: "África" },
+    { value: "america", label: "América" },
+    { value: "asia", label: "Asia" },
+    { value: "europa", label: "Europa" },
+    { value: "oceania", label: "Oceanía" },
+]);
+
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 const handleRegister = async () => {
     try {
@@ -231,40 +277,17 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
-#registerContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--background-primary);
-    min-height: 100vh;
+.password-field {
+    position: relative;
     width: 100%;
-    padding: 100px 20px;
 }
 
-#registerContainer > div {
-    width: 100%;
-    max-width: 500px; /* Reducido de 600px */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#registerForm {
-    width: 100%;
-    max-width: 500px; /* Reducido de 600px */
-    margin: 0;
-    padding: 2rem;
-}
-
-@media (max-width: 768px) {
-    #registerContainer {
-        padding-top: 80px;
-    }
-}
-
-@media (max-width: 480px) {
-    #registerContainer {
-        padding: 60px 10px 10px;
-    }
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--white-color);
 }
 </style>

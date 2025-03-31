@@ -34,14 +34,25 @@
                         <label for="password" class="loginFormLabels p4">
                             {{ $t("password") }}
                         </label>
-                        <input
-                            v-model="loginForm.password"
-                            id="password"
-                            class="loginFormFields"
-                            type="password"
-                            required
-                            autocomplete="current-password"
-                        />
+                        <div class="password-field">
+                            <input
+                                v-model="loginForm.password"
+                                id="password"
+                                class="loginFormFields"
+                                :type="showPassword ? 'text' : 'password'"
+                                required
+                                autocomplete="current-password"
+                            />
+                            <i
+                                :class="
+                                    showPassword
+                                        ? 'fas fa-eye'
+                                        : 'fas fa-eye-slash'
+                                "
+                                class="password-toggle"
+                                @click="showPassword = !showPassword"
+                            ></i>
+                        </div>
                         <!-- Validation Errors -->
                         <div>
                             <div v-for="message in validationErrors?.password">
@@ -98,9 +109,11 @@
 <script setup>
 import useAuth from "@/composables/auth";
 import { useRouter } from "vue-router";
+import { ref } from "vue";
 
 const router = useRouter();
 const { loginForm, validationErrors, processing, submitLogin } = useAuth();
+const showPassword = ref(false);
 
 const handleLogin = async () => {
     try {
@@ -153,5 +166,19 @@ const handleLogin = async () => {
     #loginContainer {
         padding: 60px 10px 10px;
     }
+}
+
+.password-field {
+    position: relative;
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--white-color);
 }
 </style>

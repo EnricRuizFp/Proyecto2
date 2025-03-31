@@ -143,7 +143,7 @@ import useRankings from "@/composables/rankings.js";
 const { processing, logout } = useAuth();
 const { getRanking } = useRankings();
 const { getUser } = useUsers();
-const userPoints = ref(null);
+const userPoints = ref(0); // Initialize with 0 instead of null
 const userAvatar = ref(null);
 
 const props = defineProps({
@@ -198,13 +198,11 @@ watch(
             await updateUserData();
             // Actualizar también los puntos
             const rankingData = await getRanking(newUserId);
-            if (rankingData?.points) {
-                userPoints.value = rankingData.points;
-            }
+            userPoints.value = rankingData?.points ?? 0; // Use nullish coalescing
         } else {
             // Resetear datos cuando no hay usuario
             userAvatar.value = null;
-            userPoints.value = null;
+            userPoints.value = 0; // Reset to 0 instead of null
         }
     },
     { immediate: true }
@@ -214,9 +212,7 @@ onMounted(async () => {
     if (authStore().user?.id) {
         // Obtener puntos
         const rankingData = await getRanking(authStore().user?.id);
-        if (rankingData.points) {
-            userPoints.value = rankingData.points;
-        }
+        userPoints.value = rankingData?.points ?? 0; // Use nullish coalescing
 
         // Actualizar datos del usuario
         await updateUserData();

@@ -10,7 +10,7 @@
 /* ///// MENÚ LATERAL ///// */
 #lateralBar {
     background-color: var(--neutral-color);
-    width: 280px; /* Ancho fijo cuando está abierto */
+    width: 280px;
     height: 100vh;
     color: var(--white-color) !important;
     border-right: 2px solid var(--white-color);
@@ -19,18 +19,17 @@
     left: 0;
     z-index: 1000;
     transition: all 0.3s ease-in-out;
-    /* Eliminamos el transform que oculta el menú */
 }
 
 #lateralBar.closed {
-    width: 80px; /* Ancho más pequeño cuando está cerrado */
+    width: 80px;
 }
 
 /* Botón de cerrar en desktop */
 #closeButton {
     position: absolute;
     top: 50%;
-    right: -50px; /* Mover más a la derecha cuando está oculto */
+    right: -50px;
     transform: translateY(-50%);
     background-color: var(--neutral-color);
     border: 1px solid var(--white-color);
@@ -54,12 +53,12 @@
     background-color: var(--neutral-color-1);
 }
 
-/* Botón móvil: inicialmente oculto */
+/* Botón móvil: oculto */
 #mobileMenuButton {
     display: none;
     position: absolute;
     top: 10px;
-    right: 10px; /* Colocarlo más a la derecha */
+    right: 10px;
     background-color: var(--neutral-color);
     width: 40px;
     height: 40px;
@@ -151,49 +150,6 @@
     padding-bottom: 15px;
 }
 
-/* -- MOBILE / TABLET SCREEN -- */
-@media (max-width: 1000px) {
-    #lateralBar {
-        width: 100%;
-        height: 100vh;
-        border: 0;
-        transform: translateX(-100%); /* Solo ocultamos en móvil */
-    }
-
-    #lateralBar:not(.closed) {
-        transform: translateX(0); /* Solo mostramos en móvil */
-        width: 100%;
-    }
-
-    #lateralBar.closed {
-        transform: translateX(-100%); /* Ocultamos completamente en móvil */
-    }
-
-    /* Botón de cerrar en móvil */
-    #closeButton {
-        top: 10px;
-        right: 10px;
-        transform: translateY(0);
-    }
-
-    /* Cuando el menú está desplegado en móvil, mover el botón un poco hacia la izquierda */
-    #lateralBar:not(.closed) #closeButton {
-        right: 20px;
-    }
-
-    /* Mostrar el botón móvil solo cuando el menú está cerrado */
-    #mobileMenuButton {
-        display: flex; /* El botón será visible solo cuando el menú esté cerrado */
-        left: 99%;
-        top: 30px;
-    }
-
-    /* Cuando el menú está cerrado, el botón móvil se muestra en la parte derecha */
-    #lateralBar.closed #mobileMenuButton {
-        display: flex;
-    }
-}
-
 /* ///// BARRA SUPERIOR ///// */
 #topBar {
     width: 100%;
@@ -207,4 +163,52 @@
     justify-content: center;
     align-items: center;
     height: 80px;
+}
+
+/* -- MOBILE / TABLET SCREEN -- */
+@media (max-width: 768px) {
+    #lateralBar {
+        width: 100%;
+        height: 100vh;
+        border: 0;
+        transform: translateX(-100%);
+    }
+
+    #lateralBar:not(.closed) {
+        transform: translateX(0);
+        width: 100%;
+    }
+
+    #lateralBar.closed {
+        transform: translateX(-100%);
+    }
+
+    /* Botón de cerrar en móvil */
+    #closeButton {
+        top: 10px;
+        right: 10px;
+        transform: translateY(0);
+    }
+
+    /* Cuando el menú está desplegado en móvil */
+    #lateralBar:not(.closed) #closeButton {
+        right: 20px;
+    }
+
+    /* Mostrar el botón móvil */
+    #mobileMenuButton {
+        display: flex;
+        left: 99%;
+        top: 30px;
+    }
+
+    /* Botón móvil cuando el menú está cerrado */
+    #lateralBar.closed #mobileMenuButton {
+        display: flex;
+    }
+
+    /* Ajustes de padding para móvil */
+    #menuItems {
+        padding-left: 20px;
+    }
 }

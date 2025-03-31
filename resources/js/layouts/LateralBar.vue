@@ -51,8 +51,8 @@ import { ref, onMounted, defineExpose } from "vue";
 import UserComponent from "../components/navbar/UserComponent.vue";
 import MenuComponent from "../components/navbar/MenuComponent.vue";
 
-const dropdownOpen = ref(false); // Menú cerrado por defecto
-const isMobile = ref(window.innerWidth < 1000); // Detectar si es dispositivo móvil
+const dropdownOpen = ref(false);
+const isMobile = ref(window.innerWidth < 768); // Cambiado a 768px
 
 const toggleDropdown = () => {
     dropdownOpen.value = !dropdownOpen.value;
@@ -60,7 +60,7 @@ const toggleDropdown = () => {
 
 onMounted(() => {
     window.addEventListener("resize", () => {
-        isMobile.value = window.innerWidth < 1000;
+        isMobile.value = window.innerWidth < 768; // Cambiado a 768px
     });
 });
 
@@ -154,17 +154,22 @@ defineExpose({ dropdownOpen, toggleDropdown });
 
 #mobileMenuButton {
     position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1000;
-    padding: 0.5rem;
-    border-radius: 8px;
-    background-color: var(--background-primary);
+    top: 10px;
+    left: 10px;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--white-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease;
 }
 
+/* Cambiar color al pasar el cursor */
 #mobileMenuButton:hover {
-    background-color: var(--background-secondary);
+    background-color: var(--background-primary);
 }
 </style>
