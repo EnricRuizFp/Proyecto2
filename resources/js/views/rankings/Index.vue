@@ -3,25 +3,20 @@
         <h1 class="h2 text-center white-color mb-4">Rankings</h1>
         <div class="row">
             <!-- Global Ranking -->
-            <div class="col-md-6 mb-4">
+            <div class="col-12 col-sm-6 mb-4">
                 <div class="card neutral-background white-border">
-                    <div class="card-header">
-                        <h3 class="white-color">Global Ranking</h3>
-                    </div>
                     <div class="card-body">
-                        <!-- Global ranking content will go here -->
+                        <GlobalRankingComponent />
                     </div>
                 </div>
             </div>
 
             <!-- National Ranking -->
-            <div class="col-md-6 mb-4">
+            <div class="col-12 col-sm-6 mb-4">
                 <div class="card neutral-background white-border">
-                    <div class="card-header">
-                        <h3 class="white-color">National Ranking</h3>
-                    </div>
                     <div class="card-body">
                         <!-- National ranking content will go here -->
+                        <NationalRankingComponent />
                     </div>
                 </div>
             </div>
@@ -31,6 +26,8 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import GlobalRankingComponent from "../../components/playComponents/globalRankingComponent.vue";
+import NationalRankingComponent from "../../components/playComponents/nationalRankingComponent.vue";
 
 // Variables
 const globalRanking = ref([]);

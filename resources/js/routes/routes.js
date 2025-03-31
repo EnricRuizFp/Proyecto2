@@ -109,12 +109,12 @@ export default [
                 name: "game",
                 component: () => import("../views/game/Index.vue"),
             },
-            {
-                path: "private-match/create",
-                name: "private-match.create",
-                component: () =>
-                    import("../components/privateMatch/CreateMatch.vue"),
-            },
+            // {
+            //     path: "private-match/create",
+            //     name: "private-match.create",
+            //     component: () =>
+            //         import("../components/privateMatch/CreateMatch.vue"),
+            // },
             {
                 path: "profile",
                 name: "profile",
