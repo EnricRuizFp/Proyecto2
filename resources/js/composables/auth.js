@@ -21,7 +21,7 @@ export default function useAuth() {
     const ability = inject(ABILITY_TOKEN);
     const auth = authStore();
 
-    const { storeRanking } = useRankings();
+    const { storeRankingSilently } = useRankings();
 
     const loginForm = reactive({
         email: "",
@@ -64,9 +64,16 @@ export default function useAuth() {
 
             swal({
                 icon: "success",
-                title: "Login correcto",
+                title: "¡Bienvenido!",
+                text: "Has iniciado sesión correctamente",
                 showConfirmButton: false,
                 timer: 1500,
+                background: "#1a1a1a",
+                customClass: {
+                    title: "swal-title",
+                    content: "swal-text",
+                    popup: "swal-popup",
+                },
             });
 
             return response; // Retornamos la respuesta para manejar la redirección en el componente
@@ -86,45 +93,44 @@ export default function useAuth() {
         validationErrors.value = {};
 
         try {
-            // 1. Registrar usuario
-            console.log("Sending register data:", registerForm); // Debug
             const response = await axios.post("/register", registerForm);
-            console.log("Register response:", response.data); // Debug
 
             if (!response.data || !response.data.data) {
-                console.error("Invalid response format:", response);
                 throw new Error("Invalid response format from server");
             }
 
             const newUser = response.data.data;
 
-            // 2. Crear ranking
-            const rankingData = {
+            // Crear ranking silenciosamente
+            await storeRankingSilently({
                 user_id: newUser.id,
                 points: 0,
                 wins: 0,
                 losses: 0,
                 draws: 0,
-            };
+            });
 
-            console.log("Creating ranking for user:", rankingData); // Debug
-            await storeRanking(rankingData);
-
-            // 3. Login automático
-            const loginResponse = await axios.post("/login", {
+            // Login automático
+            await axios.post("/login", {
                 email: registerForm.email,
                 password: registerForm.password,
             });
-            console.log("Auto-login response:", loginResponse); // Debug
 
             await auth.getUser();
             await loginUser();
 
             swal({
                 icon: "success",
-                title: "Registration successful",
+                title: "¡Registro exitoso!",
+                text: "Tu cuenta ha sido creada correctamente",
                 showConfirmButton: false,
                 timer: 1500,
+                background: "#1a1a1a",
+                customClass: {
+                    title: "swal-title",
+                    content: "swal-text",
+                    popup: "swal-popup",
+                },
             });
 
             return true;
@@ -141,9 +147,16 @@ export default function useAuth() {
                 };
                 swal({
                     icon: "error",
-                    title: "Registration Error",
-                    text: "There was a problem with the registration. Please try again.",
+                    title: "Error de registro",
+                    text: "Ha ocurrido un problema durante el registro. Por favor, inténtalo de nuevo.",
                     showConfirmButton: true,
+                    background: "#1a1a1a",
+                    customClass: {
+                        title: "swal-title",
+                        content: "swal-text",
+                        popup: "swal-popup",
+                        confirmButton: "swal-button",
+                    },
                 });
             }
             return false;

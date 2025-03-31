@@ -49,16 +49,44 @@ export default function useRankings() {
     };
 
     /**
+     * Crea un ranking inicial para un nuevo usuario.
+     */
+    const createInitialRanking = async (userId) => {
+        const initialRanking = {
+            user_id: userId,
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            points: 0,
+        };
+
+        return axios
+            .post("/api/rankings", initialRanking)
+            .then((response) => {
+                ranking.value = response.data;
+                return response.data;
+            })
+            .catch((error) => {
+                console.error("Error creating initial ranking:", error);
+                throw error;
+            });
+    };
+
+    /**
      * Obtiene datos de un solo avatar por ID.
      */
     const getRanking = async (id) => {
         return axios
             .get("/api/rankings/" + id)
             .then((response) => {
-                ranking.value = response.data; // NO response.data.data
+                ranking.value = response.data;
                 return response.data;
             })
             .catch((error) => {
+                if (error.response?.status === 404) {
+                    // If ranking not found, create a new one
+                    return createInitialRanking(id);
+                }
                 console.error("Error at getting the ranking:", error);
                 throw error;
             });
@@ -73,8 +101,6 @@ export default function useRankings() {
         isLoading.value = true;
         validationErrors.value = {};
 
-        // Si necesitas enviar archivos (por ejemplo, la imagen),
-        // conviertes avatarData en FormData. Si no, puedes hacer un JSON normal.
         let serializedPost = new FormData();
         for (let item in rankingData) {
             if (rankingData.hasOwnProperty(item)) {
@@ -88,17 +114,60 @@ export default function useRankings() {
                 router.push({ name: "ranking.index" });
                 swal({
                     icon: "success",
-                    title: "Ranking successfuly created",
+                    title: "¡Ranking creado!",
+                    text: "El ranking ha sido creado correctamente",
+                    showConfirmButton: false,
+                    timer: 1500,
+                    background: "#1a1a1a",
+                    customClass: {
+                        title: "swal-title",
+                        content: "swal-text",
+                        popup: "swal-popup",
+                    },
                 });
             })
             .catch((error) => {
                 if (error.response?.data?.errors) {
                     validationErrors.value = error.response.data.errors;
+                    swal({
+                        icon: "error",
+                        title: "Error al crear el ranking",
+                        text: "Ha ocurrido un problema al crear el ranking",
+                        showConfirmButton: true,
+                        background: "#1a1a1a",
+                        customClass: {
+                            title: "swal-title",
+                            content: "swal-text",
+                            popup: "swal-popup",
+                            confirmButton: "swal-button",
+                        },
+                    });
                 }
             })
             .finally(() => {
                 isLoading.value = false;
             });
+    };
+
+    /**
+     * Crea un nuevo ranking silenciosamente.
+     */
+    const storeRankingSilently = async (rankingData) => {
+        if (isLoading.value) return;
+        isLoading.value = true;
+        validationErrors.value = {};
+
+        try {
+            const response = await axios.post("/api/rankings", rankingData);
+            return response.data;
+        } catch (error) {
+            if (error.response?.data?.errors) {
+                validationErrors.value = error.response.data.errors;
+            }
+            throw error;
+        } finally {
+            isLoading.value = false;
+        }
     };
 
     /**
@@ -193,6 +262,7 @@ export default function useRankings() {
         getRankings,
         getRanking,
         storeRanking,
+        storeRankingSilently,
         updateRanking,
         deleteRanking,
         getGlobalRanking,

@@ -221,13 +221,13 @@ h2.menu-item {
 }
 
 /* Estilos para el menú cerrado */
-:deep(#lateralBar.closed) .menu-text {
-    display: none;
-}
-
 :deep(#lateralBar.closed) .menu-item {
     justify-content: center;
     padding: 0.5rem 0;
+}
+
+:deep(#lateralBar.closed) .menu-text {
+    display: none;
 }
 
 :deep(#lateralBar.closed) .menu-item i {
