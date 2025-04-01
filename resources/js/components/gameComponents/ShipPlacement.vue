@@ -1,5 +1,13 @@
 <template>
     <div class="ship-placement app-background-primary">
+        <!-- Agregar la pantalla de carga -->
+        <div v-if="isLoading" class="loading-state">
+            <div class="loading-overlay">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p class="p3-dark">Esperando al oponente...</p>
+            </div>
+        </div>
+
         <div class="game-layout">
             <!-- Temporizador solo visible en desktop -->
             <div class="timer-container desktop-only">
@@ -182,6 +190,9 @@ const startTimer = () => {
     }, 1000);
 };
 
+// Función sleep que devuelve una promesa
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 onMounted(() => {
 
     console.log("SHIP PLACEMENT.");
@@ -317,6 +328,8 @@ const verifyAllShipsPlaced = (shipsInfo) => {
     return availableShipNames.every(shipName => placedShipNames.includes(shipName));
 };
 
+const isLoading = ref(false);
+
 const confirmPlacement = async () => {
     if (isPlacementComplete.value || timeLeft.value <= 0) {
         const shipsInfo = getShipsPositions();
@@ -332,9 +345,6 @@ const confirmPlacement = async () => {
                 return;
             }
 
-            // Mostrar por consola las coordenadas de los barcos
-            console.log("Ships placement data:", shipsInfo);
-
             // Subir las coordenadas de los barcos a la DB
             try {
                 const response = await axios.post('/api/games/store-ship-placement', {
@@ -342,9 +352,49 @@ const confirmPlacement = async () => {
                     user: authStore().user,
                     shipsInfo: shipsInfo,
                 });
-                console.log("Respuesta de subir los barcos: ", response.data);
 
                 // En caso de haberse subido correctamente, esperar 5 segundos
+                if(response.data.status == "success"){
+
+                    // Mostrar pantalla de carga
+                    isLoading.value = true;
+
+                    // Esperar 5 segundos a que el otro usuario suba los barcos
+                    // console.log("Esperando 5 segs a que el otro usuario ponga datos.");
+                    await sleep(5000);
+
+                    // Obtener si el otro usuario ha subido barcos
+                    const response = await axios.post('/api/games/get-opponent-ship-placement-validation', {
+                        gameCode: gameStore.matchCode,
+                        user: authStore().user
+                    });
+
+                    // Validación de subida de barcos del oponente
+                    if(response.data.status == "success" && response.data.message == "OK"){
+                        
+                        console.log("El oponente ha subido barcos.");
+
+                        // Eliminar pantalla de carga
+                        isLoading.value = false;
+
+                        // Cambiar a la fase de juego: gamePlay
+                        gameStore.setGamePhase("playing");
+
+
+                    }else if(response.data.status == "success" && response.data.message == "NOK"){
+                        console.log("El oponente no ha subido barcos.");
+                        backToHome();
+                    }else{
+                        console.log("Error al verificar los barcos del oponente.");
+                        backToHome();
+                    }
+
+                }else{
+                    console.error("Error al subir los barcos:", response.data.message);
+                    backToHome();
+                }
+
+                
 
                 // Verificar si el otro usuario ha subido barcos
             } catch (error) {
@@ -353,7 +403,7 @@ const confirmPlacement = async () => {
             }
         }
     } else {
-        console.log("Ships have not been placed.");
+        console.log("No se han colocado los barcos.");
         backToHome();
     }
 };
@@ -992,5 +1042,37 @@ const emit = defineEmits(["placement-confirmed"]);
     .mobile-only {
         display: flex;
     }
+}
+
+/* Estilos para la pantalla de carga */
+.loading-state {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.loading-overlay {
+    position: relative;
+    width: 300px;
+    padding: 1rem;
+    background: var(--background-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    border-radius: 8px;
+}
+
+.loading-overlay i {
+    font-size: 2rem;
+    color: var(--primary-color);
 }
 </style>

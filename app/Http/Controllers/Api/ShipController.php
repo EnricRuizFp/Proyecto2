@@ -126,17 +126,17 @@ class ShipController extends Controller
         $ships = Ship::select('id', 'name', 'size')->get();
         $gameShips = $ships->toArray();
 
-        // Buscar y duplicar el crucero
-        foreach ($ships as $ship) {
-            if ($ship->name === 'Crucero') {
-                $gameShips[] = [
-                    'id' => $ship->id . '_2', // Añadir sufijo para ID único
-                    'name' => $ship->name,
-                    'size' => $ship->size
-                ];
-                break;
-            }
-        }
+        // // Buscar y duplicar el crucero
+        // foreach ($ships as $ship) {
+        //     if ($ship->name === 'Crucero') {
+        //         $gameShips[] = [
+        //             'id' => $ship->id . '_2', // Añadir sufijo para ID único
+        //             'name' => $ship->name,
+        //             'size' => $ship->size
+        //         ];
+        //         break;
+        //     }
+        // }
 
         return response()->json($gameShips);
     }

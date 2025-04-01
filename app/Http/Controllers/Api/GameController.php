@@ -727,4 +727,52 @@ class GameController extends Controller
             ], 500);
         }
     }
+
+    public function getOpponentShipPlacementValidation(Request $request)
+    {
+        try {
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array',
+                'user.id' => 'required|integer'
+            ]);
+
+            // Buscar la partida por código
+            $game = Game::where('code', $request->gameCode)->first();
+
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ], 404);
+            }
+
+            // Obtener el registro del oponente en game_players
+            $opponentPlayer = DB::table('game_players')
+                ->where('game_id', $game->id)
+                ->where('user_id', '!=', $request->user['id'])
+                ->first();
+
+            if (!$opponentPlayer) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Opponent not found'
+                ], 404);
+            }
+
+            // Verificar si el campo coordinates tiene datos
+            return response()->json([
+                'status' => 'success',
+                'message' => !empty($opponentPlayer->coordinates) ? 'OK' : 'NOK'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error checking opponent ships placement: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error checking opponent ships placement: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

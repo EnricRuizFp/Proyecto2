@@ -229,9 +229,7 @@ const findMatch = async () => {
 
             }else{
                 console.log("Invitado a la partida.");
-                console.log("Partida: ", response.data.game);
                 if(route.params.gameType === 'private'){
-                    console.log("Private invitado");
                     matchCode.value = route.params.gameCode;
                     // matchCode.value = response.data.game.code;
                 }else{
@@ -272,7 +270,7 @@ const setTimestampMatchCreator = async () => {
             gameCode: matchCode.value,
             user: auth.user
         });
-        console.log("Match status:", response.data);
+        // console.log("Match status:", response.data);
 
         matchStatus = response.data.message;
         contador++;
@@ -290,7 +288,7 @@ const setTimestampMatchCreator = async () => {
         backToHome();
     }else{
 
-        console.log("Setting match timestamp as creator...");
+        // console.log("Setting match timestamp as creator...");
 
         // Subir el timestamp a la DB
         const response = await axios.post('/api/games/create-timestamp', {
@@ -320,7 +318,7 @@ const setTimestampMatchCreator = async () => {
 // Función de polling para invitado de la partida
 const pollMatchStatusGuest = async () => {
 
-    console.log("Polling match status as guest...");
+    // console.log("Polling match status as guest...");
     let contador = 0;
     let response = null;
 
@@ -335,7 +333,7 @@ const pollMatchStatusGuest = async () => {
         });
         // console.log('Timestamp obtenido:', response.data);
 
-        console.log("Status: ", response.data.status);
+        // console.log("Status: ", response.data.status);
 
         matchStatus =  response.data.status;
         contador++;

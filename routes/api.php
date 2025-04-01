@@ -128,8 +128,13 @@ Route::post('/games/create-timestamp', [GameController::class, 'createTimestamp'
 // Check timestamp
 Route::post('/games/check-timestamp', [GameController::class, 'checkTimestamp']);
 
+/* -- SHIP PLACEMENT -- */
 // Store ship placement
 Route::post('/games/store-ship-placement', [GameController::class, 'storeShipPlacement']);
+// Store ship placement
+Route::post('/games/get-opponent-ship-placement-validation', [GameController::class, 'getOpponentShipPlacementValidation']);
+// Get user ship placement
+Route::post('/games/get-user-ship-placement', [GameController::class, 'getUserShipPlacement']);
 
 // Games (después de la personalizada)
 Route::apiResource('games', GameController::class);
