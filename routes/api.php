@@ -153,3 +153,4 @@ Route::apiResource('games', GameController::class);
 Route::apiResource('ships', ShipController::class);
 Route::get('/ships', [ShipController::class, 'index']);
 Route::get('/game-ships', [ShipController::class, 'getGameShips']);
+Route::get('/game-ships', [GameController::class, 'getAvailableGameShips']);
