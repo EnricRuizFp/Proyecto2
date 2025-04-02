@@ -658,6 +658,11 @@ class GameController extends Controller
         }
     }
 
+    /**
+     * STORE SHIP PLACEMENT
+     * Esta función almacena las posiciones de los barcos del usuario en la partida pasada por parámetro.
+     * @param \Illuminate\Http\Request $request
+     */
     public function storeShipPlacement(Request $request)
     {
         try {
@@ -728,6 +733,11 @@ class GameController extends Controller
         }
     }
 
+    /**
+     * GET OPPONENT SHIP PLACEMENT VALIDATION
+     * Esta función verifica si el oponente ha colocado sus barcos en la partida.
+     * @param \Illuminate\Http\Request $request
+     */
     public function getOpponentShipPlacementValidation(Request $request)
     {
         try {
@@ -772,6 +782,67 @@ class GameController extends Controller
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error checking opponent ships placement: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET USER SHIP PLACEMENT
+     * Esta función obtiene la colocación de barcos del usuario en la partida.
+     * @param \Illuminate\Http\Request $request
+     */
+    public function getUserShipPlacement(Request $request)
+    {
+        try {
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array',
+                'user.id' => 'required|integer'
+            ]);
+
+            // Buscar la partida por código
+            $game = Game::where('code', $request->gameCode)->first();
+
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ], 404);
+            }
+
+            // Obtener el registro del jugador en game_players
+            $playerData = DB::table('game_players')
+                ->where('game_id', $game->id)
+                ->where('user_id', $request->user['id'])
+                ->first();
+
+            if (!$playerData) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Player not found'
+                ], 404);
+            }
+
+            // Verificar si existen coordenadas
+            if (empty($playerData->coordinates)) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'No se han encontrado coordenadas'
+                ]);
+            }
+
+            // Devolver las coordenadas encontradas
+            return response()->json([
+                'status' => 'success',
+                'data' => $playerData->coordinates
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting user ship placement: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error getting user ship placement: ' . $e->getMessage()
             ], 500);
         }
     }
