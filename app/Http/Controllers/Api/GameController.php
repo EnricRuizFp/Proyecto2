@@ -727,7 +727,6 @@ class GameController extends Controller
                     'user_id' => $request->user['id']
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error storing ships placement: ' . $e->getMessage());
             return response()->json([
@@ -781,7 +780,6 @@ class GameController extends Controller
                 'status' => 'success',
                 'message' => !empty($opponentPlayer->coordinates) ? 'OK' : 'NOK'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error checking opponent ships placement: ' . $e->getMessage());
             return response()->json([
@@ -842,7 +840,6 @@ class GameController extends Controller
                 'status' => 'success',
                 'data' => $playerData->coordinates
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error getting user ship placement: ' . $e->getMessage());
             return response()->json([
@@ -867,7 +864,7 @@ class GameController extends Controller
 
             // Buscar la partida por código con todas sus relaciones
             $game = Game::where('code', $request->gameCode)
-                ->with(['players', 'observers']) 
+                ->with(['players', 'observers'])
                 ->withCount(['players', 'observers'])
                 ->first();
 
@@ -902,8 +899,8 @@ class GameController extends Controller
                     'is_full' => $game->players_count >= 2,
                     'has_started' => !empty($game->start_date),
                     'has_finished' => !empty($game->end_date),
-                    'duration' => $game->end_date ? 
-                        carbon($game->end_date)->diffInMinutes($game->start_date) : 
+                    'duration' => $game->end_date ?
+                        carbon($game->end_date)->diffInMinutes($game->start_date) :
                         null
                 ]
             ];
@@ -912,7 +909,6 @@ class GameController extends Controller
                 'status' => 'success',
                 'data' => $gameDetails
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error getting match info: ' . $e->getMessage());
             return response()->json([
@@ -981,7 +977,6 @@ class GameController extends Controller
                 'message' => 'miss',
                 'ship' => null
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error in attack position: ' . $e->getMessage());
             return response()->json([
@@ -989,6 +984,42 @@ class GameController extends Controller
                 'message' => 'Error processing attack: ' . $e->getMessage(),
                 'ship' => null
             ], 500);
+        }
+    }
+
+    public function getAvailableGameShips()
+    {
+        try {
+            // Obtener todos los barcos de la base de datos
+            $ships = DB::table('ships')->get();
+
+            // Crear el array de barcos para el juego
+            $gameShips = [];
+
+            foreach ($ships as $ship) {
+                if ($ship->name === 'Destructor') {
+                    // Agregar los dos destructores con nombres diferentes
+                    $gameShips[] = [
+                        'name' => 'Destructor_1',
+                        'size' => $ship->size
+                    ];
+                    $gameShips[] = [
+                        'name' => 'Destructor_2',
+                        'size' => $ship->size
+                    ];
+                } else {
+                    // Agregar el resto de barcos normalmente
+                    $gameShips[] = [
+                        'name' => $ship->name,
+                        'size' => $ship->size
+                    ];
+                }
+            }
+
+            return response()->json($gameShips);
+        } catch (\Exception $e) {
+            Log::error('Error getting available ships: ' . $e->getMessage());
+            return response()->json([], 500);
         }
     }
 }
