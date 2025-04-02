@@ -229,7 +229,22 @@ class RankingController extends Controller
         try {
             $limit = $request->query('limit', 10);
             $user = $request->user();
+
+            if (!$user) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
             $userNationality = $user->nationality;
+
+            if (empty($userNationality)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'El usuario no tiene una nacionalidad asignada'
+                ], 400);
+            }
 
             // Obtener rankings de usuarios con la misma nacionalidad
             $rankings = Ranking::with('user')
@@ -240,9 +255,12 @@ class RankingController extends Controller
                 ->take($limit)
                 ->get();
 
+            // Preparar respuesta con datos adicionales para debugging
             return response()->json([
                 'status' => 'success',
-                'data' => $rankings
+                'user_nationality' => $userNationality,
+                'data' => $rankings,
+                'count' => $rankings->count()
             ]);
         } catch (\Exception $e) {
             return response()->json([

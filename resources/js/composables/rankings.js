@@ -263,13 +263,21 @@ export default function useRankings() {
                 `/api/rankings/national?limit=${limit}`
             );
             console.log("National Ranking Data:", response.data);
-            if (response.data.status === 'success') {
+            if (response.data.status === "success") {
                 return response.data;
             } else {
-                throw new Error(response.data.message);
+                throw new Error(
+                    response.data.message ||
+                        "Unknown error fetching national ranking"
+                );
             }
         } catch (error) {
             console.error("Error al obtener el ranking nacional:", error);
+            if (error.response?.status === 401) {
+                throw new Error("Please log in to view national rankings");
+            } else if (error.response?.status === 404) {
+                throw new Error("National ranking endpoint not found");
+            }
             throw error;
         }
     };

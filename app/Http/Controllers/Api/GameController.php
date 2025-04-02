@@ -7,6 +7,7 @@ use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\Move; // Añadir este import al inicio del archivo
 use App\Http\Controllers\Api\UserController;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\DB;
