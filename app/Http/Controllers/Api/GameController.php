@@ -921,4 +921,74 @@ class GameController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * ATTACK POSITION
+     * Esta función verifica si un ataque ha dado a un barco enemigo
+     * @param \Illuminate\Http\Request $request
+     */
+    public function attackPosition(Request $request)
+    {
+        try {
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array',
+                'user.id' => 'required|integer',
+                'coordinates' => 'required|string'  // Formato: "row,col"
+            ]);
+
+            // Buscar la partida
+            $game = Game::where('code', $request->gameCode)->first();
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ], 404);
+            }
+
+            // Obtener las coordenadas del oponente
+            $opponentData = DB::table('game_players')
+                ->where('game_id', $game->id)
+                ->where('user_id', '!=', $request->user['id'])
+                ->first();
+
+            if (!$opponentData || empty($opponentData->coordinates)) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Opponent ships not found'
+                ], 404);
+            }
+
+            // Convertir las coordenadas del oponente a array
+            $opponentShips = json_decode($opponentData->coordinates, true);
+            $attackCoordinate = $request->coordinates;
+
+            // Buscar si la coordenada coincide con algún barco
+            foreach ($opponentShips as $shipName => $positions) {
+                if (in_array($attackCoordinate, $positions)) {
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'hit',
+                        'ship' => $shipName
+                    ]);
+                }
+            }
+
+            // Si no ha encontrado coincidencia, es un fallo
+            return response()->json([
+                'status' => 'success',
+                'message' => 'miss',
+                'ship' => null
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in attack position: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error processing attack: ' . $e->getMessage(),
+                'ship' => null
+            ], 500);
+        }
+    }
 }

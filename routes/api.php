@@ -134,6 +134,9 @@ Route::post('/games/check-timestamp', [GameController::class, 'checkTimestamp'])
 // Get match information
 Route::post('/games/get-match-info', [GameController::class, 'getMatchInfo']);
 
+/* -- GAME PLAY -- */
+// Attack function
+Route::post('/games/attack', [GameController::class, 'attackPosition']);
 
 /* -- SHIP PLACEMENT -- */
 // Store ship placement

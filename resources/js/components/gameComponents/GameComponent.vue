@@ -1,14 +1,36 @@
 <template>
     <div class="game app-background-primary">
+        <div class="boards-container">
+            <!-- Tablero del usuario -->
+            <div class="board-section">
+                <h2 class="title">Sus barcos</h2>
+                <div class="board-container">
+                    <div class="board-grid">
+                        <div v-for="row in 10" :key="`row-${row}`" class="board-row">
+                            <div v-for="col in 10" :key="`cell-${row}-${col}`" 
+                                class="board-cell"
+                                :class="{ ship: userBoard[row - 1][col - 1] }">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <h2 class="title">Sus barcos</h2>
-        <!-- Tablero del usuario -->
-        <div class="board-container">
-            <div class="board-grid">
-                <div v-for="row in 10" :key="`row-${row}`" class="board-row">
-                    <div v-for="col in 10" :key="`cell-${row}-${col}`" 
-                        class="board-cell"
-                        :class="{ ship: userBoard[row - 1][col - 1] }">
+            <!-- Tablero de ataque -->
+            <div class="board-section">
+                <h2 class="title">Tablero de ataque</h2>
+                <div class="board-container">
+                    <div class="board-grid">
+                        <div v-for="row in 10" :key="`attack-row-${row}`" class="board-row">
+                            <div v-for="col in 10" 
+                                :key="`attack-cell-${row}-${col}`" 
+                                class="board-cell clickable"
+                                @click="handleAttack(row - 1, col - 1)"
+                                :class="{ hit: attackBoard[row - 1][col - 1] === '✓', miss: attackBoard[row - 1][col - 1] === '✗' }"
+                            >
+                                <span v-if="attackBoard[row - 1][col - 1]">{{ attackBoard[row - 1][col - 1] }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -28,9 +50,14 @@ import { useGameStore } from "../../store/game";
 const route = useRoute();
 const router = useRouter();
 const gameStore = useGameStore(); // Utilizado para settear las fases del juego
+const matchHost = ref(null);
+const yourTurn = ref(null);
 
 // Estado del tablero del usuario
 const userBoard = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
+
+// Estado del tablero de ataque
+const attackBoard = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
 
 /* -- FUNCTIONS -- */
 
@@ -44,14 +71,17 @@ onMounted( async () => {
     await loadShips();
 
     // Decidir qué usuario empieza
-    const matchHost = await getMatchInfo().game.created_by;
+    const response = await getMatchInfo();
+    matchHost = response.game.created_by;
     console.log("Match host:", matchHost);
     if(matchHost == authStore().user.id) {
         
         console.log("Eres el creador, empiezas");
+        yourTurn.value = true;
 
     } else {
         console.log("No eres el creador, esperas tu turno");
+        yourTurn.value = false;
     }
 
 
@@ -123,6 +153,30 @@ const getMatchInfo = async () => {
     return response.data.data;
 }
 
+// Función para manejar el ataque
+const handleAttack = async (row, col) => {
+    if (!attackBoard.value[row][col]) { // Solo si la celda está vacía
+        try {
+            const response = await axios.post('/api/games/attack', {
+                gameCode: gameStore.matchCode,
+                user: authStore().user,
+                coordinates: `${row + 1},${col + 1}`
+            });
+
+            if (response.data.status === 'success') {
+                // Marcar la celda según el resultado
+                attackBoard.value[row][col] = response.data.message === 'hit' ? '✓' : '✗';
+                console.log(`Ataque en ${row + 1},${col + 1} - Resultado: ${response.data.message}` + 
+                    (response.data.ship ? ` - Barco: ${response.data.ship}` : ''));
+            } else {
+                console.error('Error en el ataque:', response.data.message);
+            }
+        } catch (error) {
+            console.error('Error al realizar el ataque:', error);
+        }
+    }
+};
+
 </script>
 
 <style scoped>
@@ -179,5 +233,47 @@ const getMatchInfo = async () => {
     bottom: 4px;
     background-color: var(--secondary-color);
     border-radius: 2px;
+}
+
+.board-cell.hit {
+    background-color: #28a745;
+}
+
+.board-cell.miss {
+    background-color: #dc3545;
+}
+
+/* Nuevos estilos */
+.boards-container {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    align-items: start;
+    width: 100%;
+    padding: 2rem;
+}
+
+.board-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.clickable {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.clickable:hover {
+    background-color: #7048ec33;
+}
+
+/* Media query para dispositivos móviles */
+@media (max-width: 960px) {
+    .boards-container {
+        flex-direction: column;
+        align-items: center;
+    }
 }
 </style>
