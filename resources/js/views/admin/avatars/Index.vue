@@ -65,14 +65,18 @@
                     <Column header="Image">
                         <template #body="slotProps">
                             <img
-                                :src="slotProps.data.image_route"
+                                :src="slotProps.data.url"
                                 alt="Avatar image"
                                 class="avatar-img"
                             />
                         </template>
                     </Column>
 
-                    <Column field="image_route" header="File route" sortable />
+                    <Column header="File route">
+                        <template #body="slotProps">
+                            {{ slotProps.data.image_route }}
+                        </template>
+                    </Column>
                     <Column class="pe-0 me-0 icon-column-2">
                         <template #body="slotProps">
                             <router-link

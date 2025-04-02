@@ -74,6 +74,12 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/rankings/user-points', [RankingController::class, 'getUserPoints']);
     // Ruta de obtención del historial de partidas
     Route::get('/games/user-match-history', [GameController::class, 'getUserMatchHistory']);
+
+    // Rankings - Admin specific route
+    Route::get('rankings/admin', [RankingController::class, 'indexAdmin']);
+
+    // Rankings - Regular routes
+    Route::apiResource('rankings', RankingController::class);
 });
 
 Route::get('category-list', [CategoryController::class, 'getList']);
@@ -138,9 +144,6 @@ Route::post('/games/get-user-ship-placement', [GameController::class, 'getUserSh
 
 // Games (después de la personalizada)
 Route::apiResource('games', GameController::class);
-
-// Rankings
-Route::apiResource('rankings', RankingController::class);
 
 // Ships
 Route::apiResource('ships', ShipController::class);

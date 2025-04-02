@@ -9,8 +9,15 @@
                 <DataTable
                     v-model:filters="filters"
                     :value="rankings.data"
-                    paginator
+                    :lazy="true"
+                    :totalRecords="rankings.total"
                     :rows="10"
+                    :loading="isLoading"
+                    @page="onPage($event)"
+                    @sort="onSort($event)"
+                    :first="first"
+                    paginator
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
                     :globalFilterFields="[
                         'ranking_id',
                         'user_id',
@@ -48,7 +55,7 @@
                                     icon="pi pi-refresh"
                                     class="h-100 ml-1"
                                     outlined
-                                    @click="getRankings"
+                                    @click="loadRankings"
                                 />
                             </template>
 
@@ -122,33 +129,70 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useAbility } from "@casl/vue";
-import { FilterMatchMode, FilterService } from "@primevue/core/api";
-
-// Importa tu composable para avatares (ajusta la ruta si es necesario)
+import { FilterMatchMode } from "@primevue/core/api";
 import useRankings from "@/composables/rankings.js";
 
-// Desestructura las funciones que necesitas de tu composable
-const { rankings, getRankings, deleteRanking } = useRankings();
+const { rankings, getRankings, deleteRanking, isLoading } = useRankings();
 
 const { can } = useAbility();
+
+// Estado para la paginación
+const first = ref(0);
+const currentPage = ref(1);
+const orderColumn = ref("ranking_id");
+const orderDirection = ref("desc");
 
 // Configuración de filtros
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 
+// Manejador de cambio de página
+const onPage = (event) => {
+    first.value = event.first;
+    currentPage.value = event.page + 1;
+    loadRankings();
+};
+
+// Manejador de ordenamiento
+const onSort = (event) => {
+    orderColumn.value = event.sortField;
+    orderDirection.value = event.sortOrder === 1 ? "asc" : "desc";
+    loadRankings();
+};
+
+// Función para cargar rankings
+const loadRankings = async () => {
+    await getRankings(
+        currentPage.value,
+        filters.value.global.value || "",
+        orderColumn.value,
+        orderDirection.value
+    );
+};
+
 // Función para reiniciar los filtros
 const initFilters = () => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
+    loadRankings();
 };
 
-// Al montar el componente, cargamos la lista de avatares
+// Watch para los filtros globales
+watch(
+    () => filters.value.global.value,
+    (newValue) => {
+        currentPage.value = 1;
+        first.value = 0;
+        loadRankings();
+    }
+);
+
 onMounted(() => {
-    getRankings();
+    loadRankings();
 });
 </script>
 

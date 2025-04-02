@@ -174,10 +174,8 @@ export default function useAvatars() {
      * Obtiene el avatar del usuario por ID.
      */
     const getUserAvatarRoute = async (id) => {
-        return axios
-            .get()
+        return axios;
     };
-
 
     return {
         avatars,

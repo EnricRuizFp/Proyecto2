@@ -20,6 +20,34 @@ class RankingController extends Controller
     }
 
     /**
+     * Retorna un listado paginado de rankings para el panel administrativo.
+     */
+    public function indexAdmin(Request $request)
+    {
+        $query = Ranking::with('user');
+
+        // Aplicar búsqueda global si existe
+        if ($request->has('search_global') && !empty($request->search_global)) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('username', 'like', '%' . $request->search_global . '%');
+            })
+                ->orWhere('ranking_id', 'like', '%' . $request->search_global . '%')
+                ->orWhere('points', 'like', '%' . $request->search_global . '%');
+        }
+
+        // Aplicar ordenamiento
+        $orderColumn = $request->get('order_column', 'ranking_id');
+        $orderDirection = $request->get('order_direction', 'desc');
+        $query->orderBy($orderColumn, $orderDirection);
+
+        // Paginar resultados
+        $perPage = $request->get('per_page', 10);
+        $rankings = $query->paginate($perPage);
+
+        return response()->json($rankings);
+    }
+
+    /**
      * Almacena un nuevo ranking.
      */
     public function store(Request $request)
@@ -109,10 +137,10 @@ class RankingController extends Controller
     {
         try {
             $userId = $request->user()->id;
-            
+
             // Obtener todos los rankings ordenados por puntos
             $rankings = Ranking::orderBy('points', 'desc')->get();
-            
+
             // Encontrar la posición del usuario
             $position = null;
             foreach ($rankings as $index => $ranking) {
@@ -142,15 +170,15 @@ class RankingController extends Controller
         try {
             $user = $request->user();
             $userNationality = $user->nationality;
-            
+
             // Obtener rankings de usuarios con la misma nacionalidad
             $rankings = Ranking::with('user')
-                ->whereHas('user', function($query) use ($userNationality) {
+                ->whereHas('user', function ($query) use ($userNationality) {
                     $query->where('nationality', $userNationality);
                 })
                 ->orderBy('points', 'desc')
                 ->get();
-            
+
             // Encontrar la posición del usuario
             $position = null;
             foreach ($rankings as $index => $ranking) {
@@ -180,7 +208,7 @@ class RankingController extends Controller
         try {
             $userId = $request->user()->id;
             $ranking = Ranking::where('user_id', $userId)->first();
-            
+
             return response()->json([
                 'status' => 'success',
                 'points' => $ranking ? $ranking->points : 0

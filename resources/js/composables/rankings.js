@@ -24,28 +24,29 @@ export default function useRankings() {
     const getRankings = async (
         page = 1,
         search_global = "",
-        order_column = "updated_at",
+        order_column = "ranking_id",
         order_direction = "desc"
     ) => {
-        axios
-            .get(
-                "/api/rankings?page=" +
-                    page +
-                    "&search_global=" +
-                    search_global +
-                    "&order_column=" +
-                    order_column +
-                    "&order_direction=" +
-                    order_direction
-            )
-            .then((response) => {
-                // asumiendo que tu endpoint devuelve la lista con meta de paginación
-                // en un atributo "data" (ajusta a tu respuesta real)
-                rankings.value = response.data;
-            })
-            .catch((error) => {
-                console.error("Error at getting rankings:", error);
+        try {
+            const response = await axios.get(
+                "/api/rankings/admin?" +
+                    new URLSearchParams({
+                        page,
+                        search_global,
+                        order_column,
+                        order_direction,
+                        per_page: 10,
+                    })
+            );
+            rankings.value = response.data;
+        } catch (error) {
+            console.error("Error at getting rankings:", error);
+            swal({
+                icon: "error",
+                title: "Error",
+                text: "Failed to fetch rankings",
             });
+        }
     };
 
     /**
