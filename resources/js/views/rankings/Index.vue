@@ -1,32 +1,69 @@
 <template>
     <div class="container mt-4">
         <h1 class="h2 text-center white-color mb-4">Rankings</h1>
-        <div v-if="loading" class="text-center white-color">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-        <div v-else-if="error" class="alert alert-danger text-center">
-            {{ error }}
-            <button @click="loadRankings" class="btn btn-outline-light mt-2">
-                Try Again
-            </button>
-        </div>
-        <div v-else class="row">
+        <div class="row">
             <!-- Global Ranking -->
             <div class="col-12 col-sm-6 mb-4">
-                <div class="card neutral-background white-border">
+                <div
+                    class="card app-background-secondary white-border ranking-card"
+                >
                     <div class="card-body">
-                        <GlobalRankingComponent :ranking-data="globalRanking" />
+                        <div v-if="loading" class="loading-container">
+                            <div
+                                class="spinner-border text-light"
+                                role="status"
+                            >
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <div
+                            v-else-if="error"
+                            class="alert alert-danger text-center"
+                        >
+                            {{ error }}
+                            <button
+                                @click="loadRankings"
+                                class="btn btn-outline-light mt-2"
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                        <GlobalRankingComponent
+                            v-else
+                            :ranking-data="globalRanking"
+                        />
                     </div>
                 </div>
             </div>
 
             <!-- National Ranking -->
             <div class="col-12 col-sm-6 mb-4">
-                <div class="card neutral-background white-border">
+                <div
+                    class="card app-background-secondary white-border ranking-card"
+                >
                     <div class="card-body">
+                        <div v-if="loading" class="loading-container">
+                            <div
+                                class="spinner-border text-light"
+                                role="status"
+                            >
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <div
+                            v-else-if="error"
+                            class="alert alert-danger text-center"
+                        >
+                            {{ error }}
+                            <button
+                                @click="loadRankings"
+                                class="btn btn-outline-light mt-2"
+                            >
+                                Try Again
+                            </button>
+                        </div>
                         <NationalRankingComponent
+                            v-else
                             :ranking-data="nationalRanking || []"
                             :nationality="userNationality || 'Unknown'"
                         />
@@ -102,6 +139,11 @@ const loadRankings = async () => {
 <style scoped>
 .card {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+}
+
+.card.ranking-card {
+    min-height: 300px;
 }
 
 .card-header {
@@ -111,5 +153,17 @@ const loadRankings = async () => {
 .spinner-border {
     width: 3rem;
     height: 3rem;
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 250px;
+    width: 100%;
+}
+
+.alert {
+    border-radius: 10px;
 }
 </style>
