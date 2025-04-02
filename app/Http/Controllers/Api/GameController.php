@@ -237,6 +237,11 @@ class GameController extends Controller
         ]);
     }
 
+    /**
+     * FINISH MATCH FUNCTION
+     * Esta función finaliza la partida y asigna el ganador.
+     * @param \Illuminate\Http\Request $request
+     */
     public function finishMatchFunction(Request $request)
     {
         $gameCode = $request->input('gameCode');
@@ -843,6 +848,76 @@ class GameController extends Controller
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error getting user ship placement: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET MATCH INFO
+     * Esta función obtiene toda la información de la partida actual.
+     * @param \Illuminate\Http\Request $request
+     */
+    public function getMatchInfo(Request $request)
+    {
+        try {
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string'
+            ]);
+
+            // Buscar la partida por código con todas sus relaciones
+            $game = Game::where('code', $request->gameCode)
+                ->with(['players', 'observers']) 
+                ->withCount(['players', 'observers'])
+                ->first();
+
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ], 404);
+            }
+
+            // Obtener todos los datos relacionados usando DB para tener más detalle
+            $players = DB::table('game_players')
+                ->where('game_id', $game->id)
+                ->join('users', 'users.id', '=', 'game_players.user_id')
+                ->select('game_players.*', 'users.username', 'users.email')
+                ->get();
+
+            $observers = DB::table('game_viewers')
+                ->where('game_id', $game->id)
+                ->join('users', 'users.id', '=', 'game_viewers.user_id')
+                ->select('game_viewers.*', 'users.username')
+                ->get();
+
+            // Construir respuesta detallada
+            $gameDetails = [
+                'game' => $game,
+                'players' => $players,
+                'observers' => $observers,
+                'meta' => [
+                    'players_count' => $game->players_count,
+                    'observers_count' => $game->observers_count,
+                    'is_full' => $game->players_count >= 2,
+                    'has_started' => !empty($game->start_date),
+                    'has_finished' => !empty($game->end_date),
+                    'duration' => $game->end_date ? 
+                        carbon($game->end_date)->diffInMinutes($game->start_date) : 
+                        null
+                ]
+            ];
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $gameDetails
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting match info: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error getting match info: ' . $e->getMessage()
             ], 500);
         }
     }

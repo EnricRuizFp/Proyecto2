@@ -19,8 +19,6 @@ use App\Http\Controllers\Api\RankingController;
 use App\Http\Controllers\Api\UserAvatarController;
 
 
-
-
 Route::post('forget-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('forget.password.post');
 Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');
 
@@ -133,6 +131,9 @@ Route::post('/games/check-match-status', [GameController::class, 'checkMatchStat
 Route::post('/games/create-timestamp', [GameController::class, 'createTimestamp']);
 // Check timestamp
 Route::post('/games/check-timestamp', [GameController::class, 'checkTimestamp']);
+// Get match information
+Route::post('/games/get-match-info', [GameController::class, 'getMatchInfo']);
+
 
 /* -- SHIP PLACEMENT -- */
 // Store ship placement

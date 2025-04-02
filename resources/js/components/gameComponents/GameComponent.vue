@@ -35,12 +35,26 @@ const userBoard = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
 /* -- FUNCTIONS -- */
 
 // Función onMounted
-onMounted(() => {
+onMounted( async () => {
     console.log("GameComponent mounted");
     console.log("Game code:", gameStore.matchCode);
     console.log("User: ", authStore().user);
 
-    loadShips();
+    // Cargar el tablero del usuario
+    await loadShips();
+
+    // Decidir qué usuario empieza
+    const matchHost = await getMatchInfo().game.created_by;
+    console.log("Match host:", matchHost);
+    if(matchHost == authStore().user.id) {
+        
+        console.log("Eres el creador, empiezas");
+
+    } else {
+        console.log("No eres el creador, esperas tu turno");
+    }
+
+
 });
 
 // Función para volver a inicio
@@ -77,7 +91,6 @@ const loadShips = async () => {
 
         // Posicionar los barcos en el tablero
         setUserBoard(JSON.parse(response.data.data));
-        // startGame();
 
     } catch (error) {
         console.error("Error loading ships:", error);
@@ -99,6 +112,16 @@ const setUserBoard = (shipsData) => {
         });
     });
 };
+
+// Obtener los datos de la partida actual
+const getMatchInfo = async () => {
+
+    // Obtener los datos de la partida de la API
+    const response = await axios.post('/api/games/get-match-info', {
+        gameCode: gameStore.matchCode
+    });
+    return response.data.data;
+}
 
 </script>
 
