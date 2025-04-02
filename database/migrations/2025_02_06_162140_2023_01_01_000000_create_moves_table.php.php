@@ -12,8 +12,9 @@ return new class extends Migration
             $table->id(); // ID
             $table->unsignedBigInteger('game_id');
             $table->unsignedBigInteger('game_player_id');
-             $table->string('coordinate', 5)->nullable(); 
-             $table->enum('result', ['hit', 'miss', 'unknown'])->default('unknown');
+            $table->string('coordinate', 5)->nullable(); 
+            $table->enum('result', ['hit', 'miss', 'unknown'])->default('unknown');
+            $table->string('ship')->nullable();
 
             $table->foreign('game_id')->references('id')->on('games');
             $table->foreign('game_player_id')->references('id')->on('game_players');

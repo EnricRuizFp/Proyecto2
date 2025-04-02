@@ -102,7 +102,9 @@ const loadingTitle = computed(() => { // Devuelve el título de la página depen
 /* -- FUNCIONES -- */
 
 // Función para volver a inicio
-const backToHome = () => {
+const backToHome = (type, message = "Ha ocurrido un error desconocido.") => {
+
+    if(type){alert(message);}
     router.push('/');
 };
 
@@ -160,7 +162,7 @@ onMounted(() => {
 
     // Verificación de usuario autenticado, modo de juego y código
     if(!authStore().user || !route.params.gameType){
-        backToHome();
+        backToHome(true, "No tienes permiso para acceder a esta página");
     }
 
     // Encontrar partida
@@ -243,8 +245,8 @@ const findMatch = async () => {
         }else{
 
             // Volver a la página de inicio
-            console.log("No se ha podido unir a la partida.");
-            backToHome();
+            // console.log("No se ha podido unir a la partida.");
+            backToHome(true, "No se ha podido unir a la partida.");
         }
 
     }catch(err){
@@ -284,8 +286,8 @@ const setTimestampMatchCreator = async () => {
 
     // Definir si se ha unido algún usuario
     if(matchStatus == "waiting"){
-        console.log("No user joined. Returning home.");
-        backToHome();
+        // console.log("No user joined. Returning home.");
+        backToHome(true, "No se ha unido ningún jugador.");
     }else{
 
         // console.log("Setting match timestamp as creator...");
@@ -305,8 +307,8 @@ const setTimestampMatchCreator = async () => {
             gameStore.setMatchCode(matchCode.value);
             gameStore.setGamePhase('placement');
         }else{
-            console.log("Error al subir el timestamp.");
-            backToHome();
+            // console.log("Error al subir el timestamp.");
+            backToHome(true, "Error al iniciar la partida.");
         }
 
     }
@@ -355,8 +357,8 @@ const pollMatchStatusGuest = async () => {
         gameStore.setGamePhase('placement');
 
     }else{
-        console.log("Error al unirse a la partida");
-        backToHome();
+        // console.log("Error al unirse a la partida");
+        backToHome(true, "Error al unirse a la partida.");
     }
 
 };

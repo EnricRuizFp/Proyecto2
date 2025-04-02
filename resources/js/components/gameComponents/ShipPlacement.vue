@@ -138,7 +138,8 @@ const gameStore = useGameStore(); // Utilizado para settear las fases del juego
 /* -- FUNCIONES -- */
 
 // Función para volver a inicio
-const backToHome = () => {
+const backToHome = (type, message = "Ha ocurrido un error desconocido.") => {
+    if(type){alert(message);}
     router.push('/');
 };
 
@@ -335,13 +336,13 @@ const confirmPlacement = async () => {
         const shipsInfo = getShipsPositions();
 
         if (shipsInfo === "{}") {
-            console.log("No ships have been placed.");
-            backToHome();
+            // console.log("No ships have been placed.");
+            backToHome(true, "No se han colocado barcos en el tablero.");
         } else {
             // Verificar que todos los barcos están colocados
             if (!verifyAllShipsPlaced(shipsInfo)) {
-                console.log("Not all ships have been placed correctly.");
-                backToHome();
+                // console.log("Not all ships have been placed correctly.");
+                backToHome(true, "No se han colocado todos los barcos correctamente.");
                 return;
             }
 
@@ -382,29 +383,29 @@ const confirmPlacement = async () => {
 
 
                     }else if(response.data.status == "success" && response.data.message == "NOK"){
-                        console.log("El oponente no ha subido barcos.");
-                        backToHome();
+                        // console.log("El oponente no ha subido barcos.");
+                        backToHome(true, "El oponente no ha colocado sus barcos.");
                     }else{
-                        console.log("Error al verificar los barcos del oponente.");
-                        backToHome();
+                        // console.log("Error al verificar los barcos del oponente.");
+                        backToHome(true, "Error al verificar los barcos del oponente.");
                     }
 
                 }else{
-                    console.error("Error al subir los barcos:", response.data.message);
-                    backToHome();
+                    // console.error("Error al subir los barcos:", response.data.message);
+                    backToHome(true, "Error al guardar la posición de los barcos.");
                 }
 
                 
 
                 // Verificar si el otro usuario ha subido barcos
             } catch (error) {
-                console.error("Error al subir los barcos:", error);
-                backToHome();
+                // console.error("Error al subir los barcos:", error);
+                backToHome(true, "Error al conectar con el servidor.");
             }
         }
     } else {
         console.log("No se han colocado los barcos.");
-        backToHome();
+        backToHome(false, "No se han colocado los barcos");
     }
 };
 

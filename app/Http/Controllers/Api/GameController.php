@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Game;
 use App\Models\GamePlayer;
+use App\Models\Move; // Añadir este import al inicio del archivo
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 
@@ -961,22 +962,34 @@ class GameController extends Controller
             $attackCoordinate = $request->coordinates;
 
             // Buscar si la coordenada coincide con algún barco
+            $hitShip = null;
             foreach ($opponentShips as $shipName => $positions) {
                 if (in_array($attackCoordinate, $positions)) {
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => 'hit',
-                        'ship' => $shipName
-                    ]);
+                    $hitShip = $shipName;
+                    break;
                 }
             }
+
+            // Obtener el game_player_id del jugador actual
+            $gamePlayer = GamePlayer::where('game_id', $game->id)
+                ->where('user_id', $request->user['id'])
+                ->first();
+
+            // Guardar el movimiento en la tabla moves
+            Move::create([
+                'game_id' => $game->id,
+                'game_player_id' => $gamePlayer->id,
+                'coordinate' => $attackCoordinate,
+                'result' => $hitShip ? 'hit' : 'miss'
+            ]);
 
             // Si no ha encontrado coincidencia, es un fallo
             return response()->json([
                 'status' => 'success',
-                'message' => 'miss',
-                'ship' => null
+                'message' => $hitShip ? 'hit' : 'miss',
+                'ship' => $hitShip
             ]);
+
         } catch (\Exception $e) {
             Log::error('Error in attack position: ' . $e->getMessage());
             return response()->json([
@@ -997,14 +1010,14 @@ class GameController extends Controller
             $gameShips = [];
 
             foreach ($ships as $ship) {
-                if ($ship->name === 'Destructor') {
+                if ($ship->name === 'Crucero') {
                     // Agregar los dos destructores con nombres diferentes
                     $gameShips[] = [
-                        'name' => 'Destructor_1',
+                        'name' => 'Crucero_1',
                         'size' => $ship->size
                     ];
                     $gameShips[] = [
-                        'name' => 'Destructor_2',
+                        'name' => 'Crucero_2',
                         'size' => $ship->size
                     ];
                 } else {

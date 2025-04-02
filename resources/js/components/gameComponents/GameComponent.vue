@@ -50,7 +50,7 @@ import { useGameStore } from "../../store/game";
 const route = useRoute();
 const router = useRouter();
 const gameStore = useGameStore(); // Utilizado para settear las fases del juego
-const matchHost = ref(null);
+let matchHost = ref(null);
 const yourTurn = ref(null);
 
 // Estado del tablero del usuario
@@ -88,7 +88,8 @@ onMounted( async () => {
 });
 
 // Función para volver a inicio
-const backToHome = () => {
+const backToHome = (type, message = "Ha ocurrido un error desconocido.") => {
+    if(type){alert(message);}
     router.push('/');
 };
 
@@ -97,11 +98,11 @@ const loadShips = async () => {
 
     // Verificación de usuario autenticado y código de partida
     if(authStore().user == null) {
-        console.log("User not authenticated. Cannot load ships.");
-        backToHome();
+        // console.log("User not authenticated. Cannot load ships.");
+        backToHome(true, "No tienes permiso para acceder a esta página (user)");
     }else if(gameStore.matchCode == "null"){
-        console.log("No match code. Cannot load ships.");
-        backToHome();
+        // console.log("No match code. Cannot load ships.");
+        backToHome(false, "No tienes permiso para acceder a esta página (code)");
     }
 
     console.log("Obteniendo coordenadas de los barcos del jugador");
@@ -114,8 +115,8 @@ const loadShips = async () => {
         });
         
         if (response.data.status === 'failed') {
-            console.error("Error loading ships:", response.data.message);
-            backToHome();
+            // console.error("Error loading ships:", response.data.message);
+            backToHome(true, "Error al cargar la partida.");
             return;
         }
 
@@ -123,8 +124,8 @@ const loadShips = async () => {
         setUserBoard(JSON.parse(response.data.data));
 
     } catch (error) {
-        console.error("Error loading ships:", error);
-        backToHome();
+        // console.error("Error loading ships:", error);
+        backToHome(true, "Error al cargar la partida.");
     }
 };
 

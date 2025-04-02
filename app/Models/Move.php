@@ -14,7 +14,7 @@ class Move extends Model
         'game_id',
         'game_player_id',
         'coordinate',
-        'result',
+        'result'
     ];
 
     /**
