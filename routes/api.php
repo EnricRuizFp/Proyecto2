@@ -70,17 +70,72 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/rankings/national-position', [RankingController::class, 'getNationalPosition']);
     // Ruta de obtención de la cantidad de puntos del usuario
     Route::get('/rankings/user-points', [RankingController::class, 'getUserPoints']);
-    // Ruta de obtención del historial de partidas
-    Route::get('/games/user-match-history', [GameController::class, 'getUserMatchHistory']);
 
     // Rankings - Admin specific route
     Route::get('rankings/admin', [RankingController::class, 'indexAdmin']);
 
-    // Rankings - Regular routes
+    // National ranking route - IMPORTANT: Place this BEFORE the resource route
+    Route::get('/rankings/national', [RankingController::class, 'getNationalRanking']);
+
+    // Rankings - Regular routes (must be after specific routes)
     Route::apiResource('rankings', RankingController::class);
 
-    // National ranking route
-    Route::get('/rankings/national', [RankingController::class, 'getNationalRanking']);
+    // Ruta de obtención del historial de partidas (authenticated version)
+    Route::get('/games/user-match-history', [GameController::class, 'getUserMatchHistory']);
+
+    /* -- APP ROUTES -- */
+
+    /* - GAMES - */
+    // Get available games for viewing
+    Route::get('/games/available', [GameController::class, 'getAvailableGames']);
+    // Check user requirements function
+    Route::post('/games/check-user-requirements', [GameController::class, 'checkUserRequirements']);
+    // Join user to game function
+    Route::post('/games/matchmaking-function', [GameController::class, 'matchmakingFunction']);
+    // Ship placement function
+    Route::post('/games/ship-placement-function', [GameController::class, 'shipPlacementFunction']);
+    // Game play function
+    Route::post('/games/game-function', [GameController::class, 'gameFunction']);
+    // Result function
+    Route::post('/games/result-function', [GameController::class, 'resultFunction']);
+
+    // Play a public game (ruta personalizada)
+    Route::post('/games/play-public', [GameController::class, 'playPublicGame']);
+    // Create a private game (ruta personalizada)
+    Route::post('/games/create-private', [GameController::class, 'createPrivateGame']);
+    // Join a private game (ruta personalizada)
+    Route::post('/games/join-private', [GameController::class, 'joinPrivateGame']);
+    // Find match function (nueva ruta)
+    Route::post('/games/find-match', [GameController::class, 'findMatchFunction']);
+    // Finish match function
+    Route::post('/games/finish-match', [GameController::class, 'finishMatchFunction']);
+    // Check match status
+    Route::post('/games/check-match-status', [GameController::class, 'checkMatchStatus']);
+    // Create timestamp
+    Route::post('/games/create-timestamp', [GameController::class, 'createTimestamp']);
+    // Check timestamp
+    Route::post('/games/check-timestamp', [GameController::class, 'checkTimestamp']);
+    // Get match information
+    Route::post('/games/get-match-info', [GameController::class, 'getMatchInfo']);
+
+    /* -- GAME PLAY -- */
+    // Attack function
+    Route::post('/games/attack', [GameController::class, 'attackPosition']);
+
+    /* -- SHIP PLACEMENT -- */
+    // Store ship placement
+    Route::post('/games/store-ship-placement', [GameController::class, 'storeShipPlacement']);
+    Route::post('/games/get-opponent-ship-placement-validation', [GameController::class, 'getOpponentShipPlacementValidation']);
+    Route::post('/games/get-user-ship-placement', [GameController::class, 'getUserShipPlacement']);
+
+    // Games (después de la personalizada)
+    Route::apiResource('games', GameController::class);
+
+    // Ships
+    Route::apiResource('ships', ShipController::class);
+    Route::get('/ships', [ShipController::class, 'index']);
+    Route::get('/game-ships', [ShipController::class, 'getGameShips']);
+    Route::get('/game-ships', [GameController::class, 'getAvailableGameShips']);
 });
 
 Route::get('category-list', [CategoryController::class, 'getList']);
@@ -101,59 +156,3 @@ Route::post('authors', [AuthorController::class, 'store'])->name('authors.store'
 Route::delete('authors/{author}', [AuthorController::class, 'destroy'])->name('authors.destroy');
 Route::get('authors/{author}', [AuthorController::class, 'show'])->name('authors.show');
 Route::put('authors/{author}', [AuthorController::class, 'update'])->name('authors.update');
-
-/* -- APP ROUTES -- */
-
-/* - GAMES - */
-// Get available games for viewing
-Route::get('/games/available', [GameController::class, 'getAvailableGames']);
-// Check user requirements function
-Route::post('/games/check-user-requirements', [GameController::class, 'checkUserRequirements']);
-// Join user to game function
-Route::post('/games/matchmaking-function', [GameController::class, 'matchmakingFunction']);
-// Ship placement function
-Route::post('/games/ship-placement-function', [GameController::class, 'shipPlacementFunction']);
-// Game play function
-Route::post('/games/game-function', [GameController::class, 'gameFunction']);
-// Result function
-Route::post('/games/result-function', [GameController::class, 'resultFunction']);
-
-// Play a public game (ruta personalizada)
-Route::post('/games/play-public', [GameController::class, 'playPublicGame']);
-// Create a private game (ruta personalizada)
-Route::post('/games/create-private', [GameController::class, 'createPrivateGame']);
-// Join a private game (ruta personalizada)
-Route::post('/games/join-private', [GameController::class, 'joinPrivateGame']);
-// Find match function (nueva ruta)
-Route::post('/games/find-match', [GameController::class, 'findMatchFunction']);
-// Finish match function
-Route::post('/games/finish-match', [GameController::class, 'finishMatchFunction']);
-// Check match status
-Route::post('/games/check-match-status', [GameController::class, 'checkMatchStatus']);
-// Create timestamp
-Route::post('/games/create-timestamp', [GameController::class, 'createTimestamp']);
-// Check timestamp
-Route::post('/games/check-timestamp', [GameController::class, 'checkTimestamp']);
-// Get match information
-Route::post('/games/get-match-info', [GameController::class, 'getMatchInfo']);
-
-/* -- GAME PLAY -- */
-// Attack function
-Route::post('/games/attack', [GameController::class, 'attackPosition']);
-
-/* -- SHIP PLACEMENT -- */
-// Store ship placement
-Route::post('/games/store-ship-placement', [GameController::class, 'storeShipPlacement']);
-// Store ship placement
-Route::post('/games/get-opponent-ship-placement-validation', [GameController::class, 'getOpponentShipPlacementValidation']);
-// Get user ship placement
-Route::post('/games/get-user-ship-placement', [GameController::class, 'getUserShipPlacement']);
-
-// Games (después de la personalizada)
-Route::apiResource('games', GameController::class);
-
-// Ships
-Route::apiResource('ships', ShipController::class);
-Route::get('/ships', [ShipController::class, 'index']);
-Route::get('/game-ships', [ShipController::class, 'getGameShips']);
-Route::get('/game-ships', [GameController::class, 'getAvailableGameShips']);
