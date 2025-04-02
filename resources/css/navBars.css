@@ -53,27 +53,6 @@
     background-color: var(--neutral-color-1);
 }
 
-/* Botón móvil: oculto */
-#mobileMenuButton {
-    display: none;
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: var(--neutral-color);
-    width: 40px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    z-index: 1010;
-}
-
-/* Cambiar color al pasar el cursor */
-#mobileMenuButton:hover {
-    background-color: var(--neutral-color-1);
-}
-
 /* -- USER - COMPONENT */
 #userComponent {
     width: 100%;
@@ -177,34 +156,6 @@
     #lateralBar:not(.closed) {
         transform: translateX(0);
         width: 100%;
-    }
-
-    #lateralBar.closed {
-        transform: translateX(-100%);
-    }
-
-    /* Botón de cerrar en móvil */
-    #closeButton {
-        top: 10px;
-        right: 10px;
-        transform: translateY(0);
-    }
-
-    /* Cuando el menú está desplegado en móvil */
-    #lateralBar:not(.closed) #closeButton {
-        right: 20px;
-    }
-
-    /* Mostrar el botón móvil */
-    #mobileMenuButton {
-        display: flex;
-        left: 99%;
-        top: 30px;
-    }
-
-    /* Botón móvil cuando el menú está cerrado */
-    #lateralBar.closed #mobileMenuButton {
-        display: flex;
     }
 
     /* Ajustes de padding para móvil */
