@@ -54,7 +54,7 @@
                 <!-- Condición SIN SESIÓN -->
                 <div v-else id="peticionInicioSesion" class="white-color">
                     <p class="p3">
-                        Para ver el ranking global, debes iniciar sesión.
+                        Para ver el ranking nacional, debes iniciar sesión.
                     </p>
                 </div>
             </div>
@@ -70,7 +70,7 @@ import useUsers from "@/composables/users.js";
 import { authStore } from "../../store/auth";
 
 /* -- VARIABLES -- */
-const { getGlobalRanking } = useRankings();
+const { getNationalRanking } = useRankings();
 const { getUser } = useUsers();
 const rankingLimit = 15;
 const ranking = ref([]);
@@ -98,7 +98,7 @@ const loadUserData = async (rankingUser) => {
 
 onMounted(async () => {
     if (authStore().user?.id) {
-        const data = await getGlobalRanking(rankingLimit);
+        const data = await getNationalRanking(rankingLimit);
 
         if (data && data.data) {
             const rankingData = data.data;

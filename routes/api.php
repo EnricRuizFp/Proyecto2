@@ -78,6 +78,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     // Rankings - Regular routes
     Route::apiResource('rankings', RankingController::class);
+
+    // National ranking route
+    Route::get('/rankings/national', [RankingController::class, 'getNationalRanking']);
 });
 
 Route::get('category-list', [CategoryController::class, 'getList']);

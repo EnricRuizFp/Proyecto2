@@ -220,4 +220,35 @@ class RankingController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Retorna un listado de rankings filtrado por nacionalidad
+     */
+    public function getNationalRanking(Request $request)
+    {
+        try {
+            $limit = $request->query('limit', 10);
+            $user = $request->user();
+            $userNationality = $user->nationality;
+
+            // Obtener rankings de usuarios con la misma nacionalidad
+            $rankings = Ranking::with('user')
+                ->whereHas('user', function ($query) use ($userNationality) {
+                    $query->where('nationality', $userNationality);
+                })
+                ->orderBy('points', 'desc')
+                ->take($limit)
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $rankings
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al obtener el ranking nacional: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

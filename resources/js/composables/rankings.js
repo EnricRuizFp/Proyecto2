@@ -257,6 +257,23 @@ export default function useRankings() {
         }
     };
 
+    const getNationalRanking = async (limit) => {
+        try {
+            const response = await axios.get(
+                `/api/rankings/national?limit=${limit}`
+            );
+            console.log("National Ranking Data:", response.data);
+            if (response.data.status === 'success') {
+                return response.data;
+            } else {
+                throw new Error(response.data.message);
+            }
+        } catch (error) {
+            console.error("Error al obtener el ranking nacional:", error);
+            throw error;
+        }
+    };
+
     return {
         rankings,
         ranking,
@@ -267,6 +284,7 @@ export default function useRankings() {
         updateRanking,
         deleteRanking,
         getGlobalRanking,
+        getNationalRanking,
         validationErrors,
         isLoading,
     };
