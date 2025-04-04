@@ -1,8 +1,10 @@
 <template>
-    <div id="globalRankingMenuContainer">
+    <div id="nationalRankingMenuContainer">
         <!-- Título -->
-        <div id="globalRankingMenuTitle">
-            <h4 class="bold white-color">NATIONAL RANKING</h4>
+        <div id="nationalRankingMenuTitle">
+            <h4 class="bold white-color">
+                {{ nationality.toUpperCase() }} RANKING
+            </h4>
         </div>
 
         <!-- Contenedor del ranking -->
@@ -11,8 +13,11 @@
                 <!-- Condición SESIÓN INICIADA -->
                 <div v-if="authStore().user?.id">
                     <!-- Condición HAY RANKING -->
-                    <div v-if="ranking.length">
-                        <div v-for="(user, index) in ranking" :key="user.id">
+                    <div v-if="rankingData && rankingData.length">
+                        <div
+                            v-for="(user, index) in rankingData"
+                            :key="user.id"
+                        >
                             <div class="rankingContainer white-color p3">
                                 <div class="indexContainer">
                                     <span class="rank">{{ index + 1 }}</span>
@@ -48,13 +53,14 @@
                         id="textoCargandoDatosRanking"
                         class="p3 white-color"
                     >
-                        Cargando ranking...
+                        No hay datos de ranking nacional disponibles.
                     </p>
                 </div>
                 <!-- Condición SIN SESIÓN -->
                 <div v-else id="peticionInicioSesion" class="white-color">
                     <p class="p3">
-                        Para ver el ranking nacional, debes iniciar sesión.
+                        Para ver el ranking nacional, debes iniciar sesión y
+                        establecer tu nacionalidad.
                     </p>
                 </div>
             </div>
@@ -63,17 +69,25 @@
 </template>
 
 <script setup>
-/* -- IMPORTS -- */
 import { ref, onMounted } from "vue";
 import useRankings from "@/composables/rankings.js";
 import useUsers from "@/composables/users.js";
 import { authStore } from "../../store/auth";
 
+// Props
+const props = defineProps({
+    rankingData: {
+        type: Array,
+        default: () => [],
+    },
+    nationality: {
+        type: String,
+        default: "Global",
+    },
+});
+
 /* -- VARIABLES -- */
-const { getNationalRanking } = useRankings();
 const { getUser } = useUsers();
-const rankingLimit = 15;
-const ranking = ref([]);
 
 /* -- FUNCTIONS -- */
 const getAvatarUrl = (user) => {
@@ -97,15 +111,9 @@ const loadUserData = async (rankingUser) => {
 };
 
 onMounted(async () => {
-    if (authStore().user?.id) {
-        const data = await getNationalRanking(rankingLimit);
-
-        if (data && data.data) {
-            const rankingData = data.data;
-            for (let rankUser of rankingData) {
-                await loadUserData(rankUser);
-            }
-            ranking.value = rankingData;
+    if (authStore().user?.id && props.rankingData.length) {
+        for (let rankUser of props.rankingData) {
+            await loadUserData(rankUser);
         }
     }
 });
@@ -116,13 +124,24 @@ const handleAvatarError = (e) => {
 </script>
 
 <style scoped>
-#globalRankingMenuContainer {
+#nationalRankingMenuContainer {
     width: 100%;
     padding: 1rem 0 0 2rem;
 }
 
-#globalRankingMenuTitle {
+#nationalRankingMenuTitle {
     padding: 0;
+    margin-bottom: 1rem; /* Added margin-bottom to match global ranking title */
+}
+
+#globalRankingContainer {
+    display: flex;
+    border: 1px solid var(--white-color);
+    border-radius: 10px;
+}
+
+#globalRankingInternContainer {
+    width: 100%;
 }
 
 .rankingContainer {
@@ -190,15 +209,20 @@ const handleAvatarError = (e) => {
     width: 24px;
 }
 
+#textoCargandoDatosRanking,
+#peticionInicioSesion {
+    padding: 20px;
+}
+
 /* Estilos responsivos */
 @media (max-width: 1200px) {
-    #globalRankingMenuContainer {
+    #nationalRankingMenuContainer {
         padding: 1rem;
     }
 }
 
 @media (max-width: 768px) {
-    #globalRankingMenuContainer {
+    #nationalRankingMenuContainer {
         padding: 1rem;
     }
 
@@ -233,7 +257,7 @@ const handleAvatarError = (e) => {
 }
 
 @media (max-width: 480px) {
-    #globalRankingMenuContainer {
+    #nationalRankingMenuContainer {
         padding: 0.5rem;
     }
 
