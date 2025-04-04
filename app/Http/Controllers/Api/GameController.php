@@ -950,7 +950,6 @@ class GameController extends Controller
                 ->where('game_id', $game->id)
                 ->where('user_id', '!=', $request->user['id'])
                 ->first();
-
             if (!$opponentData || empty($opponentData->coordinates)) {
                 return response()->json([
                     'status' => 'failed',
@@ -981,7 +980,9 @@ class GameController extends Controller
                 'game_id' => $game->id,
                 'game_player_id' => $gamePlayer->id,
                 'coordinate' => $attackCoordinate,
-                'result' => $hitShip ? 'hit' : 'miss'
+                'result' => $hitShip ? 'hit' : 'miss',
+                'ship' => $hitShip,
+                'updated_at' => now() // Añadir la fecha actual
             ]);
 
             // Si no ha encontrado coincidencia, es un fallo
@@ -997,6 +998,42 @@ class GameController extends Controller
                 'status' => 'failed',
                 'message' => 'Error processing attack: ' . $e->getMessage(),
                 'ship' => null
+            ], 500);
+        }
+    }
+
+    public function getLastMove(Request $request)
+    {
+        try {
+            $gameCode = $request->input('gameCode');
+            $user = $request->input('user');
+
+            $game = Game::where('code', $gameCode)->first();
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ], 404);
+            }
+
+            // Obtener el último movimiento del oponente en los últimos 5 segundos
+            $lastMove = Move::where('game_id', $game->id)
+                ->whereHas('gamePlayer', function($query) use ($user) {
+                    $query->where('user_id', '!=', $user['id']);
+                })
+                ->where('updated_at', '>=', now()->subSeconds(5)) // Solo movimientos de los últimos 5 segundos
+                ->orderBy('id', 'desc')
+                ->first();
+
+            return response()->json([
+                'status' => 'success',
+                'move' => $lastMove
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error getting last move: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error getting last move'
             ], 500);
         }
     }

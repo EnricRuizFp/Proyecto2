@@ -117,6 +117,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/games/check-timestamp', [GameController::class, 'checkTimestamp']);
     // Get match information
     Route::post('/games/get-match-info', [GameController::class, 'getMatchInfo']);
+    // Get last move
+    Route::post('/games/get-last-move', [GameController::class, 'getLastMove']);
 
     /* -- GAME PLAY -- */
     // Attack function
