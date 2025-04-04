@@ -32,12 +32,12 @@
                     <div class="player-side">
                         <div class="player-card guest-player waiting">
                             <div class="player-content">
-                                <div class="player-info">
-                                    <p v-if="opponentUsername=='Esperando oponente...'" class="p2-dark">{{ opponentUsername }}</p>
-                                    <p v-else style="font-size: 26px; color: white;">{{ opponentUsername }}</p>
-                                </div>
                                 <div class="player-avatar pulse">
                                     <i class="fas fa-spinner fa-spin"></i>
+                                </div>
+                                <div>
+                                    <p v-if="opponentUsername=='Esperando oponente...'" class="p5-dark">{{ opponentUsername }}</p>
+                                    <p v-else class="p2-dark" style="font-size: 26px; position: relative; z-index: 10;">{{ opponentUsername }}</p>
                                 </div>
                             </div>
                         </div>
@@ -193,11 +193,9 @@ window.addEventListener("beforeunload", () => {
 // Función FindMatch
 const findMatch = async () => {
     console.log("Finding match...");
-
-    // Mostrar pantalla de cargando...
     isLoading.value = true;
 
-    try{
+    try {
 
         // Llamar a la API para encontrar partida
         const response = await axios.post('/api/games/find-match', {
@@ -205,53 +203,48 @@ const findMatch = async () => {
             gameCode: route.params.gameCode,
             user: authStore().user
         });
-
-        // Mostrar respuesta por consola
         console.log("Match found:", response.data);
 
-        // Verificar si se ha encontrado partida
+        // Si se ha encontrado partida, entrar
         if(response.data.status == 'success'){
-
-            // Mostrar pantalla de carga con el oponente y settear matchCode
             isLoading.value = false;
             
-            // Obtener si el usuario actual es el creador de la partida
+            // Obtener el creador de la partida
             if(response.data.game.created_by == authStore().user.id){
-                
+
+                //Si eres el creador de la partida
                 console.log("Creador de la partida");
                 matchCode.value = response.data.game.code;
 
-                // Mostrar por pantalla el código de la partida si es privada
                 if(!response.data.game.is_public){
                     isPrivateGame.value = true;
                 }
 
-                // Crear un timestamp a 10 segundos vista cuando un usuario se una
+                // Obtener el username del oponente si existe
+                if(response.data.game.players && response.data.game.players.length > 1) {
+                    const opponent = response.data.game.players.find(player => player.user_id !== authStore().user.id);
+                    opponentUsername.value = opponent ? opponent.username : 'Esperando oponente...';
+                }
+
                 setTimestampMatchCreator();
 
-            }else{
+            } else {
+
+                // Si eres el invitado de la partida
                 console.log("Invitado a la partida.");
                 if(route.params.gameType === 'private'){
                     matchCode.value = route.params.gameCode;
-                    // matchCode.value = response.data.game.code;
                 }else{
                     matchCode.value = response.data.game.code;
                 }
                 
-
-                // Buscar en la base de datos el timestamp de inicio de la partida
                 pollMatchStatusGuest();
             }
-        }else{
-
-            // Volver a la página de inicio
-            // console.log("No se ha podido unir a la partida.");
+        } else {
             backToHome(true, "No se ha podido unir a la partida.");
         }
 
-    }catch(err){
-
-        // Mostrar error
+    } catch(err) {
         console.error("Error finding match:", err);
         error.value = "Error al encontrar partida. Inténtalo de nuevo más tarde.";
         isLoading.value = false;
@@ -272,8 +265,6 @@ const setTimestampMatchCreator = async () => {
             gameCode: matchCode.value,
             user: auth.user
         });
-        // console.log("Match status:", response.data);
-
         matchStatus = response.data.message;
         contador++;
 
@@ -286,81 +277,58 @@ const setTimestampMatchCreator = async () => {
 
     // Definir si se ha unido algún usuario
     if(matchStatus == "waiting"){
-        // console.log("No user joined. Returning home.");
         backToHome(true, "No se ha unido ningún jugador.");
     }else{
-
-        // console.log("Setting match timestamp as creator...");
-
-        // Subir el timestamp a la DB
         const response = await axios.post('/api/games/create-timestamp', {
             gameCode: matchCode.value,
             data: "start_date"
         });
 
-        // Si se ha subido correctamente, redirigir a la página de ShipPlacement
         if(response.data.status == "success"){
             console.log("Timestamp uploaded: ", response.data.game.start_date);
 
-            // Redirigir a la página de ShipPlacement
             await waitForTimestamp(response.data.game.start_date);
             gameStore.setMatchCode(matchCode.value);
             gameStore.setGamePhase('placement');
         }else{
-            // console.log("Error al subir el timestamp.");
             backToHome(true, "Error al iniciar la partida.");
         }
-
     }
-
-    
-
 };
 
 // Función de polling para invitado de la partida
 const pollMatchStatusGuest = async () => {
 
-    // console.log("Polling match status as guest...");
     let contador = 0;
     let response = null;
 
     do{
-        // Esperar 2 segundos entre pollings
         await sleep(2000);
 
-        // Obtener el timestamp de la DB
         response = await axios.post('/api/games/check-timestamp', {
             gameCode: matchCode.value,
             data: "start_date"
         });
-        // console.log('Timestamp obtenido:', response.data);
-
-        // console.log("Status: ", response.data.status);
 
         matchStatus =  response.data.status;
         contador++;
 
-        // Mostrar por consola contador
         if(contador % 10 === 0){
             console.log("Quedan ", 40 - contador, " polls.");
         }
 
     }while(matchStatus != 'success' && contador <= 40);
 
-    // Si encuentra el timestamp, entra a la partida
     if(matchStatus == 'success'){
         console.log("Partida encontrada y unido");
 
-        // Redirigir a la página de ShipPlacement
         await waitForTimestamp(response.data.game.start_date);
         gameStore.setMatchCode(matchCode.value);
         gameStore.setGamePhase('placement');
 
     }else{
-        // console.log("Error al unirse a la partida");
         backToHome(true, "Error al unirse a la partida.");
     }
-
 };
 
 
@@ -558,8 +526,14 @@ const pollMatchStatusGuest = async () => {
     width: 100%;
 }
 
+.player-info {
+    position: relative;
+}
+
 .player-info p {
-    color: var(--white-color);
+    position: relative;
+    z-index: 10;
+    color: var(--white-color) !important;
 }
 
 .page-title {

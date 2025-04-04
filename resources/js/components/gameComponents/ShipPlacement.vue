@@ -81,7 +81,7 @@
                     <i class="fas fa-redo"></i>
                 </button>
                 <button
-                    @click="confirmPlacement"
+                    @click="confirmPlacementButton"
                     :disabled="!isPlacementComplete"
                     class="control-button primary"
                     title="Confirmar"
@@ -330,6 +330,11 @@ const verifyAllShipsPlaced = (shipsInfo) => {
 };
 
 const isLoading = ref(false);
+
+const confirmPlacementButton = () => {
+    // Mostrar pantalla de carga
+    isLoading.value = true;
+}
 
 const confirmPlacement = async () => {
     if (isPlacementComplete.value || timeLeft.value <= 0) {

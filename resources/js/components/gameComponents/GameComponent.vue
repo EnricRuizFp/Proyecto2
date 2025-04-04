@@ -75,6 +75,10 @@ let matchHost = ref(null);
 const yourTurn = ref(null);
 const timeLeft = ref(25);
 const timerInterval = ref(null);
+const isGameActive = ref(true);
+const checkInterval = ref(null);
+const opponentCheckInterval = ref(null);
+const isComponentActive = ref(true);
 
 // Estado de los tableros
 const userBoard = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
@@ -105,6 +109,10 @@ const showNotification = (message, type = 'info') => {
 const startTimer = (seconds = 25) => {
     timeLeft.value = seconds;
     timerInterval.value = setInterval(() => {
+        if (!isComponentActive.value) {
+            clearInterval(timerInterval.value);
+            return;
+        }
         if (timeLeft.value > 0) {
             timeLeft.value--;
         } else {
@@ -122,27 +130,23 @@ const checkOpponentMove = async () => {
             user: authStore().user
         });
 
-        console.log("Status de la búsqueda:", response.data.status);
-
         if (response.data.status === 'success' && response.data.move) {
             const move = response.data.move;
-            console.log("Movimiento encontrado en coordenada:", move.coordinate);
-            console.log("Resultado:", move.result, move.result === 'hit' ? `- Barco tocado: ${move.ship}` : '- Agua');
-            
-            // Actualizar tablero
             const [row, col] = move.coordinate.split(',').map(num => parseInt(num) - 1);
             userBoard.value[row][col] = move.result === 'hit' ? 'X' : 'O';
             
-            // Cambiar turno
+            // Detener la verificación del oponente
+            clearInterval(opponentCheckInterval.value);
+            opponentCheckInterval.value = null;
+            
             yourTurn.value = true;
+            console.log("Turno del oponente finalizado -> Tu turno");
             startTimer(25);
             return true;
         }
-
-        console.log("No se encontró ningún movimiento nuevo");
         return false;
     } catch (error) {
-        console.error("Error al verificar movimiento:", error);
+        console.error("Error de conexión:", error);
         backToHome(true, "Error de conexión al verificar el movimiento del oponente");
         return false;
     }
@@ -150,11 +154,12 @@ const checkOpponentMove = async () => {
 
 // Función para manejar el ataque
 const handleAttack = async (row, col) => {
-    if (!yourTurn.value || attackBoard.value[row][col]) {
+    if (!yourTurn.value || attackBoard.value[row][col] || !isGameActive.value) {
         return;
     }
 
     try {
+        console.log("Realizando ataque...");
         const response = await axios.post('/api/games/attack', {
             gameCode: gameStore.matchCode,
             user: authStore().user,
@@ -165,53 +170,129 @@ const handleAttack = async (row, col) => {
             const result = response.data.message;
             attackBoard.value[row][col] = result === 'hit' ? '✓' : '✗';
             
-            // Mostrar notificación si se ha acertado
             if (result === 'hit' && response.data.ship) {
                 showNotification(`¡Has acertado al ${response.data.ship}!`, 'success');
+                console.log(`Barco alcanzado: ${response.data.ship}`);
             }
 
-            // Limpiar timer y cambiar turno
+            // Limpiar timer del turno activo
             clearInterval(timerInterval.value);
-            yourTurn.value = false;
+            timerInterval.value = null;
             
-            console.log("Ataque realizado, esperando al oponente");
+            yourTurn.value = false;
+            console.log("Turno finalizado -> Cambiando al oponente");
+
+            // Iniciar verificación del oponente
+            startOpponentCheck();
         }
     } catch (error) {
         console.error("Error en el ataque:", error);
     }
 };
 
+// Función para manejar el turno del oponente
+const handleOpponentTurn = async () => {
+    if (!isComponentActive.value) return;
+    
+    console.log("=== Esperando movimiento del oponente ===");
+    let opponentMoved = false;
+    let attempts = 0;
+    const maxAttempts = 6;
+
+    while (!opponentMoved && attempts < maxAttempts && isComponentActive.value) {
+        attempts++;
+        console.log(`Intento ${attempts}/${maxAttempts}`);
+        
+        opponentMoved = await checkOpponentMove();
+        
+        if (!opponentMoved) {
+            if (attempts >= maxAttempts) {
+                console.log("=== Partida finalizada: oponente ha abandonado ===");
+                backToHome(true, "El oponente ha abandonado la partida");
+                return;
+            }
+            if (isComponentActive.value) {
+                await sleep(5000);
+            }
+        }
+    }
+};
+
+// Función para gestionar la verificación del oponente
+const startOpponentCheck = () => {
+    if (opponentCheckInterval.value) {
+        clearInterval(opponentCheckInterval.value);
+    }
+    
+    opponentCheckInterval.value = setInterval(async () => {
+        if (!yourTurn.value && isComponentActive.value) {
+            await handleOpponentTurn();
+        }
+    }, 2500);
+};
+
 // Inicialización del juego
 onMounted(async () => {
+    console.log("Iniciando partida");
     await loadShips();
     const response = await getMatchInfo();
     matchHost = response.game.created_by;
     yourTurn.value = matchHost == authStore().user.id;
 
-    // Iniciar el ciclo de juego
     if (yourTurn.value) {
-        console.log("Empiezas primero");
+        console.log("Comienza tu turno");
         startTimer(25);
+    } else {
+        startOpponentCheck();
     }
-
-    // Iniciar verificación periódica cuando no es tu turno
-    setInterval(async () => {
-        if (!yourTurn.value) {
-            await checkOpponentMove();
-        }
-    }, 2500);
 });
 
 // Limpiar el intervalo cuando se desmonta el componente
 onUnmounted(() => {
+    console.log("Desmontando componente de juego");
+    isComponentActive.value = false;
+    
+    // Limpiar intervalo del timer
     if (timerInterval.value) {
         clearInterval(timerInterval.value);
+    }
+    
+    // Limpiar intervalo de verificación de oponente
+    if (opponentCheckInterval.value) {
+        clearInterval(opponentCheckInterval.value);
+    }
+    
+    // Terminar partida si está en curso
+    if (gameStore.matchCode !== "null") {
+        axios.post('/api/games/finish-match', {
+            gameCode: gameStore.matchCode,
+            user: authStore().user
+        }).catch(error => {
+            console.error("Error al finalizar la partida:", error);
+        });
     }
 });
 
 // Función para volver a inicio
 const backToHome = (type, message = "Ha ocurrido un error desconocido.") => {
-    if(type){alert(message);}
+    // Detener todas las operaciones activas
+    isComponentActive.value = false;
+    
+    // Limpiar todos los intervalos
+    if (timerInterval.value) {
+        clearInterval(timerInterval.value);
+    }
+    
+    if (opponentCheckInterval.value) {
+        clearInterval(opponentCheckInterval.value);
+    }
+
+    // Mostrar mensaje si es necesario
+    if(type) {
+        alert(message);
+    }
+
+    // Redireccionar
     router.push('/');
 };
 

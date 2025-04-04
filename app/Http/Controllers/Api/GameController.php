@@ -1016,18 +1016,34 @@ class GameController extends Controller
                 ], 404);
             }
 
-            // Obtener el último movimiento del oponente en los últimos 5 segundos
+            // Obtener el último movimiento del oponente
             $lastMove = Move::where('game_id', $game->id)
                 ->whereHas('gamePlayer', function($query) use ($user) {
                     $query->where('user_id', '!=', $user['id']);
                 })
-                ->where('updated_at', '>=', now()->subSeconds(5)) // Solo movimientos de los últimos 5 segundos
-                ->orderBy('id', 'desc')
+                ->where('updated_at', '>=', now()->subSeconds(1)) // Reducir a 1 segundo
+                ->orderBy('updated_at', 'desc') // Ordenar por tiempo de actualización
                 ->first();
+
+            // Si no hay movimiento reciente, buscar el último movimiento general
+            if (!$lastMove) {
+                $lastMove = Move::where('game_id', $game->id)
+                    ->whereHas('gamePlayer', function($query) use ($user) {
+                        $query->where('user_id', '!=', $user['id']);
+                    })
+                    ->orderBy('updated_at', 'desc')
+                    ->first();
+
+                // Verificar si este movimiento ya fue procesado anteriormente
+                if ($lastMove && $lastMove->updated_at < now()->subSeconds(2)) {
+                    $lastMove = null;
+                }
+            }
 
             return response()->json([
                 'status' => 'success',
-                'move' => $lastMove
+                'move' => $lastMove,
+                'timestamp' => now()->timestamp // Añadir timestamp para debugging
             ]);
         } catch (\Exception $e) {
             Log::error('Error getting last move: ' . $e->getMessage());
