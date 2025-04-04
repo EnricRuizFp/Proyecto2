@@ -309,7 +309,7 @@ onMounted(async () => {
 
 .ranking-section {
     flex: 1;
-    padding: 0 10px;
+    padding: 0; /* Removed lateral padding */
     display: flex;
     flex-direction: column;
 }
@@ -427,6 +427,23 @@ onMounted(async () => {
     margin: 1.5rem 0;
 }
 
+/* Styles to override component padding in Index page only */
+:deep(#globalRankingMenuContainer),
+:deep(#nationalRankingMenuContainer) {
+    padding: 1rem 0.5rem; /* Reduced side padding */
+}
+
+:deep(#globalRankingMenuTitle),
+:deep(#nationalRankingMenuTitle) {
+    padding: 0 0.5rem; /* Add some padding to titles for alignment */
+}
+
+:deep(#globalRankingContainer),
+:deep(#globalRankingInternContainer) {
+    width: 100%;
+    padding: 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .rankings-container {
@@ -460,6 +477,18 @@ onMounted(async () => {
 
     .ranking-box .h4 {
         font-size: 1.5rem;
+    }
+
+    :deep(#globalRankingMenuContainer),
+    :deep(#nationalRankingMenuContainer) {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    :deep(#globalRankingMenuContainer),
+    :deep(#nationalRankingMenuContainer) {
+        padding: 0.25rem;
     }
 }
 
