@@ -384,6 +384,7 @@ onMounted(async () => {
         0.05
     ); /* Match the ranking-box background */
     margin-top: 0; /* Override the margin-top for this component only */
+    border-top: none !important; /* Force override border-top */
 }
 
 .ranking-box {

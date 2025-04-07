@@ -21,7 +21,7 @@
                         variant="sidebar"
                         :is-lateral-bar-closed="!dropdownOpen"
                     />
-                    <MenuComponent />
+                    <MenuComponent @navigation="closeMenu" />
                 </div>
             </div>
             <!-- Botón de abrir/cerrar en desktop -->
@@ -48,18 +48,43 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, defineExpose } from "vue";
+import { ref, onMounted, onUnmounted, defineExpose, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import UserComponent from "../components/navbar/UserComponent.vue";
 import MenuComponent from "../components/navbar/MenuComponent.vue";
 
 const dropdownOpen = ref(false);
 const isMobile = ref(window.innerWidth < 768); // Cambiado a 768px
+const router = useRouter();
+const route = useRoute();
+
+// Close menu when route changes
+watch(
+    () => route.fullPath,
+    () => {
+        // Only close if on mobile or if explicitly requested
+        if (isMobile.value) {
+            closeMenu();
+        }
+    }
+);
 
 const toggleDropdown = () => {
     dropdownOpen.value = !dropdownOpen.value;
     // Controlar el scroll del body
     if (isMobile.value) {
         document.body.style.overflow = dropdownOpen.value ? "hidden" : "auto";
+    }
+};
+
+const closeMenu = () => {
+    if (dropdownOpen.value) {
+        dropdownOpen.value = false;
+
+        // If on mobile, restore body scroll
+        if (isMobile.value) {
+            document.body.style.overflow = "auto";
+        }
     }
 };
 
@@ -74,7 +99,7 @@ onUnmounted(() => {
     document.body.style.overflow = "auto";
 });
 
-defineExpose({ dropdownOpen, toggleDropdown });
+defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
 </script>
 
 <style scoped>
