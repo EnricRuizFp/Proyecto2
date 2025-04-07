@@ -1143,4 +1143,108 @@ class GameController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * GET OPPONENT SHIP PLACEMENT GAME
+     * Esta función obtiene el estado actual de la partida, incluyendo los barcos restantes
+     * y si el usuario ha ganado.
+     * @param \Illuminate\Http\Request $request
+     */
+    public function getOpponentShipPlacementGame(Request $request)
+    {
+        try {
+            Log::info('🎮 Iniciando verificación del estado de la partida...');
+
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array',
+                'user.id' => 'required|integer'
+            ]);
+
+            // Buscar la partida
+            $game = Game::where('code', $request->gameCode)->first();
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found',
+                    'ships_left' => 0,
+                    'has_winned' => false,
+                    'move_count' => 0
+                ], 404);
+            }
+
+            // Obtener datos del oponente
+            $opponentData = DB::table('game_players')
+                ->where('game_id', $game->id)
+                ->where('user_id', '!=', $request->user['id'])
+                ->first();
+
+            if (!$opponentData || empty($opponentData->coordinates)) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Opponent data not found',
+                    'ships_left' => 0,
+                    'has_winned' => false,
+                    'move_count' => 0
+                ], 404);
+            }
+
+            // Obtener movimientos del usuario
+            $gamePlayer = GamePlayer::where('game_id', $game->id)
+                ->where('user_id', $request->user['id'])
+                ->first();
+
+            // Contar el total de movimientos (hits + misses)
+            $moveCount = Move::where('game_id', $game->id)
+                ->where('game_player_id', $gamePlayer->id)
+                ->count();
+
+            $userMoves = Move::where('game_id', $game->id)
+                ->where('game_player_id', $gamePlayer->id)
+                ->where('result', 'hit')
+                ->pluck('coordinate')
+                ->toArray();
+
+            // Procesar barcos del oponente
+            $opponentShips = json_decode($opponentData->coordinates, true);
+            $shipsLeft = 0;
+            $totalShips = count($opponentShips);
+
+            // Verificar cada barco
+            foreach ($opponentShips as $shipName => $positions) {
+                $hits = 0;
+                foreach ($positions as $position) {
+                    if (in_array($position, $userMoves)) {
+                        $hits++;
+                    }
+                }
+                
+                // Si no todos los puntos del barco han sido golpeados, aumentar contador
+                if ($hits < count($positions)) {
+                    $shipsLeft++;
+                }
+            }
+
+            $hasWinned = $shipsLeft === 0;
+
+            return response()->json([
+                'status' => 'success',
+                'message' => $shipsLeft > 0 ? "Quedan {$shipsLeft} barcos por hundir" : "¡Todos los barcos han sido hundidos!",
+                'ships_left' => $shipsLeft,
+                'has_winned' => $hasWinned,
+                'move_count' => $moveCount,
+                'data' => $opponentData->coordinates
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error checking game state: ' . $e->getMessage(),
+                'ships_left' => 0,
+                'has_winned' => false,
+                'move_count' => 0
+            ], 500);
+        }
+    }
 }

@@ -127,6 +127,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/games/attack', [GameController::class, 'attackPosition']);
     // Get user moves
     Route::post('/games/get-user-moves', [GameController::class, 'getUserMoves']);
+    // Get game state
+    Route::post('/games/get-opponent-ship-placement-game', [GameController::class, 'getOpponentShipPlacementGame']);
 
     /* -- SHIP PLACEMENT -- */
     // Store ship placement
