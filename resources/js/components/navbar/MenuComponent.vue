@@ -39,7 +39,7 @@
             <div class="contenidoSubtituloBarraLateral">
                 <a
                     class="menu-item"
-                    @click.prevent="handleJoinGame"
+                    @click.prevent="showJoinMatchModal"
                     title="Únete a una partida privada con amigos"
                 >
                     <i class="fas fa-users"></i>
@@ -103,6 +103,19 @@
         {{ errorMessage }}
         <button class="close-button" @click="errorMessage = ''">×</button>
     </div>
+
+    <!-- Info Message -->
+    <div v-if="infoMessage" class="info-alert">
+        {{ infoMessage }}
+        <button class="close-button" @click="infoMessage = ''">×</button>
+    </div>
+
+    <!-- Modal para unirse a partida -->
+    <JoinMatchModal
+        :visible="showJoinModal"
+        @close="showJoinModal = false"
+        @join="handleJoinMatch"
+    />
 </template>
 
 <script setup>
@@ -112,12 +125,14 @@ import { useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
 import { authStore } from "../../store/auth";
 import axios from "axios";
+import JoinMatchModal from "../privateMatch/JoinMatchModal.vue";
 
 /* -- VARIABLES -- */
 const router = useRouter();
 const gameStore = useGameStore();
 const errorMessage = ref("");
 const infoMessage = ref("");
+const showJoinModal = ref(false);
 
 /* -- EMITS -- */
 const emit = defineEmits(["navigation"]);
@@ -170,9 +185,44 @@ const handleCreateGame = async () => {
     await checkAndNavigate("private", null);
 };
 
-const handleJoinGame = () => {
-    emit("navigation"); // Emit navigation event
-    router.push("/join_game"); // Esta ruta mostrará el modal para unirse
+// Nueva función para verificar requisitos antes de mostrar el modal
+const showJoinMatchModal = async () => {
+    try {
+        const response = await axios.post(
+            "/api/games/check-user-requirements",
+            {
+                gameType: "private",
+                gameCode: null,
+                user: authStore().user ?? null,
+            }
+        );
+
+        if (response.data.status === "success") {
+            console.log("OK: User ready to play.");
+            showJoinModal.value = true;
+        } else {
+            if (
+                response.data.message ==
+                "Your user is leaving the game. Wait a few seconds."
+            ) {
+                console.log("Failed without error: ", response.data.message);
+                infoMessage.value = response.data.message;
+            } else {
+                console.log("FAILED:", response.data.message);
+                errorMessage.value = response.data.message;
+            }
+        }
+    } catch (error) {
+        errorMessage.value = "Error al verificar requisitos del juego";
+    }
+};
+
+// Manejar unirse a partida con código
+const handleJoinMatch = async (code) => {
+    showJoinModal.value = false;
+    gameStore.setGameMode("join");
+    gameStore.setMatchCode(code);
+    await checkAndNavigate("private", code);
 };
 
 const handleViewGame = () => {
