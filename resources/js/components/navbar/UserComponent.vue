@@ -12,7 +12,9 @@
                 class="nav-link p1"
                 href="#"
                 role="button"
-                :data-bs-toggle="canOpenMenu ? 'dropdown' : ''"
+                :data-bs-toggle="
+                    canOpenMenu && !isMenuBlocked ? 'dropdown' : ''
+                "
                 aria-expanded="false"
             >
                 <div class="profile-content">
@@ -40,6 +42,8 @@
                     <router-link
                         class="dropdown-item white-color neutral-hover"
                         to="/login"
+                        :class="{ 'disabled-menu-item': isMenuBlocked }"
+                        @click.prevent="handleNavigation('/login')"
                         >Login</router-link
                     >
                 </div>
@@ -47,6 +51,8 @@
                     <router-link
                         class="dropdown-item white-color neutral-hover"
                         to="/register"
+                        :class="{ 'disabled-menu-item': isMenuBlocked }"
+                        @click.prevent="handleNavigation('/register')"
                         >Register</router-link
                     >
                 </div>
@@ -62,7 +68,9 @@
                 class="nav-link p1 white-color"
                 href="#"
                 role="button"
-                :data-bs-toggle="canOpenMenu ? 'dropdown' : ''"
+                :data-bs-toggle="
+                    canOpenMenu && !isMenuBlocked ? 'dropdown' : ''
+                "
                 aria-expanded="false"
             >
                 <div class="profile-content">
@@ -107,6 +115,8 @@
                     <router-link
                         class="dropdown-item white-color neutral-hover"
                         to="/admin"
+                        :class="{ 'disabled-menu-item': isMenuBlocked }"
+                        @click.prevent="handleNavigation('/admin')"
                         >Admin</router-link
                     >
                 </div>
@@ -114,6 +124,8 @@
                     <router-link
                         class="dropdown-item white-color neutral-hover"
                         to="/profile"
+                        :class="{ 'disabled-menu-item': isMenuBlocked }"
+                        @click.prevent="handleNavigation('/profile')"
                         >Mi Perfil</router-link
                     >
                 </div>
@@ -122,7 +134,8 @@
                     <a
                         class="dropdown-item white-color neutral-hover"
                         href="javascript:void(0)"
-                        @click="logout"
+                        @click="handleLogout"
+                        :class="{ 'disabled-menu-item': isMenuBlocked }"
                         >Logout</a
                     >
                 </div>
@@ -133,18 +146,21 @@
 
 <script setup>
 /* -- IMPORTS -- */
-import { onMounted, ref, computed, watch } from "vue";
+import { onMounted, ref, computed, watch, inject } from "vue";
+import { useRouter } from "vue-router";
 import useAuth from "@/composables/auth";
 import useUsers from "@/composables/users";
 import { authStore } from "../../store/auth";
 import useRankings from "@/composables/rankings.js";
 
 /* -- VARIABLES -- */
+const router = useRouter();
 const { processing, logout } = useAuth();
 const { getRanking } = useRankings();
 const { getUser } = useUsers();
-const userPoints = ref(0); // Initialize with 0 instead of null
+const userPoints = ref(0);
 const userAvatar = ref(null);
+const isMenuBlocked = inject("menuBlocked", ref(false));
 
 const props = defineProps({
     variant: {
@@ -188,6 +204,34 @@ const updateUserData = async () => {
 const getAvatarUrl = () => {
     if (!authStore().user?.id) return "/images/icons/user-icon-dark.svg";
     return userAvatar.value || "/images/icons/user-icon-dark.svg";
+};
+
+// Función para manejar la navegación cuando el menú está bloqueado
+const handleNavigation = (route) => {
+    if (isMenuBlocked.value) {
+        showNavigationBlockedMessage();
+        return;
+    }
+    router.push(route);
+};
+
+// Mostrar mensaje cuando se intenta navegar y el menú está bloqueado
+const showNavigationBlockedMessage = () => {
+    // Crear y lanzar un evento personalizado para mostrar un mensaje
+    document.dispatchEvent(
+        new CustomEvent("show-menu-blocked-message", {
+            detail: "No puedes navegar mientras estás en una partida o vista de juego",
+        })
+    );
+};
+
+// Manejar el logout con verificación de bloqueo
+const handleLogout = () => {
+    if (isMenuBlocked.value) {
+        showNavigationBlockedMessage();
+        return;
+    }
+    logout();
 };
 
 // Observador para detectar cambios en el usuario
@@ -646,5 +690,18 @@ onMounted(async () => {
 :deep(#lateralBar.closed) .sidebar #userProfileMenu {
     left: 80px; /* Ancho del menú lateral cerrado */
     transform: none;
+}
+
+/* Estilo para ítems de menú deshabilitados */
+.disabled-menu-item {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    color: var(--neutral-color-3) !important;
+    transition: all 0.3s ease;
+}
+
+.disabled-menu-item i {
+    color: var(--neutral-color-3) !important;
 }
 </style>

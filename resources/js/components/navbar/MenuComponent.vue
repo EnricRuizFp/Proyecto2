@@ -7,7 +7,8 @@
                 to="/"
                 class="bolder menu-item"
                 title="Menú principal del juego"
-                @click="emitNavigation"
+                @click.prevent="emitNavigation"
+                :class="{ 'disabled-menu-item': isMenuBlocked }"
             >
                 <i class="fas fa-home"></i>
                 <span class="menu-text">INICIO</span>
@@ -19,6 +20,7 @@
                     class="menu-item"
                     @click.prevent="handlePublicGame"
                     title="Únete a partidas públicas con otros jugadores"
+                    :class="{ 'disabled-menu-item': isMenuBlocked }"
                 >
                     <i class="fas fa-globe"></i>
                     <span class="menu-text">Partida pública</span>
@@ -30,6 +32,7 @@
                     class="menu-item"
                     @click.prevent="handleCreateGame"
                     title="Crea tu propia partida personalizada"
+                    :class="{ 'disabled-menu-item': isMenuBlocked }"
                 >
                     <i class="fas fa-plus"></i>
                     <span class="menu-text">Crear partida</span>
@@ -41,6 +44,7 @@
                     class="menu-item"
                     @click.prevent="showJoinMatchModal"
                     title="Únete a una partida privada con amigos"
+                    :class="{ 'disabled-menu-item': isMenuBlocked }"
                 >
                     <i class="fas fa-users"></i>
                     <span class="menu-text">Unirse a partida</span>
@@ -52,6 +56,7 @@
                     class="menu-item"
                     @click.prevent="handleViewGame"
                     title="Observa partidas en curso"
+                    :class="{ 'disabled-menu-item': isMenuBlocked }"
                 >
                     <i class="fas fa-eye"></i>
                     <span class="menu-text">Observar partida</span>
@@ -65,7 +70,8 @@
                 to="/rankings"
                 class="bolder menu-item"
                 title="Compite y alcanza la cima"
-                @click="emitNavigation"
+                @click.prevent="emitNavigation"
+                :class="{ 'disabled-menu-item': isMenuBlocked }"
             >
                 <i class="fas fa-trophy"></i>
                 <span class="menu-text">RANKING</span>
@@ -77,7 +83,8 @@
                     class="menu-item"
                     to="/global_ranking"
                     title="Consulta el ranking global de jugadores"
-                    @click="emitNavigation"
+                    @click.prevent="emitNavigation"
+                    :class="{ 'disabled-menu-item': isMenuBlocked }"
                 >
                     <i class="fas fa-globe-americas"></i>
                     <span class="menu-text">Ranking global</span>
@@ -89,7 +96,8 @@
                     class="menu-item"
                     to="/national_ranking"
                     title="Consulta el ranking nacional de jugadores"
-                    @click="emitNavigation"
+                    @click.prevent="emitNavigation"
+                    :class="{ 'disabled-menu-item': isMenuBlocked }"
                 >
                     <i class="fas fa-flag"></i>
                     <span class="menu-text">Ranking nacional</span>
@@ -120,8 +128,8 @@
 
 <script setup>
 /* -- IMPORTS -- */
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { useGameStore } from "../../store/game";
 import { authStore } from "../../store/auth";
 import axios from "axios";
@@ -129,20 +137,59 @@ import JoinMatchModal from "../privateMatch/JoinMatchModal.vue";
 
 /* -- VARIABLES -- */
 const router = useRouter();
+const route = useRoute();
 const gameStore = useGameStore();
 const errorMessage = ref("");
 const infoMessage = ref("");
 const showJoinModal = ref(false);
+
+// Props para recibir el estado de bloqueo del menú desde el componente padre
+const props = defineProps({
+    isMenuBlocked: {
+        type: Boolean,
+        default: false,
+    },
+});
+
+// Rutas donde no se permite la navegación
+const blockedRoutes = ["/game", "/view-games"];
+
+// Comprobar si la ruta actual está bloqueada o si el menú está bloqueado explícitamente
+const isCurrentRouteBlocked = computed(() => {
+    return (
+        blockedRoutes.some((blockedRoute) =>
+            route.path.startsWith(blockedRoute)
+        ) || props.isMenuBlocked
+    );
+});
 
 /* -- EMITS -- */
 const emit = defineEmits(["navigation"]);
 
 /* -- FUNCTIONS -- */
 const emitNavigation = () => {
+    if (isCurrentRouteBlocked.value) {
+        showNavigationBlockedMessage();
+        return;
+    }
     emit("navigation");
 };
 
+// Mostrar mensaje cuando se intenta navegar desde una ruta bloqueada
+const showNavigationBlockedMessage = () => {
+    infoMessage.value =
+        "No puedes navegar mientras estás en una partida o vista de juego";
+    setTimeout(() => {
+        infoMessage.value = "";
+    }, 3000);
+};
+
 const checkAndNavigate = async (gameType, gameCode = null) => {
+    if (isCurrentRouteBlocked.value) {
+        showNavigationBlockedMessage();
+        return;
+    }
+
     try {
         const response = await axios.post(
             "/api/games/check-user-requirements",
@@ -176,17 +223,32 @@ const checkAndNavigate = async (gameType, gameCode = null) => {
 
 // Handlers para cada tipo de juego
 const handlePublicGame = async () => {
+    if (isCurrentRouteBlocked.value) {
+        showNavigationBlockedMessage();
+        return;
+    }
+
     gameStore.resetGame();
     await checkAndNavigate("public");
 };
 
 const handleCreateGame = async () => {
+    if (isCurrentRouteBlocked.value) {
+        showNavigationBlockedMessage();
+        return;
+    }
+
     gameStore.resetGame();
     await checkAndNavigate("private", null);
 };
 
 // Nueva función para verificar requisitos antes de mostrar el modal
 const showJoinMatchModal = async () => {
+    if (isCurrentRouteBlocked.value) {
+        showNavigationBlockedMessage();
+        return;
+    }
+
     try {
         const response = await axios.post(
             "/api/games/check-user-requirements",
@@ -219,6 +281,11 @@ const showJoinMatchModal = async () => {
 
 // Manejar unirse a partida con código
 const handleJoinMatch = async (code) => {
+    if (isCurrentRouteBlocked.value) {
+        showNavigationBlockedMessage();
+        return;
+    }
+
     showJoinModal.value = false;
     gameStore.setGameMode("join");
     gameStore.setMatchCode(code);
@@ -226,6 +293,11 @@ const handleJoinMatch = async (code) => {
 };
 
 const handleViewGame = () => {
+    if (isCurrentRouteBlocked.value) {
+        showNavigationBlockedMessage();
+        return;
+    }
+
     emit("navigation"); // Emit navigation event
     router.push("/view-games");
 };
@@ -421,5 +493,35 @@ h2.menu-item {
     background-color: var(--neutral-color-2);
     color: white;
     border: 1px solid var(--white-color);
+}
+
+/* Estilos para los enlaces deshabilitados */
+.disabled-link {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+/* Nuevo estilo para ítems deshabilitados */
+.disabled-menu-item {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    color: var(--neutral-color-3) !important;
+    transition: all 0.3s ease;
+}
+
+.disabled-menu-item i {
+    color: var(--neutral-color-3) !important;
+}
+
+/* Eliminar el estilo de oscurecimiento para el contenedor completo */
+.menu-blocked {
+    position: relative;
+}
+
+/* Eliminar el pseudo-elemento que oscurece todo el contenedor */
+.menu-blocked::after {
+    content: none;
 }
 </style>

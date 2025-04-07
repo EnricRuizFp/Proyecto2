@@ -21,7 +21,10 @@
                         variant="sidebar"
                         :is-lateral-bar-closed="!dropdownOpen"
                     />
-                    <MenuComponent @navigation="closeMenu" />
+                    <MenuComponent
+                        @navigation="closeMenu"
+                        :is-menu-blocked="menuBlocked"
+                    />
                 </div>
             </div>
             <!-- Botón de abrir/cerrar en desktop -->
@@ -44,19 +47,40 @@
                 </span>
             </div>
         </nav>
+
+        <!-- Info Message -->
+        <div v-if="infoMessage" class="info-alert">
+            {{ infoMessage }}
+            <button class="close-button" @click="infoMessage = ''">×</button>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, defineExpose, watch } from "vue";
+import { ref, onMounted, onUnmounted, defineExpose, watch, provide } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import UserComponent from "../components/navbar/UserComponent.vue";
 import MenuComponent from "../components/navbar/MenuComponent.vue";
 
 const dropdownOpen = ref(false);
-const isMobile = ref(window.innerWidth < 768); // Cambiado a 768px
+const isMobile = ref(window.innerWidth < 768);
 const router = useRouter();
 const route = useRoute();
+const menuBlocked = ref(false);
+const infoMessage = ref("");
+
+// Escuchar eventos de bloqueo del menú
+const handleMenuBlock = (event) => {
+    menuBlocked.value = event.detail;
+};
+
+// Escuchar mensajes de bloqueo del menú
+const handleMenuBlockedMessage = (event) => {
+    infoMessage.value = event.detail;
+    setTimeout(() => {
+        infoMessage.value = "";
+    }, 3000);
+};
 
 // Close menu when route changes
 watch(
@@ -89,15 +113,35 @@ const closeMenu = () => {
 };
 
 onMounted(() => {
-    window.addEventListener("resize", () => {
-        isMobile.value = window.innerWidth < 768; // Cambiado a 768px
-    });
+    // Agregar listener para eventos de bloqueo del menú
+    document.addEventListener("block-menu", handleMenuBlock);
+    document.addEventListener(
+        "show-menu-blocked-message",
+        handleMenuBlockedMessage
+    );
+
+    const handleResize = () => {
+        isMobile.value = window.innerWidth < 768;
+    };
+
+    window.addEventListener("resize", handleResize);
 });
 
 // Limpiar el estilo al desmontar el componente
 onUnmounted(() => {
     document.body.style.overflow = "auto";
+    document.removeEventListener("block-menu", handleMenuBlock);
+    document.removeEventListener(
+        "show-menu-blocked-message",
+        handleMenuBlockedMessage
+    );
+
+    window.removeEventListener("resize", () => {
+        isMobile.value = window.innerWidth < 768;
+    });
 });
+
+provide("menuBlocked", menuBlocked);
 
 defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
 </script>
@@ -315,5 +359,35 @@ defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
         width: 60%;
         margin: 0.5rem auto;
     }
+}
+
+/* Estilos para el mensaje informativo */
+.info-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: var(--neutral-color-2);
+    color: white;
+    border: 1px solid var(--white-color);
+}
+
+.close-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+}
+
+.close-button:hover {
+    opacity: 0.8;
 }
 </style>

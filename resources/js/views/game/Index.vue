@@ -38,17 +38,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, provide } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
 import { authStore } from "../../store/auth";
 import GameLoadingComponent from "../../components/gameComponents/GameLoadingComponent.vue";
 import ShipPlacement from "../../components/gameComponents/ShipPlacement.vue";
-import GameComponent from "../../components/gameComponents/GameComponent.vue"
+import GameComponent from "../../components/gameComponents/GameComponent.vue";
 import GameWin from "../../components/gameComponents/GameWinComponent.vue";
 import GameOver from "../../components/gameComponents/GameOverComponent.vue";
 import PruebasComponent from "../../components/PruebasComponent.vue";
-
 
 const route = useRoute();
 const router = useRouter();
@@ -58,6 +57,9 @@ const showGameOver = ref(false);
 
 // Computed properties
 const gamePhase = computed(() => gameStore.gamePhase);
+
+// Proporcionar el estado de bloqueo del menú para componentes hijos
+provide("menuBlocked", true);
 
 // Game methods
 const startGame = (boardConfiguration) => {
@@ -89,7 +91,6 @@ const testGameOver = () => {
 
 // ON MOUNTED
 onMounted(() => {
-
     console.log("BUENAS");
 
     // Verificación de usuario autenticado y tipo de juego
@@ -100,9 +101,17 @@ onMounted(() => {
         return;
     }
 
+    // Bloquear el menú cuando se monta el componente
+    document.dispatchEvent(new CustomEvent("block-menu", { detail: true }));
+
     console.log("Game Type:", route.params.gameType);
     console.log("Game Code:", route.params.gameCode);
     gameStore.setGamePhase("loading");
+});
+
+// Desbloquear el menú cuando se desmonta el componente
+onUnmounted(() => {
+    document.dispatchEvent(new CustomEvent("block-menu", { detail: false }));
 });
 </script>
 
