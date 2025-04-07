@@ -7,6 +7,7 @@
                 to="/"
                 class="bolder menu-item"
                 title="Menú principal del juego"
+                @click="emitNavigation"
             >
                 <i class="fas fa-home"></i>
                 <span class="menu-text">INICIO</span>
@@ -64,6 +65,7 @@
                 to="/rankings"
                 class="bolder menu-item"
                 title="Compite y alcanza la cima"
+                @click="emitNavigation"
             >
                 <i class="fas fa-trophy"></i>
                 <span class="menu-text">RANKING</span>
@@ -75,6 +77,7 @@
                     class="menu-item"
                     to="/global_ranking"
                     title="Consulta el ranking global de jugadores"
+                    @click="emitNavigation"
                 >
                     <i class="fas fa-globe-americas"></i>
                     <span class="menu-text">Ranking global</span>
@@ -86,6 +89,7 @@
                     class="menu-item"
                     to="/national_ranking"
                     title="Consulta el ranking nacional de jugadores"
+                    @click="emitNavigation"
                 >
                     <i class="fas fa-flag"></i>
                     <span class="menu-text">Ranking nacional</span>
@@ -115,7 +119,14 @@ const gameStore = useGameStore();
 const errorMessage = ref("");
 const infoMessage = ref("");
 
+/* -- EMITS -- */
+const emit = defineEmits(["navigation"]);
+
 /* -- FUNCTIONS -- */
+const emitNavigation = () => {
+    emit("navigation");
+};
+
 const checkAndNavigate = async (gameType, gameCode = null) => {
     try {
         const response = await axios.post(
@@ -129,6 +140,7 @@ const checkAndNavigate = async (gameType, gameCode = null) => {
 
         if (response.data.status === "success") {
             console.log("OK: User ready to play.");
+            emit("navigation"); // Emit navigation event
             router.push(`/game/${gameType}/${gameCode || "null"}`);
         } else {
             if (
@@ -159,10 +171,12 @@ const handleCreateGame = async () => {
 };
 
 const handleJoinGame = () => {
+    emit("navigation"); // Emit navigation event
     router.push("/join_game"); // Esta ruta mostrará el modal para unirse
 };
 
 const handleViewGame = () => {
+    emit("navigation"); // Emit navigation event
     router.push("/view-games");
 };
 </script>
@@ -201,6 +215,7 @@ const handleViewGame = () => {
     white-space: nowrap;
     transition: all 0.3s ease;
     padding: 0.5rem;
+    cursor: pointer; /* Explicitly add pointer cursor */
 }
 
 .menu-item i {
