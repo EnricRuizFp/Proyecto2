@@ -47,7 +47,7 @@
                 <div class="buttons">
                     <button
                         class="primary-button light"
-                        @click="$emit('next-level')"
+                        @click="handleNextLevel"
                     >
                         JUGAR DE NUEVO
                         <svg
@@ -109,11 +109,17 @@ const props = defineProps({
     },
 });
 
-defineEmits(['next-level']);
+const emit = defineEmits(['next-level', 'cleanup']);
 
 const router = useRouter();
 const goToHome = () => {
+    emit('cleanup');
     router.push("/");
+};
+
+const handleNextLevel = () => {
+    emit('cleanup');
+    emit('next-level');
 };
 </script>
 

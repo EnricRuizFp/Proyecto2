@@ -47,7 +47,7 @@
                 <div class="buttons">
                     <button
                         class="primary-button light"
-                        @click="$emit('restart')"
+                        @click="handleRestart"
                     >
                         JUGAR DE NUEVO
                         <svg
@@ -109,11 +109,17 @@ const props = defineProps({
     },
 });
 
-defineEmits(['restart']);
+const emit = defineEmits(['restart', 'cleanup']);
 
 const router = useRouter();
 const goToHome = () => {
+    emit('cleanup');
     router.push("/");
+};
+
+const handleRestart = () => {
+    emit('cleanup');
+    emit('restart');
 };
 </script>
 

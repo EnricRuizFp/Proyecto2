@@ -6,6 +6,9 @@ export const useGameStore = defineStore("game", {
         gamePhase: "loading", // Cambiado el estado inicial a 'loading'
         matchCode: null,
         playerBoard: null,
+        showWin: false,
+        showDraw: false,
+        showGameOver: false
     }),
 
     actions: {
@@ -24,5 +27,14 @@ export const useGameStore = defineStore("game", {
             this.matchCode = null;
             this.playerBoard = null;
         },
+        setShowWin(value) {
+            this.showWin = value;
+        },
+        setShowDraw(value) {
+            this.showDraw = value;
+        },
+        setShowGameOver(value) {
+            this.showGameOver = value;
+        }
     },
 });

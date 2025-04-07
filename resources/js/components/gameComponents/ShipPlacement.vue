@@ -171,7 +171,7 @@ const loadShips = async () => {
 };
 
 // Temporizador
-const timeLeft = ref(20);
+const timeLeft = ref(30);
 const timerInterval = ref(null);
 
 const formatTime = (seconds) => {

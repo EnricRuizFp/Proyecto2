@@ -20,6 +20,7 @@ return new class extends Migration
             $table->boolean('is_finished')->default(false);
             $table->dateTime('end_date')->nullable();
             $table->unsignedBigInteger('winner')->nullable();
+            $table->unsignedBigInteger('points')->nullable();
             $table->unsignedBigInteger('created_by');
             
             $table->foreign('created_by')->references('id')->on('users');

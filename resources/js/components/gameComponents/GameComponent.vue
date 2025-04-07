@@ -160,38 +160,24 @@ const checkMatchWinner = async () => {
 // Función para finalizar la partida (ganando)
 const endGame = async (status) => {
     try {
-
         console.log("Setteando el ganador de la partida...");
 
-        // Subir los datos del ganador a la base de datos
         const response = await axios.post('/api/games/set-game-ending', {
             gameCode: gameStore.matchCode,
             user: authStore().user,
             status: status
         });
 
-        // Respuesta de la API
-        console.log("Respuesta de la API:", response.data);
-
-        // Mostrar contenedor de FINALIZACIÓN
         if (response.data.status === 'success') {
-            
             console.log("Partida finalizada con éxito.");
 
             if(status == "winner"){
-
-                // MOSTRAR CONTENEDOR DE VICTORIA
                 console.log("GANADOR");
-                showWin.value = true;
-
-            }else{
-                // MOSTRAR CONTENEDOR DE EMPATE
+                gameStore.setShowWin(true);
+            } else {
                 console.log("EMPATE");
-                showDraw.value = true;
+                gameStore.setShowDraw(true);
             }
-
-        } else {
-            console.error("Error al finalizar la partida:", response.data.message);
         }
     } catch (error) {
         console.error("Error al finalizar la partida:", error);

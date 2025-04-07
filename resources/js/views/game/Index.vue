@@ -59,12 +59,12 @@ import PruebasComponent from "../../components/PruebasComponent.vue";
 const route = useRoute();
 const router = useRouter();
 const gameStore = useGameStore();
-const showWin = ref(false);
-const showDraw = ref(false);
-const showGameOver = ref(false);
 
 // Computed properties
 const gamePhase = computed(() => gameStore.gamePhase);
+const showWin = computed(() => gameStore.showWin);
+const showDraw = computed(() => gameStore.showDraw);
+const showGameOver = computed(() => gameStore.showGameOver);
 
 // Proporcionar el estado de bloqueo del menú para componentes hijos
 provide("menuBlocked", true);
@@ -76,13 +76,12 @@ const startGame = (boardConfiguration) => {
 };
 
 const nextLevel = () => {
-    currentLevel.value++;
-    showWin.value = false;
+    gameStore.setShowWin(false);
 };
 
 const restartLevel = () => {
-    showWin.value = false;
-    showGameOver.value = false;
+    gameStore.setShowWin(false);
+    gameStore.setShowGameOver(false);
 };
 
 const goToMenu = () => {
@@ -90,15 +89,15 @@ const goToMenu = () => {
 };
 
 const testWin = () => {
-    showWin.value = true;
+    gameStore.setShowWin(true);
 };
 
 const testDraw = () => {
-    showDraw.value = true;
-}
+    gameStore.setShowDraw(true);
+};
 
 const testGameOver = () => {
-    showGameOver.value = true;
+    gameStore.setShowGameOver(true);
 };
 
 // ON MOUNTED

@@ -7,7 +7,9 @@ use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\Move; // Añadir este import al inicio del archivo
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RankingController; // Añadir este import al inicio del archivo
 use App\Models\User;
+use App\Models\Ranking; // Añadir este import al inicio del archivo
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\DB;
@@ -1262,45 +1264,73 @@ class GameController extends Controller
      */
     public function setGameEnding(Request $request)
     {
-        try{
+        try {
+            $gameCode = $request->input('gameCode');
+            $userId = $request->input('user')['id'];
+            $status = $request->input('status');
 
-            // Validar datos requeridos
-            $request->validate([
-                'gameCode' => 'required|string',
-                'user' => 'required|array',
-                'user.id' => 'required|integer',
-                'status' => 'required|string',
-            ]);
-
-            if($request->status == "winner"){
-
-                // Settear el usuario actual como winner de la partida
-
-                // Obtener los puntos del oponente
-
-                // Settear el ranking adecuado para el usuario actual y el oponente
-
-            }else if($request->status == "draw"){
-
-                // Settear el usuario actual como loser de la partida
-
-                // Settear el ranking adecuado para el usuario actual y el oponente
-            }else{
-                
+            // Buscar el juego
+            $game = Game::where('code', $gameCode)->first();
+            if (!$game) {
+                return response()->json(['status' => 'failed', 'message' => 'Game not found']);
             }
 
+            // Obtener los jugadores
+            $players = GamePlayer::where('game_id', $game->id)
+                ->with('user')
+                ->get();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Game ending set successfully'
-            ]);
-        }catch (\Exception $e) {
-            return response()->json([
-                'status' => 'failed',
-                'message' => 'Error setting game ending: ' . $e->getMessage()
-            ], 500);
+            // Si es empate, simplemente actualizar el estado del juego
+            if ($status === 'draw') {
+                $game->update([
+                    'is_finished' => true,
+                    'end_date' => now(),
+                    'winner' => null
+                ]);
+                return response()->json(['status' => 'success', 'message' => 'Game ended in draw']);
+            }
+
+            // Si es victoria, procesar los rankings y puntos
+            if ($status === 'winner') {
+                // Encontrar al ganador y perdedor
+                $winner = $players->where('user_id', $userId)->first();
+                $loser = $players->where('user_id', '!=', $userId)->first();
+
+                // Obtener los rankings actuales usando Ranking model directamente
+                $winnerRanking = Ranking::where('user_id', $winner->user_id)->first();
+                $loserRanking = Ranking::where('user_id', $loser->user_id)->first();
+
+                // Calcular los puntos a modificar basado en los puntos actuales
+                $points = ($winnerRanking->points < $loserRanking->points) ? 6 : 3;
+
+                // Actualizar los rankings
+                DB::table('rankings')
+                    ->where('user_id', $winner->user_id)
+                    ->increment('points', $points);
+
+                DB::table('rankings')
+                    ->where('user_id', $loser->user_id)
+                    ->decrement('points', $points);
+
+                // Actualizar el estado del juego
+                $game->update([
+                    'is_finished' => true,
+                    'end_date' => now(),
+                    'winner' => $userId,
+                    'points' => $points
+                ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Game ended with winner',
+                    'points_earned' => $points
+                ]);
+            }
+
+            return response()->json(['status' => 'failed', 'message' => 'Invalid status']);
+        } catch (\Exception $e) {
+            Log::error('Error in setGameEnding: ' . $e->getMessage());
+            return response()->json(['status' => 'failed', 'message' => 'Error processing game ending']);
         }
-
-        
     }
 }
