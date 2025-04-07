@@ -120,66 +120,71 @@ const handleAttack = async (row, col) => {
 const checkMatchWinner = async () => {
     try {
         // Obtener las coordenadas de los barcos del oponente
-        const response = await axios.post('/api/games/get-opponent-ship-placement-validation', {
+        const response = await axios.post('/api/games/get-opponent-ship-placement-game', {
             gameCode: gameStore.matchCode,
             user: authStore().user
         });
 
-        if (response.data.status === 'success' && response.data.data) {
-            console.log("parseando coordenadas del oponente...");
-            const opponentShips = JSON.parse(response.data.data);
+        console.log("Respuesta de la función:", response.data);
 
-            // Obtener todas las posiciones de los barcos del oponente
-            const opponentPositions = Object.values(opponentShips).flat();
+        if(response.data.has_winned == false){
 
-            // Obtener todos los movimientos del usuario actual
-            const movesResponse = await axios.post('/api/games/get-user-moves', {
-                gameCode: gameStore.matchCode,
-                user: authStore().user
-            });
-
-            if (movesResponse.data.status === 'success' && movesResponse.data.moves) {
-                const userMoves = movesResponse.data.moves
-                    .filter(move => move.result === 'hit')
-                    .map(move => move.coordinate);
-
-                // Verificar cada barco individualmente
-                let allShipsSunk = true;
-                for (const [shipName, positions] of Object.entries(opponentShips)) {
-                    const hitPositions = positions.filter(pos => userMoves.includes(pos));
-                    
-                    if (hitPositions.length === positions.length) {
-                        console.log(`${shipName} ha sido hundido!`);
-                        showNotification(`¡Has hundido el ${shipName}!`, 'success');
-                    } else {
-                        allShipsSunk = false;
-                    }
-                }
-
-                // Si todos los barcos están hundidos, terminar la partida
-                if (allShipsSunk) {
-                    console.log("¡Has ganado la partida!");
-                    await endGame();
-                }
+            if(response.data.move_count < 100){
+                showNotification("Te quedan " + response.data.ships_left + " barcos por hundir.", "info");
+            }else{
+                console.log("Has llegado al límite de movimientos.");
+                // Finalizar el juego
+                await endGame("draw");
             }
+            // console.log("Te quedan", response.data.ships_left , " barcos por hundir.");
+            
+
+        }else if(response.data.has_winned == true){
+
+            console.log("Has ganado la partida!");
+
+            // Mostrar notificación de victoria
+            showNotification("¡Has ganado la partida!", "success");
+
+            // Finalizar el juego
+            await endGame("winner");
+        }else{
+            console.log("No se ha podido determinar el ganador.");
         }
+
     } catch (error) {
         console.error("Error al verificar el ganador:", error);
     }
 };
 
-// Función para finalizar la partida
-const endGame = async () => {
+// Función para finalizar la partida (ganando)
+const endGame = async (status) => {
     try {
+
+        // Subir los datos del ganador a la base de datos
         const response = await axios.post('/api/games/set-game-winner', {
             gameCode: gameStore.matchCode,
-            user: authStore().user
+            user: authStore().user,
+            status: status
         });
 
+        // Mostrar contenedor de FINALIZACIÓN
         if (response.data.status === 'success') {
-            console.log("La partida ha terminado. Ganador registrado.");
-            isGameActive.value = false;
-            showNotification("¡Has ganado la partida!", "success");
+            
+            console.log("Partida finalizada con éxito.");
+
+            if(status == "winner"){
+                // MOSTRAR CONTENEDOR DE VICTORIA
+                console.log("GANADOR");
+                showWin.value = true;
+
+
+            }else{
+                // MOSTRAR CONTENEDOR DE EMPATE
+                console.log("EMPATE");
+                showDraw.value = true;
+            }
+
         } else {
             console.error("Error al finalizar la partida:", response.data.message);
         }
