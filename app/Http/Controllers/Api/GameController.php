@@ -1008,6 +1008,7 @@ class GameController extends Controller
             $gameCode = $request->input('gameCode');
             $user = $request->input('user');
 
+            // Buscar la partida
             $game = Game::where('code', $gameCode)->first();
             if (!$game) {
                 return response()->json([
@@ -1016,34 +1017,37 @@ class GameController extends Controller
                 ], 404);
             }
 
-            // Obtener el último movimiento del oponente
-            $lastMove = Move::where('game_id', $game->id)
-                ->whereHas('gamePlayer', function($query) use ($user) {
-                    $query->where('user_id', '!=', $user['id']);
+            // Obtener el último movimiento del usuario actual
+            $lastUserMove = Move::where('game_id', $game->id)
+                ->whereHas('gamePlayer', function ($query) use ($user) {
+                    $query->where('user_id', $user['id']);
                 })
-                ->where('updated_at', '>=', now()->subSeconds(1)) // Reducir a 1 segundo
-                ->orderBy('updated_at', 'desc') // Ordenar por tiempo de actualización
+                ->orderBy('updated_at', 'desc')
                 ->first();
 
-            // Si no hay movimiento reciente, buscar el último movimiento general
-            if (!$lastMove) {
-                $lastMove = Move::where('game_id', $game->id)
-                    ->whereHas('gamePlayer', function($query) use ($user) {
+            // Si hay un movimiento del usuario, buscar el movimiento del oponente posterior a este
+            if ($lastUserMove) {
+                $lastOpponentMove = Move::where('game_id', $game->id)
+                    ->whereHas('gamePlayer', function ($query) use ($user) {
                         $query->where('user_id', '!=', $user['id']);
                     })
-                    ->orderBy('updated_at', 'desc')
+                    ->where('updated_at', '>', $lastUserMove->updated_at) // Movimiento posterior al del usuario
+                    ->orderBy('updated_at', 'asc') // Ordenar por el más reciente después del usuario
                     ->first();
-
-                // Verificar si este movimiento ya fue procesado anteriormente
-                if ($lastMove && $lastMove->updated_at < now()->subSeconds(2)) {
-                    $lastMove = null;
-                }
+            } else {
+                // Si no hay movimientos del usuario, obtener el primer movimiento del oponente
+                $lastOpponentMove = Move::where('game_id', $game->id)
+                    ->whereHas('gamePlayer', function ($query) use ($user) {
+                        $query->where('user_id', '!=', $user['id']);
+                    })
+                    ->orderBy('updated_at', 'asc')
+                    ->first();
             }
 
             return response()->json([
                 'status' => 'success',
-                'move' => $lastMove,
-                'timestamp' => now()->timestamp // Añadir timestamp para debugging
+                'move' => $lastOpponentMove,
+                'timestamp' => now()->timestamp
             ]);
         } catch (\Exception $e) {
             Log::error('Error getting last move: ' . $e->getMessage());
@@ -1087,6 +1091,56 @@ class GameController extends Controller
         } catch (\Exception $e) {
             Log::error('Error getting available ships: ' . $e->getMessage());
             return response()->json([], 500);
+        }
+    }
+
+    /**
+     * GET USER MOVES
+     * Esta función obtiene todos los movimientos realizados por el usuario en una partida
+     */
+    public function getUserMoves(Request $request)
+    {
+        try {
+            $gameCode = $request->input('gameCode');
+            $user = $request->input('user');
+
+            // Buscar la partida
+            $game = Game::where('code', $gameCode)->first();
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ], 404);
+            }
+
+            // Obtener el ID del game_player del usuario
+            $gamePlayer = GamePlayer::where('game_id', $game->id)
+                ->where('user_id', $user['id'])
+                ->first();
+
+            if (!$gamePlayer) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Player not found in game'
+                ], 404);
+            }
+
+            // Obtener todos los movimientos del usuario
+            $moves = Move::where('game_id', $game->id)
+                ->where('game_player_id', $gamePlayer->id)
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'moves' => $moves
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting user moves: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error retrieving moves'
+            ], 500);
         }
     }
 }

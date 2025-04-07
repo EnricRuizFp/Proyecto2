@@ -108,83 +108,11 @@ const handleAttack = async (row, col) => {
                 showNotification(`¡Has acertado al ${response.data.ship}!`, 'success');
             }
 
-            await checkMatchWinner(); // Llamar a la nueva función para verificar el ganador
+            console.log("Ataque realizado. Cambiando al estado de espera.");
             yourTurn.value = false; // Cambiar el turno al oponente
         }
     } catch (error) {
         console.error("Error en el ataque:", error);
-    }
-};
-
-// Función para verificar si el usuario ha ganado la partida
-const checkMatchWinner = async () => {
-    try {
-        // Obtener las coordenadas de los barcos del oponente
-        const response = await axios.post('/api/games/get-opponent-ship-placement-validation', {
-            gameCode: gameStore.matchCode,
-            user: authStore().user
-        });
-
-        if (response.data.status === 'success' && response.data.data) {
-            console.log("parseando coordenadas del oponente...");
-            const opponentShips = JSON.parse(response.data.data);
-
-            // Obtener todas las posiciones de los barcos del oponente
-            const opponentPositions = Object.values(opponentShips).flat();
-
-            // Obtener todos los movimientos del usuario actual
-            const movesResponse = await axios.post('/api/games/get-user-moves', {
-                gameCode: gameStore.matchCode,
-                user: authStore().user
-            });
-
-            if (movesResponse.data.status === 'success' && movesResponse.data.moves) {
-                const userMoves = movesResponse.data.moves
-                    .filter(move => move.result === 'hit')
-                    .map(move => move.coordinate);
-
-                // Verificar cada barco individualmente
-                let allShipsSunk = true;
-                for (const [shipName, positions] of Object.entries(opponentShips)) {
-                    const hitPositions = positions.filter(pos => userMoves.includes(pos));
-                    
-                    if (hitPositions.length === positions.length) {
-                        console.log(`${shipName} ha sido hundido!`);
-                        showNotification(`¡Has hundido el ${shipName}!`, 'success');
-                    } else {
-                        allShipsSunk = false;
-                    }
-                }
-
-                // Si todos los barcos están hundidos, terminar la partida
-                if (allShipsSunk) {
-                    console.log("¡Has ganado la partida!");
-                    await endGame();
-                }
-            }
-        }
-    } catch (error) {
-        console.error("Error al verificar el ganador:", error);
-    }
-};
-
-// Función para finalizar la partida
-const endGame = async () => {
-    try {
-        const response = await axios.post('/api/games/set-game-winner', {
-            gameCode: gameStore.matchCode,
-            user: authStore().user
-        });
-
-        if (response.data.status === 'success') {
-            console.log("La partida ha terminado. Ganador registrado.");
-            isGameActive.value = false;
-            showNotification("¡Has ganado la partida!", "success");
-        } else {
-            console.error("Error al finalizar la partida:", response.data.message);
-        }
-    } catch (error) {
-        console.error("Error al finalizar la partida:", error);
     }
 };
 
