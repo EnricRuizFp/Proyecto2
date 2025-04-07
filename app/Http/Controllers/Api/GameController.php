@@ -901,9 +901,7 @@ class GameController extends Controller
                     'is_full' => $game->players_count >= 2,
                     'has_started' => !empty($game->start_date),
                     'has_finished' => !empty($game->end_date),
-                    'duration' => $game->end_date ?
-                        carbon($game->end_date)->diffInMinutes($game->start_date) :
-                        null
+                    'duration' => null // Simplemente dejamos duration como null
                 ]
             ];
 
@@ -1002,6 +1000,11 @@ class GameController extends Controller
         }
     }
 
+    /**
+     * GET LAST MOVE
+     * Esta función obtiene el último movimiento realizado por el usuario en la partida.
+     * @param \Illuminate\Http\Request $request
+     */
     public function getLastMove(Request $request)
     {
         try {
@@ -1058,6 +1061,11 @@ class GameController extends Controller
         }
     }
 
+    /**
+     * GET AVAILABLE GAME SHIPS
+     * Esta función obtiene todos los barcos disponibles para el juego.
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
     public function getAvailableGameShips()
     {
         try {
@@ -1153,7 +1161,6 @@ class GameController extends Controller
     public function getOpponentShipPlacementGame(Request $request)
     {
         try {
-            Log::info('🎮 Iniciando verificación del estado de la partida...');
 
             // Validar datos requeridos
             $request->validate([
@@ -1246,5 +1253,54 @@ class GameController extends Controller
                 'move_count' => 0
             ], 500);
         }
+    }
+
+    /**
+     * SET GAME ENDING
+     * Esta función establece el final de la partida y actualiza el estado de los jugadores.
+     * @param \Illuminate\Http\Request $request
+     */
+    public function setGameEnding(Request $request)
+    {
+        try{
+
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array',
+                'user.id' => 'required|integer',
+                'status' => 'required|string',
+            ]);
+
+            if($request->status == "winner"){
+
+                // Settear el usuario actual como winner de la partida
+
+                // Obtener los puntos del oponente
+
+                // Settear el ranking adecuado para el usuario actual y el oponente
+
+            }else if($request->status == "draw"){
+
+                // Settear el usuario actual como loser de la partida
+
+                // Settear el ranking adecuado para el usuario actual y el oponente
+            }else{
+                
+            }
+
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Game ending set successfully'
+            ]);
+        }catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error setting game ending: ' . $e->getMessage()
+            ], 500);
+        }
+
+        
     }
 }

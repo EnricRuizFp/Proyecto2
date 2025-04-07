@@ -99,28 +99,21 @@
     </Transition>
 </template>
 
-<script>
+<script setup>
 import { useRouter } from "vue-router";
 
-export default {
-    name: "GameWin",
-    props: {
-        visible: {
-            type: Boolean,
-            default: false,
-        },
+const props = defineProps({
+    visible: {
+        type: Boolean,
+        default: false,
     },
-    setup() {
-        const router = useRouter();
+});
 
-        const goToHome = () => {
-            router.push("/"); // Cambiado de { name: 'home' } a '/'
-        };
+defineEmits(['next-level']);
 
-        return {
-            goToHome,
-        };
-    },
+const router = useRouter();
+const goToHome = () => {
+    router.push("/");
 };
 </script>
 

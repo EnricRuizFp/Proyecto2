@@ -20,6 +20,7 @@
         <!-- Botones temporales para pruebas -->
         <div class="debug-controls">
             <button @click="testWin">Simular Victoria</button>
+            <button @click="testDraw">Simular Empate</button>
             <button @click="testGameOver">Simular Derrota</button>
         </div>
 
@@ -28,6 +29,11 @@
             :visible="showWin"
             @next-level="nextLevel"
             @restart="restartLevel"
+        />
+        <GameDraw
+            :visible="showDraw"
+            @restart="restartLevel"
+            @menu="goToMenu"
         />
         <GameOver
             :visible="showGameOver"
@@ -46,6 +52,7 @@ import GameLoadingComponent from "../../components/gameComponents/GameLoadingCom
 import ShipPlacement from "../../components/gameComponents/ShipPlacement.vue";
 import GameComponent from "../../components/gameComponents/GameComponent.vue";
 import GameWin from "../../components/gameComponents/GameWinComponent.vue";
+import GameDraw from "../../components/gameComponents/GameDrawComponent.vue";
 import GameOver from "../../components/gameComponents/GameOverComponent.vue";
 import PruebasComponent from "../../components/PruebasComponent.vue";
 
@@ -53,6 +60,7 @@ const route = useRoute();
 const router = useRouter();
 const gameStore = useGameStore();
 const showWin = ref(false);
+const showDraw = ref(false);
 const showGameOver = ref(false);
 
 // Computed properties
@@ -85,13 +93,16 @@ const testWin = () => {
     showWin.value = true;
 };
 
+const testDraw = () => {
+    showDraw.value = true;
+}
+
 const testGameOver = () => {
     showGameOver.value = true;
 };
 
 // ON MOUNTED
 onMounted(() => {
-    console.log("BUENAS");
 
     // Verificación de usuario autenticado y tipo de juego
     if (!authStore().user || !route.params.gameType) {

@@ -1,10 +1,10 @@
 <template>
     <Transition name="modal">
-        <div v-if="visible" class="game-over-overlay">
-            <div class="game-over-modal neutral-background">
-                <h2 class="white-color h2">DERROTA</h2>
+        <div v-if="visible" class="game-win-overlay">
+            <div class="game-win-modal neutral-background">
+                <h2 class="white-color h2">EMPATE!</h2>
                 <div class="points-container">
-                    <span class="points white-color h3">-10</span>
+                    <span class="points white-color h3">+0</span>
                     <svg
                         width="40"
                         height="40"
@@ -47,7 +47,7 @@
                 <div class="buttons">
                     <button
                         class="primary-button light"
-                        @click="$emit('restart')"
+                        @click="$emit('next-level')"
                     >
                         JUGAR DE NUEVO
                         <svg
@@ -109,7 +109,7 @@ const props = defineProps({
     },
 });
 
-defineEmits(['restart']);
+defineEmits(['next-level']);
 
 const router = useRouter();
 const goToHome = () => {
@@ -118,7 +118,7 @@ const goToHome = () => {
 </script>
 
 <style scoped>
-.game-over-overlay {
+.game-win-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -130,34 +130,30 @@ const goToHome = () => {
     justify-content: center;
 }
 
-.game-over-modal {
-    padding: 4rem;
+.game-win-modal {
+    padding: 4rem; /* Aumentar padding general */
     border-radius: 8px;
-    background: #2c3e50;
     text-align: center;
-    border: 1px solid var(--white-color);
+    border: 1px solid var(--white-color); /* Cambiar de 2px a 1px */
     transform-origin: center;
     animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.neutral-background {
-    background: #2c3e50;
-}
-
-.white-color {
-    color: white;
-}
-
-.h2 {
-    margin-top: 2rem;
-}
-
 .buttons {
-    margin-top: 3rem;
+    margin-top: 3rem; /* Aumentar margen superior de botones */
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 2rem; /* Aumentar espacio entre botones */
     align-items: center;
+}
+
+/* Eliminar los estilos personalizados de botones ya que usamos primary-button */
+
+.button-icon {
+    margin-left: 10px;
+    vertical-align: middle;
+    width: 24px; /* Reducir de 32px a 24px */
+    height: 24px; /* Mantener proporción cuadrada */
 }
 
 .primary-button {
@@ -184,34 +180,29 @@ button:last-child:hover {
     background: var(--secondary-v2-color);
 }
 
-button:hover {
-    background: #c0392b;
-}
-
-.button-icon {
-    margin-left: 10px;
-    vertical-align: middle;
-    width: 24px;
-    height: 24px;
-}
-
 .points-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 25px;
-    margin: 3rem 0;
+    gap: 25px; /* Aumentar espacio entre número y trofeo */
+    margin: 3rem 0; /* Aumentar margen vertical */
 }
 
 .points {
     color: var(--white-color);
-    font-size: 50px;
-    line-height: 1;
-    margin-top: 8px;
+    font-size: 50px; /* Aumentar tamaño de fuente */
+    line-height: 1; /* Ajustar line-height para mejor alineación */
+    margin-top: 8px; /* Ajuste fino de alineación vertical */
+}
+
+.h2 {
+    margin-top: 2rem; /* Aumentar margen superior del título */
 }
 
 svg {
-    transform: translateY(-2px);
+    transform: translateY(
+        -2px
+    ); /* Ajuste fino de alineación vertical del SVG */
 }
 
 /* Animaciones de popup */
