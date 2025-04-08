@@ -25,6 +25,7 @@ class Game extends Model
         'is_finished',
         'end_date',
         'winner',
+        'points',
         'created_by'
     ];
 

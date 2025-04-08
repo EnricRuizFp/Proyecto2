@@ -4,7 +4,7 @@
             <div class="game-over-modal neutral-background">
                 <h2 class="white-color h2">DERROTA</h2>
                 <div class="points-container">
-                    <span class="points white-color h3">-10</span>
+                    <span class="points white-color h3">-{{ gameStore.points }}</span>
                     <svg
                         width="40"
                         height="40"
@@ -101,6 +101,7 @@
 
 <script setup>
 import { useRouter } from "vue-router";
+import { useGameStore } from "../../store/game";
 
 const props = defineProps({
     visible: {
@@ -112,6 +113,8 @@ const props = defineProps({
 const emit = defineEmits(['restart', 'cleanup']);
 
 const router = useRouter();
+const gameStore = useGameStore();
+
 const goToHome = () => {
     emit('cleanup');
     router.push("/");

@@ -12,6 +12,26 @@
 
             <!-- Componente de partida -->
             <GameComponent v-if="gamePhase === 'playing'" />
+
+            <!-- Componentes de fin de partida -->
+            <GameWin 
+                v-if="showWin"
+                :visible="showWin"
+                @next-level="handleNextLevel"
+                @cleanup="cleanupGame"
+            />
+            <GameOver
+                v-if="showGameOver"
+                :visible="showGameOver"
+                @restart="handleRestart"
+                @cleanup="cleanupGame"
+            />
+            <GameDraw
+                v-if="showDraw"
+                :visible="showDraw"
+                @next-level="handleNextLevel"
+                @cleanup="cleanupGame"
+            />
         </div>
     </div>
 </template>
@@ -50,6 +70,24 @@ const startGame = (boardConfiguration) => {
 
 const goToMenu = () => {
     router.push("/menu");
+};
+
+const cleanupGame = () => {
+    gameStore.setShowWin(false);
+    gameStore.setShowDraw(false);
+    gameStore.setShowGameOver(false);
+    gameStore.setGamePhase('loading');
+    gameStore.setMatchCode(null);
+};
+
+const handleNextLevel = () => {
+    cleanupGame();
+    router.push('/menu');
+};
+
+const handleRestart = () => {
+    cleanupGame();
+    router.push('/menu');
 };
 
 // ON MOUNTED

@@ -8,7 +8,8 @@ export const useGameStore = defineStore("game", {
         playerBoard: null,
         showWin: false,
         showDraw: false,
-        showGameOver: false
+        showGameOver: false,
+        points: 0
     }),
 
     actions: {
@@ -35,6 +36,9 @@ export const useGameStore = defineStore("game", {
         },
         setShowGameOver(value) {
             this.showGameOver = value;
+        },
+        setPoints(points) {
+            this.points = points;
         }
     },
 });

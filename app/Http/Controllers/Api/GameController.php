@@ -1303,7 +1303,7 @@ class GameController extends Controller
                 ->with('user')
                 ->get();
 
-            // Si es empate, simplemente actualizar el estado del juego
+            // Si es empate, actualizar el estado del juego
             if ($status === 'draw') {
                 $game->update([
                     'is_finished' => true,

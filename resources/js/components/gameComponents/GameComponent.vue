@@ -20,7 +20,7 @@
         <div class="boards-container">
             <!-- Tablero del usuario -->
             <div class="board-section">
-                <h2 class="title">Sus barcos</h2>
+                <h2 class="title">{{ username }}</h2>
                 <div class="board-container">
                     <div class="board-grid">
                         <div v-for="row in 10" :key="`row-${row}`" class="board-row">
@@ -56,7 +56,7 @@
 
             <!-- Tablero de ataque -->
             <div class="board-section">
-                <h2 class="title">Tablero de ataque</h2>
+                <h2 class="title">{{ opponentUsername }}</h2>
                 <div class="board-container">
                     <div class="board-grid">
                         <div v-for="row in 10" :key="`attack-row-${row}`" class="board-row">
@@ -106,6 +106,8 @@ const notification = ref({
     type: 'info',
     position: 'derecha' 
 });
+const username = ref("Sus barcos");
+const opponentUsername = ref("Tablero de ataque");
 
 /* -- FUNCTIONS -- */
 
@@ -123,12 +125,13 @@ const showNotification = (message, type = 'info') => {
 // Función para manejar el ataque
 const handleAttack = async (row, col) => {
     if (!isGameActive.value || !yourTurn.value || attackBoard.value[row][col]) {
-        console.log("Ataque inválido. Juego terminado o turno no permitido o celda ya atacada.");
+        console.log("Ataque inválido.");
+        showNotification("Espera tu turno.", "error");
         return;
     }
 
     try {
-        console.log("Realizando ataque en la posición:", row, col);
+        console.log("Atacando a:", row, "/", col);
         const response = await axios.post('/api/games/attack', {
             gameCode: gameStore.matchCode,
             user: authStore().user,
@@ -166,23 +169,22 @@ const checkMatchWinner = async () => {
             user: authStore().user
         });
 
-        console.log("Respuesta de la función:", response.data);
-
+        // Validación de ganador de la partida
         if(response.data.has_winned == false){
 
             if(response.data.move_count < 100){
                 //showNotification("Te quedan " + response.data.ships_left + " barcos por hundir.", "info");
             }else{
-                console.log("Has llegado al límite de movimientos.");
+                console.log("Límite de movimientos alcanzado.");
+
                 // Finalizar el juego
                 await endGame("draw");
             }
-            // console.log("Te quedan", response.data.ships_left , " barcos por hundir.");
             
 
         }else if(response.data.has_winned == true){
 
-            console.log("Has ganado la partida!");
+            console.log("Ganador de la partida.");
 
             // Mostrar notificación de victoria
             showNotification("¡Has ganado la partida!", "success");
@@ -198,10 +200,26 @@ const checkMatchWinner = async () => {
     }
 };
 
+// Función para reiniciar el estado del juego
+const resetGameState = () => {
+    userBoard.value = Array(10).fill(null).map(() => Array(10).fill(null));
+    attackBoard.value = Array(10).fill(null).map(() => Array(10).fill(null));
+    yourTurn.value = null;
+    timeLeft.value = 25;
+    isGameActive.value = false;
+    notification.value = { 
+        show: false, 
+        message: '', 
+        type: 'info',
+        position: 'derecha' 
+    };
+};
+
 // Función para finalizar la partida (ganando)
 const endGame = async (status) => {
     try {
         console.log("Setteando el ganador de la partida...");
+        console.log("Status: ", status);
         // Detener todas las funciones estableciendo isGameActive a false
         isGameActive.value = false;
         yourTurn.value = false;
@@ -212,16 +230,23 @@ const endGame = async (status) => {
             status: status
         });
 
+        console.log("Respuesta del servidor:", response.data);
+        console.log("UPDATED");
+
         if (response.data.status === 'success') {
             console.log("Partida finalizada con éxito.");
 
             if(status == "winner"){
                 console.log("GANADOR");
+                // Almacenar los puntos ganados
+                gameStore.setPoints(response.data.points_earned);
                 gameStore.setShowWin(true);
             } else {
                 console.log("EMPATE");
+                gameStore.setPoints(0);
                 gameStore.setShowDraw(true);
             }
+            resetGameState();
         }
     } catch (error) {
         console.error("Error al finalizar la partida:", error);
@@ -258,22 +283,26 @@ const waitTurn = async () => {
     let opponentMoved = false;
     let attempts = 0;
 
-    while (!opponentMoved && attempts < 12 && isGameActive.value) { // 12 intentos de 2.5 segundos = 30 segundos
+    while (!opponentMoved && attempts < 12 && isGameActive.value) {
         attempts++;
         console.log(`Intento ${attempts}/12: Verificando movimiento del oponente...`);
 
         try {
-            // Verificar estado de la partida (ver si el oponente ha abandonado)
+            // Verificar estado de la partida
             const matchResponse = await axios.post('/api/games/get-match-info', {
                 gameCode: gameStore.matchCode
             });
 
-            // Si la partida ha terminado, mostrar notificación y salir
-            if (matchResponse.data.data.game.is_finished) {
-                showNotification("El oponente ha abandonado la partida", "error");
-                setTimeout(() => {
-                    router.push('/');
-                }, 2500);
+            // Verificar si la partida ha terminado y si hay un ganador que no es el usuario actual
+            if (matchResponse.data.data.game.is_finished && 
+                matchResponse.data.data.game.winner && 
+                matchResponse.data.data.game.winner !== authStore().user.id) {
+                console.log("PERDEDOR");
+
+                // Mostrar los puntos perdidos
+                gameStore.setPoints(matchResponse.data.data.game.points);
+                gameStore.setShowGameOver(true);
+                resetGameState();
                 return;
             }
 
@@ -305,7 +334,7 @@ const waitTurn = async () => {
         console.log("El oponente no realizó ningún movimiento en 30 segundos.");
     } else {
         console.log("Movimiento del oponente procesado. Cambiando al estado de jugar.");
-        yourTurn.value = true; // Cambiar el turno al usuario
+        yourTurn.value = true;
     }
 };
 
@@ -377,6 +406,14 @@ onMounted(async () => {
     const response = await axios.post('/api/games/get-match-info', {
         gameCode: gameStore.matchCode
     });
+
+    // Obtener el nombre del usuario actual y del oponente
+    username.value = authStore().user.username;
+    opponentUsername.value = response.data.data.players.find(
+        player => player.user_id !== authStore().user.id
+    ).username;
+
+    // Definir quién empieza
     yourTurn.value = response.data.data.game.created_by === authStore().user.id;
     // Iniciar el bucle del juego
     gameLoop();
@@ -384,7 +421,6 @@ onMounted(async () => {
 
 // Limpiar cuando se desmonta el componente
 onUnmounted(() => {
-    console.log("Desmontando componente de juego...");
     isGameActive.value = false;
 });
 </script>
@@ -394,24 +430,25 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1rem;
+    padding: 4.5rem 1rem 1rem 1rem;
     width: 100%;
     min-height: 100vh;
 }
 
 .boards-container {
     display: flex;
-    gap: 1rem;
+    gap: 8rem; /* Espacio grande entre tableros para pantallas anchas */
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 1rem;
+    padding: 0.5rem;
     flex: 1;
 }
 
 .board-container {
-    width: min(calc((100vh - 250px) / 2.2), 400px);
-    height: min(calc((100vh - 250px) / 2.2), 400px);
+    /* Tamaño base para pantallas grandes */
+    width: min(450px, calc((100vw - 6rem) / 2)); /* Aumentado el tamaño máximo y ajustado el cálculo */
+    height: min(450px, calc((100vw - 6rem) / 2));
     padding: 0.25rem;
     border-radius: 8px;
     border: 2px solid var(--primary-color);
@@ -504,6 +541,95 @@ onUnmounted(() => {
 }
 
 /* Media query para dispositivos móviles */
+@media (max-width: 1000px) {
+    .game {
+        padding: 4rem 0.25rem 0.25rem 0.25rem;
+    }
+
+    .boards-container {
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.15rem;
+    }
+
+    .board-container {
+        /* Aumentado el tamaño para pantallas estrechas */
+        width: min(85vw, calc(100vh - 320px));
+        height: min(85vw, calc(100vh - 320px));
+        max-width: 350px;
+        max-height: 350px;
+        padding: 0.15rem;
+    }
+
+    .game-status {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timer, .waiting-message {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-height: 700px) {
+    .board-container {
+        width: min(60vw, calc(100vh - 300px));
+        height: min(60vw, calc(100vh - 300px));
+        max-width: 250px;
+        max-height: 250px;
+    }
+}
+
+@media (max-height: 800px) {
+    .game {
+        padding: 3.5rem 0.5rem 0.5rem 0.5rem;
+    }
+
+    .boards-container {
+        gap: 0.25rem;
+    }
+
+    .board-container {
+        padding: 0.15rem;
+    }
+
+    .board-cell {
+        border-width: 1px;
+    }
+}
+
+@media (max-height: 700px) {
+    .game {
+        padding: 3rem 0.5rem 0.5rem 0.5rem;
+    }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 400px) or (max-height: 600px) {
+    .game {
+        padding: 2.5rem 0.25rem 0.25rem 0.25rem;
+    }
+
+    .boards-container {
+        gap: 0.15rem;
+    }
+
+    .board-container {
+        width: min(95vw, calc(100vh - 200px));
+        height: min(95vw, calc(100vh - 200px));
+    }
+
+    .game-status {
+        padding: 0.25rem;
+    }
+
+    .timer, .waiting-message {
+        font-size: 1rem;
+        padding: 0.25rem 0.75rem;
+    }
+}
+
 @media (max-width: 960px) {
     .boards-container {
         flex-direction: column;
@@ -627,27 +753,4 @@ onUnmounted(() => {
     }
 }
 
-/* Remover o comentar las otras animaciones que no usaremos
-@keyframes slideInLeft {
-    from {
-        transform: translateX(-100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideInTop {
-    from {
-        transform: translateY(-100%) translateX(-50%);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0) translateX(-50%);
-        opacity: 1;
-    }
-}
-*/
 </style>
