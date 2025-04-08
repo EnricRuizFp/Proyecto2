@@ -12,34 +12,7 @@
 
             <!-- Componente de partida -->
             <GameComponent v-if="gamePhase === 'playing'" />
-
-            <!-- Panel de pruebas convertido en componente -->
-            <PruebasComponent v-if="false" />
         </div>
-
-        <!-- Botones temporales para pruebas -->
-        <div class="debug-controls">
-            <button @click="testWin">Simular Victoria</button>
-            <button @click="testDraw">Simular Empate</button>
-            <button @click="testGameOver">Simular Derrota</button>
-        </div>
-
-        <!-- Componentes de victoria y derrota -->
-        <GameWin
-            :visible="showWin"
-            @next-level="nextLevel"
-            @restart="restartLevel"
-        />
-        <GameDraw
-            :visible="showDraw"
-            @restart="restartLevel"
-            @menu="goToMenu"
-        />
-        <GameOver
-            :visible="showGameOver"
-            @restart="restartLevel"
-            @menu="goToMenu"
-        />
     </div>
 </template>
 
@@ -75,34 +48,12 @@ const startGame = (boardConfiguration) => {
     gameStore.setGamePhase("playing");
 };
 
-const nextLevel = () => {
-    gameStore.setShowWin(false);
-};
-
-const restartLevel = () => {
-    gameStore.setShowWin(false);
-    gameStore.setShowGameOver(false);
-};
-
 const goToMenu = () => {
     router.push("/menu");
 };
 
-const testWin = () => {
-    gameStore.setShowWin(true);
-};
-
-const testDraw = () => {
-    gameStore.setShowDraw(true);
-};
-
-const testGameOver = () => {
-    gameStore.setShowGameOver(true);
-};
-
 // ON MOUNTED
 onMounted(() => {
-
     // Verificación de usuario autenticado y tipo de juego
     if (!authStore().user || !route.params.gameType) {
         gameStore.setGameMode(null);
@@ -138,28 +89,5 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.debug-controls {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    gap: 10px;
-}
-
-.debug-controls button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    background: var(--primary-color);
-    color: var(--white-color);
-    font-weight: bold;
-    transition: 0.3s;
-}
-
-.debug-controls button:hover {
-    background: var(--primary-v2-color);
 }
 </style>
