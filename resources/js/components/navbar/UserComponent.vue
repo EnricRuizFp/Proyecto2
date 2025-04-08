@@ -704,4 +704,66 @@ onMounted(async () => {
 .disabled-menu-item i {
     color: var(--neutral-color-3) !important;
 }
+
+/* Mejoras de responsividad para UserComponent dentro de GameLoadingComponent */
+.player-side :deep(.profile) {
+    min-height: auto !important;
+    width: 100% !important;
+    padding: 1rem !important;
+    border: 2px solid var(--primary-color) !important;
+}
+
+.player-side :deep(.profile-content) {
+    padding: 0.25rem !important;
+}
+
+.player-side :deep(.userImageContainer) {
+    min-width: 50px !important;
+    width: 50px !important;
+    height: 50px !important;
+    margin: 0 0.75rem 0 0 !important;
+}
+
+.player-side :deep(.usernameContainer) {
+    overflow: hidden !important;
+    flex: 1 !important;
+}
+
+.player-side :deep(.username-wrapper) {
+    width: 100% !important;
+}
+
+.player-side :deep(.username) {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Media query para pantallas medianas (donde ocurre el problema) */
+@media (max-width: 800px) and (min-width: 601px) {
+    .player-side :deep(.profile) {
+        padding: 0.5rem !important;
+    }
+
+    .player-side :deep(.userImageContainer) {
+        width: 40px !important;
+        height: 40px !important;
+        margin: 0 0.5rem 0 0 !important;
+    }
+
+    .player-side :deep(.username) {
+        font-size: 0.9rem !important;
+        max-width: 110px !important;
+    }
+
+    .player-side :deep(.points) {
+        font-size: 0.8rem !important;
+    }
+
+    .player-side :deep(.points img) {
+        width: 16px !important;
+        height: 16px !important;
+        margin-left: 0.2rem !important;
+    }
+}
 </style>

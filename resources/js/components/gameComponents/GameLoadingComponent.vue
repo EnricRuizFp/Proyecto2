@@ -426,42 +426,45 @@ const pollMatchStatusGuest = async () => {
 
 .players-container {
     display: grid;
-    grid-template-columns: minmax(250px, 1fr) auto minmax(250px, 1fr);
-    gap: 2rem;
+    grid-template-columns: 1fr auto 1fr; /* Mantener fracciones flexibles */
+    gap: 1.5rem;
     padding: 1rem;
     width: 100%;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
 }
 
 .player-side {
     display: flex;
     justify-content: center;
     width: 100%;
+    /* Eliminar max-width para permitir adaptación */
 }
 
-.player-card {
-    width: 100%;
-    min-width: 250px;
-    max-width: 300px;
-    height: 120px;
-    display: flex;
-    align-items: center;
-    padding: 1.5rem;
-    background: var(--neutral-color-1);
-    border-radius: 8px;
-    border: 2px solid var(--primary-color);
-    transition: all 0.3s ease;
+/* Contenedor player-card y UserComponent compartiendo mismas dimensiones */
+.player-card,
+.player-side :deep(.profile) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 300px !important; /* Establecer un max-width común para ambos */
+    min-height: 100px !important;
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0.75rem !important;
+    background-color: var(--neutral-color-1) !important;
+    border-radius: 8px !important;
+    border: 2px solid var(--primary-color) !important;
+    transition: all 0.3s ease !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
-.guest-player {
-    border-color: var(--secondary-color);
-}
-
+/* Arreglar el icono de carga del oponente */
 .player-avatar {
     flex-shrink: 0;
-    width: 60px;
-    height: 60px;
+    width: 55px; /* Ajustar para que coincida con el tamaño del avatar del usuario */
+    height: 55px;
     border-radius: 50%;
     background: var(--neutral-color);
     display: flex;
@@ -469,20 +472,37 @@ const pollMatchStatusGuest = async () => {
     justify-content: center;
     font-size: 2rem;
     color: var(--primary-color);
+    overflow: hidden; /* Para evitar desbordamientos del icono */
+}
+
+.guest-player {
+    border-color: var(--secondary-color) !important;
+}
+
+/* Ajustes para el contenido dentro de UserComponent */
+.player-side :deep(.profile-content) {
+    padding: 0 !important;
+    height: auto !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+}
+
+.player-side :deep(.left-side) {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    justify-content: flex-start !important;
+    padding-left: 0.5rem !important;
 }
 
 .vs-separator {
     padding: 0 2rem;
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-width: 60px;
-    color: var(--primary-color);
-    font-weight: bold;
-}
-
-.waiting .player-avatar {
-    color: var(--secondary-color);
 }
 
 .match-code {
@@ -592,21 +612,229 @@ const pollMatchStatusGuest = async () => {
 }
 
 .page-title {
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
+    text-align: center;
+    width: 90%;
+    max-width: 800px;
+    font-size: 2.2rem; /* Tamaño base para pantallas grandes */
 }
 
+@media (max-width: 1200px) {
+    .page-title {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .page-title {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 1.6rem;
+        margin-bottom: 1.5rem;
+        width: 95%;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-title {
+        font-size: 1.4rem;
+        margin-bottom: 1.2rem;
+        width: 100%;
+    }
+}
+
+@media (max-width: 400px) {
+    .page-title {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Estilos específicos para hacer que UserComponent coincida con player-card */
 .player-side :deep(.profile) {
-    min-height: unset;
-    width: 100%;
-    padding: 1rem;
-    margin: 0;
-    background-color: var(--neutral-color-1);
-    border: 2px solid var(--primary-color);
+    min-height: 100px !important;
+    height: 100% !important;
+    width: 100% !important;
+    max-width: none !important; /* Eliminado max-width para ocupar todo el espacio */
+    background-color: var(--neutral-color-1) !important;
+    border: 2px solid var(--primary-color) !important;
+    border-radius: 8px !important;
+    padding: 0.75rem !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 .player-side :deep(.profile-content) {
-    height: auto;
-    padding: 0;
+    padding: 0 !important;
+    height: auto !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important; /* Cambiado a center desde flex-start */
+}
+
+.player-side :deep(.left-side) {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    justify-content: flex-start !important; /* Explícitamente alineado a la izquierda */
+    padding-left: 0.5rem !important; /* Añadido padding izquierdo para mover el contenido */
+}
+
+/* Ajustes específicos para pantallas grandes (mayores a 800px) */
+@media (min-width: 801px) {
+    .players-container {
+        grid-template-columns: minmax(250px, 300px) auto minmax(250px, 300px);
+        gap: 2rem;
+        padding: 1.5rem;
+    }
+
+    .player-side {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+    .player-card,
+    .player-side :deep(.profile) {
+        max-width: 300px !important;
+        min-height: 110px !important;
+        padding: 0.75rem 1rem !important;
+    }
+
+    .vs-separator {
+        padding: 0 1.5rem !important;
+        min-width: 50px;
+    }
+
+    /* Ajustar el contenido de UserComponent específicamente para pantallas grandes */
+    .player-side :deep(.userImageContainer) {
+        width: 55px !important;
+        height: 55px !important;
+        min-width: 55px !important;
+    }
+
+    .player-side :deep(.username) {
+        font-size: 1.1rem !important;
+        max-width: 200px !important; /* Dar más espacio en pantallas grandes */
+    }
+
+    .player-side :deep(.points) {
+        font-size: 0.9rem !important;
+    }
+}
+
+/* Ajustes específicos para resoluciones medianas */
+@media (max-width: 800px) and (min-width: 601px) {
+    .players-container {
+        grid-template-columns: 1fr auto 1fr;
+        gap: 1rem;
+    }
+
+    .vs-separator {
+        padding: 0 0.5rem !important;
+        min-width: 30px; /* Reducir el ancho mínimo */
+    }
+
+    .player-card,
+    .player-side :deep(.profile) {
+        max-width: 240px !important;
+        min-height: 90px !important;
+    }
+
+    .player-side :deep(.userImageContainer) {
+        width: 45px !important;
+        height: 45px !important;
+        min-width: 45px !important;
+    }
+
+    .player-side :deep(.username) {
+        font-size: 0.95rem !important;
+    }
+
+    .player-side :deep(.points) {
+        font-size: 0.8rem !important;
+    }
+
+    .player-avatar {
+        width: 45px !important; /* Reducir tamaño del avatar del oponente */
+        height: 45px !important;
+    }
+
+    .ship-loading-animation.small {
+        width: 45px !important;
+        height: 45px !important;
+    }
+
+    .ship-loading-animation.small i {
+        font-size: 1.6rem !important;
+    }
+}
+
+/* Corrección específica para el rango de 760px a 600px donde ocurre el comportamiento irregular */
+@media (max-width: 760px) and (min-width: 601px) {
+    .players-container {
+        grid-template-columns: 1fr auto 1fr;
+        gap: 0.5rem !important;
+    }
+
+    .vs-separator {
+        padding: 0 0.25rem !important;
+        min-width: 20px !important;
+        font-size: 0.9rem;
+    }
+
+    .vs-separator span {
+        font-size: 1.5rem !important;
+    }
+
+    .player-card,
+    .player-side :deep(.profile) {
+        max-width: 200px !important; /* Reducir aún más para este rango específico */
+        min-height: 80px !important;
+        padding: 0.5rem !important;
+    }
+
+    .player-avatar {
+        width: 40px !important;
+        height: 40px !important;
+    }
+
+    .player-side :deep(.userImageContainer) {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+    }
+
+    .player-content {
+        gap: 0.75rem !important;
+    }
+
+    .player-side :deep(.username) {
+        font-size: 0.85rem !important;
+        max-width: 100px !important;
+    }
+
+    .player-side :deep(.points) {
+        font-size: 0.75rem !important;
+    }
+
+    .player-side :deep(.points img) {
+        width: 14px !important;
+        height: 14px !important;
+    }
 }
 
 /* Pulse animation */
@@ -669,14 +897,49 @@ const pollMatchStatusGuest = async () => {
         text-align: center !important;
     }
 
-    .player-card {
-        width: 100%;
-        max-width: 250px;
+    .player-card,
+    .player-side :deep(.profile) {
+        max-width: 90% !important; /* Ajustado para móviles */
+        width: 100% !important;
     }
 
-    .match-setup {
-        padding: 1rem;
-        gap: 1.5rem;
+    .player-side :deep(.profile-content) {
+        flex-direction: row !important; /* Mantener horizontal en móviles */
+        align-items: center !important;
+        text-align: left !important; /* Alineación de texto a la izquierda */
+        gap: 0.5rem !important;
+        justify-content: flex-start !important; /* Alineado a la izquierda */
+        padding-left: 0.25rem !important; /* Padding más pequeño en móviles */
+    }
+
+    .player-side :deep(.left-side) {
+        flex-direction: row !important; /* Mantener horizontal en móviles */
+        text-align: left !important;
+        gap: 0.75rem !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+    }
+
+    .player-side :deep(.userImageContainer) {
+        margin-right: 0.5rem !important; /* Espacio entre avatar y texto en móvil */
+    }
+
+    .player-side :deep(.username-wrapper) {
+        align-items: flex-start !important; /* Alinear a la izquierda */
+    }
+
+    .player-avatar {
+        width: 40px !important; /* Reducir aún más para móviles */
+        height: 40px !important;
+    }
+
+    .ship-loading-animation.small {
+        width: 40px !important;
+        height: 40px !important;
+    }
+
+    .ship-loading-animation.small i {
+        font-size: 1.4rem !important;
     }
 }
 </style>
