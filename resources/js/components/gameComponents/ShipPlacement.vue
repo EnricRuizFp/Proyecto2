@@ -171,7 +171,7 @@ const loadShips = async () => {
 };
 
 // Temporizador
-const timeLeft = ref(30);
+const timeLeft = ref(20);
 const timerInterval = ref(null);
 
 const formatTime = (seconds) => {
@@ -468,6 +468,7 @@ const emit = defineEmits(["placement-confirmed"]);
     max-width: 1200px;
     margin: 0 auto;
     min-height: 100vh;
+    height: 100%;
 }
 
 .page-title {
@@ -1108,5 +1109,136 @@ const emit = defineEmits(["placement-confirmed"]);
 .loading-overlay i {
     font-size: 2rem;
     color: var(--primary-color);
+}
+
+/* Añadir media queries basadas en altura */
+@media (max-height: 800px) {
+    .ship-placement {
+        padding: 4rem 1rem 1rem 1rem;
+    }
+
+    .board-container, .ships-dock {
+        width: 400px;
+        height: 400px;
+    }
+
+    .board-grid {
+        width: 360px;
+        height: 360px;
+    }
+
+    .board-cell {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+@media (max-height: 700px) {
+    .ship-placement {
+        padding: 3rem 1rem 1rem 1rem;
+    }
+
+    .board-container, .ships-dock {
+        width: 350px;
+        height: 350px;
+    }
+
+    .board-grid {
+        width: 320px;
+        height: 320px;
+    }
+
+    .board-cell {
+        width: 32px;
+        height: 32px;
+    }
+
+    .ship-segment {
+        width: 32px;
+        height: 32px;
+    }
+
+    .controls {
+        gap: 1rem;
+    }
+
+    .control-button {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-height: 600px) {
+    .ship-placement {
+        padding: 2rem 1rem 1rem 1rem;
+    }
+
+    .board-container, .ships-dock {
+        width: 300px;
+        height: 300px;
+    }
+
+    .board-grid {
+        width: 280px;
+        height: 280px;
+    }
+
+    .board-cell {
+        width: 28px;
+        height: 28px;
+    }
+
+    .ship-segment {
+        width: 28px;
+        height: 28px;
+    }
+
+    .dock-title {
+        font-size: 14px;
+    }
+
+    .timer {
+        padding: 0.5rem 1rem;
+        font-size: 18px;
+    }
+}
+
+/* Ajustar para pantallas tanto bajas como estrechas */
+@media (max-height: 600px) and (max-width: 768px) {
+    .game-layout {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .board-container, .ships-dock {
+        width: 280px;
+        height: 280px;
+    }
+
+    .controls {
+        width: 100%;
+        flex-direction: row;
+        padding: 0.25rem;
+        gap: 0.5rem;
+    }
+}
+
+/* Mantener los media queries existentes para móvil y ajustarlos */
+@media (max-width: 480px) {
+    .board-container, .ships-dock {
+        width: min(320px, 90vw);
+        height: min(320px, 90vw);
+    }
+
+    .board-grid {
+        width: min(300px, calc(90vw - 20px));
+        height: min(300px, calc(90vw - 20px));
+    }
+
+    .board-cell {
+        width: min(30px, calc(9vw - 2px));
+        height: min(30px, calc(9vw - 2px));
+    }
 }
 </style>

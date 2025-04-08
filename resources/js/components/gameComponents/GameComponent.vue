@@ -13,7 +13,7 @@
         </div>
 
         <!-- Sistema de notificaciones -->
-        <div v-if="notification.show" class="notification" :class="notification.type">
+        <div v-if="notification.show" class="notification" :class="[notification.type, notification.position]">
             <span>{{ notification.message }}</span>
         </div>
 
@@ -27,10 +27,27 @@
                             <div v-for="col in 10" :key="`cell-${row}-${col}`" 
                                 class="board-cell"
                                 :class="{ 
-                                    'ship': userBoard[row - 1][col - 1],
+                                    'ship': userBoard[row - 1][col - 1] && userBoard[row - 1][col - 1] !== 'X' && userBoard[row - 1][col - 1] !== 'O',
                                     'hit': userBoard[row - 1][col - 1] === 'X',
                                     'miss': userBoard[row - 1][col - 1] === 'O'
                                 }">
+                                <svg v-if="userBoard[row - 1][col - 1] === 'X'" 
+                                    class="hit-marker" 
+                                    viewBox="0 0 24 24">
+                                    <path d="M12 2 L14 7 L19 5 L16 10 L21 12 L16 14 L19 19 L14 17 L12 22 L10 17 L5 19 L8 14 L3 12 L8 10 L5 5 L10 7 Z" 
+                                          fill="red" 
+                                          stroke="darkred" 
+                                          stroke-width="1"/>
+                                    <circle cx="12" cy="12" r="3" fill="darkred"/>
+                                </svg>
+                                <svg v-if="userBoard[row - 1][col - 1] === 'O'" 
+                                    class="miss-marker" 
+                                    viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="#0d6efd" stroke-width="2" fill="none"/>
+                                    <circle cx="12" cy="12" r="3" fill="#0d6efd"/>
+                                    <line x1="12" y1="2" x2="12" y2="22" stroke="#0d6efd" stroke-width="2"/>
+                                    <line x1="2" y1="12" x2="22" y2="12" stroke="#0d6efd" stroke-width="2"/>
+                                </svg>
                             </div>
                         </div>
                     </div>
@@ -49,7 +66,15 @@
                                 @click="handleAttack(row - 1, col - 1)"
                                 :class="{ hit: attackBoard[row - 1][col - 1] === '✓', miss: attackBoard[row - 1][col - 1] === '✗' }"
                             >
-                                <span v-if="attackBoard[row - 1][col - 1]">{{ attackBoard[row - 1][col - 1] }}</span>
+                                <svg v-if="attackBoard[row - 1][col - 1] === '✓'" class="hit-marker" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="red" stroke-width="2" fill="none"/>
+                                    <circle cx="12" cy="12" r="3" fill="red"/>
+                                    <line x1="12" y1="2" x2="12" y2="22" stroke="red" stroke-width="2"/>
+                                    <line x1="2" y1="12" x2="22" y2="12" stroke="red" stroke-width="2"/>
+                                </svg>
+                                <svg v-if="attackBoard[row - 1][col - 1] === '✗'" class="miss-marker" viewBox="0 0 24 24">
+                                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="#0d6efd"/>
+                                </svg>
                             </div>
                         </div>
                     </div>
@@ -75,20 +100,30 @@ const timeLeft = ref(25);
 const isGameActive = ref(true);
 const userBoard = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
 const attackBoard = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
-const notification = ref({ show: false, message: '', type: 'info' });
+const notification = ref({ 
+    show: false, 
+    message: '', 
+    type: 'info',
+    position: 'derecha' 
+});
 
 /* -- FUNCTIONS -- */
 
 // Función para mostrar notificaciones
 const showNotification = (message, type = 'info') => {
-    notification.value = { show: true, message, type };
+    notification.value = { 
+        show: true, 
+        message, 
+        type,
+        position: 'derecha' 
+    };
     setTimeout(() => { notification.value.show = false; }, 3000);
 };
 
 // Función para manejar el ataque
 const handleAttack = async (row, col) => {
-    if (!yourTurn.value || attackBoard.value[row][col] || !isGameActive.value) {
-        console.log("Ataque inválido. Turno no permitido o celda ya atacada.");
+    if (!isGameActive.value || !yourTurn.value || attackBoard.value[row][col]) {
+        console.log("Ataque inválido. Juego terminado o turno no permitido o celda ya atacada.");
         return;
     }
 
@@ -104,12 +139,18 @@ const handleAttack = async (row, col) => {
             const result = response.data.message;
             attackBoard.value[row][col] = result === 'hit' ? '✓' : '✗';
 
-            if (result === 'hit' && response.data.ship) {
-                showNotification(`¡Has acertado al ${response.data.ship}!`, 'success');
+            if (result === 'hit') {
+                if (response.data.is_sunk) {
+                    showNotification('¡Tocado y hundido!', 'success');
+                } else {
+                    showNotification('¡Tocado!', 'success');
+                }
+            } else {
+                showNotification('¡Agua!', 'water');
             }
 
-            await checkMatchWinner(); // Llamar a la nueva función para verificar el ganador
-            yourTurn.value = false; // Cambiar el turno al oponente
+            await checkMatchWinner();
+            yourTurn.value = false;
         }
     } catch (error) {
         console.error("Error en el ataque:", error);
@@ -130,7 +171,7 @@ const checkMatchWinner = async () => {
         if(response.data.has_winned == false){
 
             if(response.data.move_count < 100){
-                showNotification("Te quedan " + response.data.ships_left + " barcos por hundir.", "info");
+                //showNotification("Te quedan " + response.data.ships_left + " barcos por hundir.", "info");
             }else{
                 console.log("Has llegado al límite de movimientos.");
                 // Finalizar el juego
@@ -161,6 +202,9 @@ const checkMatchWinner = async () => {
 const endGame = async (status) => {
     try {
         console.log("Setteando el ganador de la partida...");
+        // Detener todas las funciones estableciendo isGameActive a false
+        isGameActive.value = false;
+        yourTurn.value = false;
 
         const response = await axios.post('/api/games/set-game-ending', {
             gameCode: gameStore.matchCode,
@@ -186,6 +230,7 @@ const endGame = async (status) => {
 
 // Función para manejar el turno de jugar
 const playTurn = async () => {
+    if (!isGameActive.value) return;
     console.log("Tu turno. Tienes 25 segundos para atacar.");
     timeLeft.value = 25;
 
@@ -208,22 +253,38 @@ const playTurn = async () => {
 
 // Función para manejar el turno de esperar
 const waitTurn = async () => {
+    if (!isGameActive.value) return;
     console.log("Esperando el movimiento del oponente...");
     let opponentMoved = false;
     let attempts = 0;
 
-    while (!opponentMoved && attempts < 12) { // 12 intentos de 2.5 segundos = 30 segundos
+    while (!opponentMoved && attempts < 12 && isGameActive.value) { // 12 intentos de 2.5 segundos = 30 segundos
         attempts++;
         console.log(`Intento ${attempts}/12: Verificando movimiento del oponente...`);
 
         try {
-            const response = await axios.post('/api/games/get-last-move', {
+            // Verificar estado de la partida (ver si el oponente ha abandonado)
+            const matchResponse = await axios.post('/api/games/get-match-info', {
+                gameCode: gameStore.matchCode
+            });
+
+            // Si la partida ha terminado, mostrar notificación y salir
+            if (matchResponse.data.data.game.is_finished) {
+                showNotification("El oponente ha abandonado la partida", "error");
+                setTimeout(() => {
+                    router.push('/');
+                }, 2500);
+                return;
+            }
+
+            // Si la partida sigue activa, verificar el último movimiento
+            const moveResponse = await axios.post('/api/games/get-last-move', {
                 gameCode: gameStore.matchCode,
                 user: authStore().user
             });
 
-            if (response.data.status === 'success' && response.data.move) {
-                const move = response.data.move;
+            if (moveResponse.data.status === 'success' && moveResponse.data.move) {
+                const move = moveResponse.data.move;
                 const [row, col] = move.coordinate.split(',').map(num => parseInt(num) - 1);
                 userBoard.value[row][col] = move.result === 'hit' ? 'X' : 'O';
                 opponentMoved = true;
@@ -263,7 +324,6 @@ const gameLoop = async () => {
 
 // Función loadShips (cargar los barcos del jugador)
 const loadShips = async () => {
-
     // Verificación de usuario autenticado y código de partida
     if(authStore().user == null) {
         // backToHome(true, "No tienes permiso para acceder a esta página (user)");
@@ -279,7 +339,7 @@ const loadShips = async () => {
             gameCode: gameStore.matchCode,
             user: authStore().user
         });
-        
+
         if (response.data.status === 'failed') {
             // backToHome(true, "Error al cargar la partida.");
             console.log("Error al cargar la partida. [respuesta es failed]");
@@ -288,7 +348,6 @@ const loadShips = async () => {
 
         // Posicionar los barcos en el tablero
         setUserBoard(JSON.parse(response.data.data));
-
     } catch (error) {
         // backToHome(true, "Error al cargar la partida.");
         console.log("Error al cargar la partida: ", error);
@@ -312,16 +371,13 @@ const setUserBoard = (shipsData) => {
 
 // Inicialización del juego
 onMounted(async () => {
-
     // Montar el tablero del usuario
     await loadShips();
-
     // Obtener los datos de la partida
     const response = await axios.post('/api/games/get-match-info', {
         gameCode: gameStore.matchCode
     });
     yourTurn.value = response.data.data.game.created_by === authStore().user.id;
-
     // Iniciar el bucle del juego
     gameLoop();
 });
@@ -338,15 +394,26 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem;
+    padding: 1rem;
     width: 100%;
+    min-height: 100vh;
+}
+
+.boards-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 1rem;
+    flex: 1;
 }
 
 .board-container {
-    width: 450px;
-    height: 450px;
-    padding: 1.5rem;
-    border-radius: 12px;
+    width: min(calc((100vh - 250px) / 2.2), 400px);
+    height: min(calc((100vh - 250px) / 2.2), 400px);
+    padding: 0.25rem;
+    border-radius: 8px;
     border: 2px solid var(--primary-color);
     background: var(--background-secondary);
     display: flex;
@@ -355,8 +422,8 @@ onUnmounted(() => {
 }
 
 .board-grid {
-    width: 400px;
-    height: 400px;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     border: 2px solid var(--primary-color);
@@ -365,11 +432,12 @@ onUnmounted(() => {
 
 .board-row {
     display: flex;
+    flex: 1;
 }
 
 .board-cell {
-    width: 40px;
-    height: 40px;
+    flex: 1;
+    aspect-ratio: 1;
     border: 1px solid var(--primary-color);
     display: flex;
     align-items: center;
@@ -389,35 +457,43 @@ onUnmounted(() => {
     border-radius: 2px;
 }
 
-.board-cell.hit {
-    background-color: #dc3545 !important; /* Rojo para impactos */
+.board-cell.hit, .board-cell.miss {
+    background-color: transparent !important;
 }
 
-.board-cell.miss {
-    background-color: #28a745 !important; /* Verde para fallos */
+.hit-marker, .miss-marker {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
+.hit-marker {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.miss-marker {
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Asegurarse que el SVG esté por encima del fondo del barco */
 .board-cell.ship.hit::after {
-    background-color: #dc3545; /* Rojo para barcos impactados */
+    background-color: transparent;
 }
 
 /* Nuevos estilos */
-.boards-container {
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
-    align-items: start;
-    width: 100%;
-    padding: 2rem;
-}
-
-.board-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-}
-
 .clickable {
     cursor: pointer;
     transition: background-color 0.2s ease;
@@ -431,7 +507,39 @@ onUnmounted(() => {
 @media (max-width: 960px) {
     .boards-container {
         flex-direction: column;
-        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .board-container {
+        width: min(calc(100vh - 450px), 85vw, 400px);
+        height: min(calc(100vh - 450px), 85vw, 400px);
+    }
+    
+    /* Reordena los tableros en móvil */
+    .board-section:first-child {
+        order: 2;
+    }
+    
+    .board-section:last-child {
+        order: 1;
+    }
+}
+
+@media (max-height: 900px) {
+    .game {
+        padding: 0.5rem;
+    }
+    
+    .boards-container {
+        padding: 0.5rem;
+    }
+    
+    .board-container {
+        padding: 0.5rem;
+    }
+    
+    .game-status {
+        padding: 0.5rem;
     }
 }
 
@@ -468,12 +576,10 @@ onUnmounted(() => {
 .notification {
     position: fixed;
     top: 20px;
-    right: 20px;
     padding: 1rem 1.5rem;
     border-radius: 8px;
     color: white;
     z-index: 1000;
-    animation: slideIn 0.3s ease-out;
 }
 
 .notification.success {
@@ -484,7 +590,33 @@ onUnmounted(() => {
     background-color: var(--primary-color);
 }
 
-@keyframes slideIn {
+.notification.error {
+    background-color: #dc3545;
+}
+
+.notification.water {
+    background-color: #0d6efd;
+}
+
+.notification.derecha {
+    right: 20px;
+    animation: slideInRight 0.3s ease-out;
+}
+
+/* Remover o comentar las otras posiciones que no usaremos
+.notification.izquierda {
+    left: 20px;
+    animation: slideInLeft 0.3s ease-out;
+}
+
+.notification.centro {
+    left: 50%;
+    transform: translateX(-50%);
+    animation: slideInTop 0.3s ease-out;
+}
+*/
+
+@keyframes slideInRight {
     from {
         transform: translateX(100%);
         opacity: 0;
@@ -494,4 +626,28 @@ onUnmounted(() => {
         opacity: 1;
     }
 }
+
+/* Remover o comentar las otras animaciones que no usaremos
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInTop {
+    from {
+        transform: translateY(-100%) translateX(-50%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) translateX(-50%);
+        opacity: 1;
+    }
+}
+*/
 </style>

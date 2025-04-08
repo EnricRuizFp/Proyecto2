@@ -933,7 +933,7 @@ class GameController extends Controller
                 'gameCode' => 'required|string',
                 'user' => 'required|array',
                 'user.id' => 'required|integer',
-                'coordinates' => 'required|string'  // Formato: "row,col"
+                'coordinates' => 'required|string'
             ]);
 
             // Buscar la partida
@@ -950,6 +950,7 @@ class GameController extends Controller
                 ->where('game_id', $game->id)
                 ->where('user_id', '!=', $request->user['id'])
                 ->first();
+            
             if (!$opponentData || empty($opponentData->coordinates)) {
                 return response()->json([
                     'status' => 'failed',
@@ -963,9 +964,30 @@ class GameController extends Controller
 
             // Buscar si la coordenada coincide con algún barco
             $hitShip = null;
+            $isSunk = false;
+
             foreach ($opponentShips as $shipName => $positions) {
                 if (in_array($attackCoordinate, $positions)) {
                     $hitShip = $shipName;
+                    
+                    // Verificar si todas las posiciones del barco han sido golpeadas
+                    $allHits = true;
+                    foreach ($positions as $position) {
+                        // Si la posición actual no es la que acabamos de atacar
+                        if ($position != $attackCoordinate) {
+                            // Buscar si ya existe un hit en esa posición
+                            $existingHit = Move::where('game_id', $game->id)
+                                ->where('coordinate', $position)
+                                ->where('result', 'hit')
+                                ->exists();
+                            
+                            if (!$existingHit) {
+                                $allHits = false;
+                                break;
+                            }
+                        }
+                    }
+                    $isSunk = $allHits;
                     break;
                 }
             }
@@ -982,14 +1004,15 @@ class GameController extends Controller
                 'coordinate' => $attackCoordinate,
                 'result' => $hitShip ? 'hit' : 'miss',
                 'ship' => $hitShip,
-                'updated_at' => now() // Añadir la fecha actual
+                'sunk' => $isSunk,
+                'updated_at' => now()
             ]);
 
-            // Si no ha encontrado coincidencia, es un fallo
             return response()->json([
                 'status' => 'success',
                 'message' => $hitShip ? 'hit' : 'miss',
-                'ship' => $hitShip
+                'ship' => $hitShip,
+                'is_sunk' => $isSunk
             ]);
 
         } catch (\Exception $e) {
