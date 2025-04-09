@@ -485,22 +485,24 @@ const emit = defineEmits(["placement-confirmed"]);
     width: 100%;
     background: var(--background-primary);
     border-radius: 12px;
+    padding-top: 3rem; /* Añadido padding-top para mejor visualización */
 }
 
 .ships-dock {
-    width: 450px; /* Aumentado para igualar el ancho total del board-container */
-    height: 450px; /* Altura fija para igualar el board-container */
+    width: 450px;
+    height: 450px;
     padding: 0.75rem;
     background: var(--neutral-color-1);
     border-radius: 12px;
     border: 2px solid var(--primary-color);
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* Añadido para contener los hijos */
 }
 
 .ships-dock h3 {
     color: var(--white-color);
-    margin-bottom: 0.5rem; /* Reducido para dar espacio al separador */
+    margin-bottom: 0.5rem;
     text-align: center;
 }
 
@@ -516,15 +518,17 @@ const emit = defineEmits(["placement-confirmed"]);
 .ships-container {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem; /* Reducido de 0.5rem */
-    align-items: center; /* Centrar los barcos */
+    gap: 0.25rem;
+    align-items: center;
     flex-grow: 1;
-    padding: 0.25rem; /* Reducido de 0.5rem */
+    padding: 0.25rem;
+    overflow-y: auto; /* Permitir scroll vertical si es necesario */
+    max-height: calc(100% - 35px); /* Restar espacio de título y separador */
 }
 
 .board-container {
-    width: 450px; /* Aumentado para igualar el ships-dock */
-    height: 450px; /* Altura fija para igualar el ships-dock */
+    width: 450px;
+    height: 450px;
     padding: 1.5rem;
     border-radius: 12px;
     border: 2px solid var(--primary-color);
@@ -535,8 +539,8 @@ const emit = defineEmits(["placement-confirmed"]);
 }
 
 .board-grid {
-    width: 400px; /* Tamaño fijo para la cuadrícula */
-    height: 400px; /* Tamaño fijo para la cuadrícula */
+    width: 400px;
+    height: 400px;
     display: flex;
     flex-direction: column;
     border: 2px solid var(--primary-color);
@@ -576,28 +580,18 @@ const emit = defineEmits(["placement-confirmed"]);
     outline: 2px dashed var(--primary-color);
 }
 
-.ships-dock {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 1rem;
-    background: var(--neutral-v2-color);
-    border-radius: 8px;
-}
-
 .ship-item {
     cursor: grab;
-    padding: 0.5rem;
+    padding: 0.25rem; /* Reducido para ahorrar espacio */
     border-radius: 8px;
     transition: all 0.3s ease;
-    background: transparent; /* Cambiado de neutral-color a transparent */
-    border: none; /* Quitado el borde */
-    margin: 0.25rem;
+    background: transparent;
+    border: none;
+    margin: 0.15rem; /* Reducido para ahorrar espacio */
 }
 
 .ship-item:hover {
-    border: none; /* Quitado el borde en hover */
+    border: none;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(112, 72, 236, calc(0.2 * var(--ship-size, 1)));
 }
@@ -613,7 +607,7 @@ const emit = defineEmits(["placement-confirmed"]);
 
 .ship-preview {
     display: flex;
-    flex-direction: row; /* Siempre horizontal */
+    flex-direction: row;
     background: transparent;
     border-radius: 4px;
     position: relative;
@@ -622,8 +616,8 @@ const emit = defineEmits(["placement-confirmed"]);
 }
 
 .ship-segment {
-    width: 36px; /* Ancho fijo para cada segmento */
-    height: 36px; /* Alto fijo para cada segmento */
+    width: 36px;
+    height: 36px;
     background-color: var(--secondary-color);
     margin: 2px;
     border-radius: 2px;
@@ -702,326 +696,21 @@ const emit = defineEmits(["placement-confirmed"]);
     background: var(--neutral-color);
 }
 
-@media (max-width: 1200px) {
-    .game-layout {
-        gap: 1.5rem;
-    }
-
-    .controls {
-        flex-direction: row;
-        width: 100%;
-        justify-content: center;
-        padding: 0.5rem;
-        order: 2;
-    }
-
-    .ships-dock {
-        order: 1;
-    }
-
-    .board-container {
-        order: 3;
-    }
-}
-
-@media (max-width: 480px) {
-    .ship-placement {
-        padding: 1rem;
-        min-height: auto;
-    }
-
-    .game-layout {
-        gap: 0.5rem;
-        padding: 0.5rem;
-        flex-direction: column;
-    }
-
-    .board-container {
-        width: 320px;
-        height: 320px;
-        padding: 0.5rem;
-    }
-
-    .board-grid {
-        width: 300px;
-        height: 300px;
-    }
-
-    .board-cell {
-        width: 30px;
-        height: 30px;
-    }
-
-    .ships-dock {
-        width: 320px;
-        min-height: 120px; /* Reducido aún más al usar dos columnas */
-        height: auto;
-        padding: 0.5rem 0.25rem; /* Ajustar padding para dar más espacio al título */
-        margin-bottom: 0.5rem;
-        overflow: hidden; /* Evitar desbordamiento */
-    }
-
-    .ships-container {
-        display: grid; /* Cambio a grid */
-        grid-template-columns: repeat(2, 1fr); /* Dos columnas */
-        gap: 0.15rem;
-        padding: 0.15rem;
-        justify-items: center;
-        align-items: center;
-        max-width: 100%; /* Asegurar que no exceda el contenedor */
-        overflow-x: hidden; /* Evitar scroll horizontal */
-    }
-
-    .ship-item {
-        --ship-size: calc(var(--width, 40px) / 40);
-        transform: scale(0.8);
-        transform-origin: center;
-        margin: 0;
-        padding: 0.25rem;
-        width: auto;
-        height: 40px; /* Aumentado de 35px */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent; /* Cambiado a transparente */
-        border: none; /* Quitado el borde */
-        border-radius: 8px;
-        cursor: grab;
-        transition: all 0.3s ease;
-    }
-
-    .ship-preview {
-        display: flex;
-        flex-direction: row;
-        background: transparent;
-        border-radius: 4px;
-        position: relative;
-        height: 100%;
-        width: 100%;
-        justify-content: center;
-        align-items: center;
-        gap: 1px; /* Reducido para que los segmentos estén más juntos */
-    }
-
-    .ship-segment {
-        width: 34px; /* Aumentado de 28px */
-        height: 34px; /* Aumentado de 28px */
-        margin: 1px;
-        border-radius: 3px;
-        flex: 0 0 auto;
-    }
-
-    .ship-item:hover {
-        border: none; /* Quitado el borde en hover */
-        transform: scale(0.8) translateY(-2px);
-        box-shadow: 0 4px 12px
-            rgba(112, 72, 236, calc(0.2 * var(--ship-size, 1)));
-    }
-
-    .ship-item.selected .ship-segment {
-        background-color: var(--primary-color);
-    }
-
-    .ship-item.placed {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .controls {
-        width: 320px; /* Mismo ancho que board-container y ships-dock */
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between; /* Cambio para mejor distribución */
-        gap: 0.5rem;
-        padding: 0.5rem;
-    }
-
-    .control-button {
-        width: 36px; /* Reducido ligeramente */
-        height: 36px;
-        flex: 0 0 auto;
-    }
-
-    .timer {
-        padding: 0.5rem 1rem;
-        font-size: 16px;
-        margin: 0;
-        flex: 1;
-        justify-content: center;
-    }
-
-    .timer-container {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        margin-bottom: 1rem;
-    }
-
-    .desktop-only {
-        display: none;
-    }
-
-    .mobile-only {
-        display: flex;
-    }
-
-    .timer.mobile-only {
-        max-width: 120px; /* Limitar el ancho del timer */
-        padding: 0.5rem;
-        font-size: 14px;
-        margin: 0;
-        flex: 0 0 auto; /* Evitar que se expanda */
-    }
-
-    .controls {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-        padding: 0.5rem;
-        width: 100%;
-    }
-
-    .control-button {
-        flex: 0 0 auto;
-    }
-
-    .timer-container.desktop-only {
-        display: none;
-    }
-
-    .timer.mobile-only {
-        display: flex;
-        padding: 0.5rem 1rem;
-        font-size: 16px;
-        margin: 0;
-        flex: 1;
-        justify-content: center;
-    }
-
-    .dock-title {
-        font-size: 13px; /* Reducido para mejor ajuste */
-        margin-bottom: 0.15rem;
-        padding: 0 0.25rem;
-        line-height: 1.2;
-        white-space: normal;
-    }
-
-    .ships-container {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.1rem;
-        padding: 0.15rem;
-        width: 100%;
-        max-width: 310px; /* Ajustado al ancho del dock menos los paddings */
-        margin: 0 auto;
-    }
-
-    .ship-item {
-        transform: scale(0.45); /* Reducido más para evitar desbordamiento */
-        transform-origin: center;
-        margin: 0;
-        padding: 0.1rem;
-        width: 100%;
-        max-width: 150px; /* Limitar ancho máximo */
-    }
-
-    .ship-segment {
-        width: 18px; /* Reducido */
-        height: 18px;
-        margin: 1px;
-    }
-}
-
-@media (max-width: 480px) {
-    .ships-container {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-        padding: 0.5rem;
-        justify-items: center;
-        align-items: center;
-        width: 100%;
-    }
-
-    .ship-item {
-        margin: 0;
-        padding: 0.25rem;
-        width: auto;
-        height: auto; /* Cambiado a auto para ajustarse al contenido */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent; /* Cambiado a transparente */
-        border: none; /* Quitado el borde */
-        border-radius: 8px;
-        cursor: grab;
-        transition: all 0.3s ease;
-    }
-
-    .ship-preview {
-        display: flex;
-        flex-direction: row;
-        background: transparent;
-        position: relative;
-        justify-content: center;
-        align-items: center;
-        padding: 0;
-        gap: 2px;
-    }
-
-    .ship-segment {
-        width: 36px;
-        height: 36px;
-        margin: 0;
-        border-radius: 4px;
-        flex: 0 0 auto;
-        background-color: var(--secondary-color);
-    }
-}
-
-@media (max-width: 480px) {
-    .desktop-only {
-        display: none !important;
-    }
-
-    .mobile-only {
-        display: flex !important;
-    }
-
-    .controls {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-        padding: 0.5rem;
-        width: 100%;
-    }
-
-    .timer.mobile-only {
-        padding: 0.5rem 1rem;
-        font-size: 16px;
-        margin: 0;
-        flex: 1;
-        justify-content: center;
-    }
-}
-
 .dock-title {
     text-align: center;
-    margin-bottom: 0.25rem; /* Reducido de 0.5rem */
+    margin-bottom: 0.25rem;
     color: var(--white-color);
-    font-size: 18px; /* Reducido de 22px */
+    font-size: 16px; /* Reducido para mejor ajuste */
+    white-space: nowrap; /* Evitar saltos de línea */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .separator {
     height: 2px;
     background: var(--primary-color);
     opacity: 0.5;
-    margin-bottom: 0.5rem; /* Reducido de 1rem */
+    margin-bottom: 0.5rem;
     width: 100%;
 }
 
@@ -1077,6 +766,12 @@ const emit = defineEmits(["placement-confirmed"]);
     .mobile-only {
         display: flex;
     }
+
+    .game-layout {
+        gap: 0.5rem;
+        padding: 1rem 0.5rem 0.5rem 0.5rem; /* Ajustado padding para móviles */
+        flex-direction: column;
+    }
 }
 
 /* Estilos para la pantalla de carga */
@@ -1111,13 +806,140 @@ const emit = defineEmits(["placement-confirmed"]);
     color: var(--primary-color);
 }
 
-/* Añadir media queries basadas en altura */
+@keyframes pulse {
+    0% {
+        border-color: var(--secondary-color);
+    }
+    50% {
+        border-color: transparent;
+    }
+    100% {
+        border-color: var(--secondary-color);
+    }
+}
+
+@media (max-width: 1200px) {
+    .game-layout {
+        gap: 1.5rem;
+    }
+
+    .controls {
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+        padding: 0.5rem;
+        order: 2;
+    }
+
+    .ships-dock {
+        order: 1;
+    }
+
+    .board-container {
+        order: 3;
+    }
+}
+
+@media (max-width: 480px) {
+    .ship-placement {
+        padding: 4.5rem 0.5rem 0.5rem 0.5rem;
+        min-height: auto;
+    }
+
+    .game-layout {
+        gap: 0.5rem;
+        padding: 0.5rem;
+        flex-direction: column;
+    }
+
+    .board-container,
+    .ships-dock {
+        width: 320px;
+        height: 320px;
+        padding: 0.5rem;
+        margin: 0;
+    }
+
+    .board-grid {
+        width: 300px;
+        height: 300px;
+    }
+
+    .board-cell {
+        width: 30px;
+        height: 30px;
+    }
+
+    .ships-dock {
+        min-height: 120px;
+        height: auto;
+        max-height: 320px;
+        overflow: hidden;
+    }
+
+    .ships-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.25rem;
+        padding: 0.25rem;
+        justify-items: center;
+        align-items: start;
+        overflow-y: auto;
+        max-height: calc(100% - 30px);
+    }
+
+    .ship-item {
+        transform: scale(0.75);
+        transform-origin: center;
+        margin: 0;
+        padding: 0.15rem;
+    }
+
+    .ship-segment {
+        width: 30px;
+        height: 30px;
+        margin: 1px;
+    }
+
+    .controls {
+        width: 320px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .control-button {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 auto;
+    }
+
+    .timer {
+        padding: 0.5rem;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .dock-title {
+        font-size: 14px;
+        margin-bottom: 0.15rem;
+        padding: 0 0.25rem;
+        line-height: 1.2;
+        white-space: normal;
+    }
+}
+
+/* Ajustes específicos para alturas pequeñas */
 @media (max-height: 800px) {
     .ship-placement {
         padding: 4rem 1rem 1rem 1rem;
     }
 
-    .board-container, .ships-dock {
+    .board-container,
+    .ships-dock {
         width: 400px;
         height: 400px;
     }
@@ -1135,10 +957,11 @@ const emit = defineEmits(["placement-confirmed"]);
 
 @media (max-height: 700px) {
     .ship-placement {
-        padding: 3rem 1rem 1rem 1rem;
+        padding: 3.5rem 1rem 1rem 1rem;
     }
 
-    .board-container, .ships-dock {
+    .board-container,
+    .ships-dock {
         width: 350px;
         height: 350px;
     }
@@ -1154,26 +977,34 @@ const emit = defineEmits(["placement-confirmed"]);
     }
 
     .ship-segment {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
     }
 
-    .controls {
-        gap: 1rem;
+    .dock-title {
+        font-size: 15px;
     }
 
-    .control-button {
-        width: 40px;
-        height: 40px;
+    .separator {
+        margin-bottom: 0.3rem;
+    }
+
+    .ships-container {
+        gap: 0.15rem;
     }
 }
 
 @media (max-height: 600px) {
     .ship-placement {
-        padding: 2rem 1rem 1rem 1rem;
+        padding: 2.5rem 0.5rem 0.5rem 0.5rem;
     }
 
-    .board-container, .ships-dock {
+    .game-layout {
+        gap: 1rem;
+    }
+
+    .board-container,
+    .ships-dock {
         width: 300px;
         height: 300px;
     }
@@ -1189,56 +1020,135 @@ const emit = defineEmits(["placement-confirmed"]);
     }
 
     .ship-segment {
-        width: 28px;
-        height: 28px;
+        width: 26px;
+        height: 26px;
     }
 
-    .dock-title {
-        font-size: 14px;
+    .controls {
+        gap: 0.75rem;
+    }
+
+    .control-button {
+        width: 40px;
+        height: 40px;
     }
 
     .timer {
-        padding: 0.5rem 1rem;
         font-size: 18px;
+    }
+
+    .dock-title {
+        font-size: 13px;
+    }
+
+    .separator {
+        margin-bottom: 0.2rem;
+    }
+
+    .ships-container {
+        gap: 0.1rem;
+        padding: 0.1rem;
+        max-height: calc(100% - 25px);
+    }
+
+    .ship-item {
+        transform: scale(0.9);
     }
 }
 
-/* Ajustar para pantallas tanto bajas como estrechas */
-@media (max-height: 600px) and (max-width: 768px) {
+/* Para pantallas simultáneamente pequeñas y estrechas */
+@media (max-height: 650px) and (max-width: 768px) {
+    .ship-placement {
+        padding: 2rem 0.5rem 0.5rem 0.5rem;
+    }
+
     .game-layout {
         flex-direction: row;
         flex-wrap: wrap;
         gap: 0.5rem;
+        justify-content: center;
+        padding-top: 1rem; /* Ajustado para pantallas pequeñas */
     }
 
-    .board-container, .ships-dock {
-        width: 280px;
+    .ships-dock {
+        width: 48%;
         height: 280px;
+        margin-right: 2%;
+    }
+
+    .board-container {
+        width: 48%;
+        height: 280px;
+    }
+
+    .board-grid {
+        width: 100%;
+        height: 100%;
+        max-width: 260px;
+        max-height: 260px;
+    }
+
+    .board-cell {
+        width: 26px;
+        height: 26px;
     }
 
     .controls {
         width: 100%;
         flex-direction: row;
+        justify-content: center;
         padding: 0.25rem;
-        gap: 0.5rem;
+        gap: 1rem;
+        order: 3;
+    }
+
+    .ships-container {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        max-height: 235px;
+    }
+
+    .ship-item {
+        transform: scale(0.85);
+        margin: 0;
+        padding: 0.1rem;
     }
 }
 
-/* Mantener los media queries existentes para móvil y ajustarlos */
-@media (max-width: 480px) {
-    .board-container, .ships-dock {
-        width: min(320px, 90vw);
-        height: min(320px, 90vw);
+/* Ajustes extremos para pantallas muy pequeñas */
+@media (max-width: 360px) {
+    .board-container,
+    .ships-dock {
+        width: 280px;
+        height: 280px;
     }
 
     .board-grid {
-        width: min(300px, calc(90vw - 20px));
-        height: min(300px, calc(90vw - 20px));
+        width: 260px;
+        height: 260px;
     }
 
     .board-cell {
-        width: min(30px, calc(9vw - 2px));
-        height: min(30px, calc(9vw - 2px));
+        width: 26px;
+        height: 26px;
+    }
+
+    .ship-item {
+        transform: scale(0.7);
+    }
+
+    .controls {
+        width: 280px;
+    }
+
+    .control-button {
+        width: 32px;
+        height: 32px;
+    }
+
+    .timer {
+        padding: 0.3rem;
+        font-size: 14px;
     }
 }
 </style>

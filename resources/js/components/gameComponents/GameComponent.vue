@@ -13,7 +13,11 @@
         </div>
 
         <!-- Sistema de notificaciones -->
-        <div v-if="notification.show" class="notification" :class="[notification.type, notification.position]">
+        <div
+            v-if="notification.show"
+            class="notification"
+            :class="[notification.type, notification.position]"
+        >
             <span>{{ notification.message }}</span>
         </div>
 
@@ -23,30 +27,77 @@
                 <h2 class="title">{{ username }}</h2>
                 <div class="board-container">
                     <div class="board-grid">
-                        <div v-for="row in 10" :key="`row-${row}`" class="board-row">
-                            <div v-for="col in 10" :key="`cell-${row}-${col}`" 
+                        <div
+                            v-for="row in 10"
+                            :key="`row-${row}`"
+                            class="board-row"
+                        >
+                            <div
+                                v-for="col in 10"
+                                :key="`cell-${row}-${col}`"
                                 class="board-cell"
-                                :class="{ 
-                                    'ship': userBoard[row - 1][col - 1] && userBoard[row - 1][col - 1] !== 'X' && userBoard[row - 1][col - 1] !== 'O',
-                                    'hit': userBoard[row - 1][col - 1] === 'X',
-                                    'miss': userBoard[row - 1][col - 1] === 'O'
-                                }">
-                                <svg v-if="userBoard[row - 1][col - 1] === 'X'" 
-                                    class="hit-marker" 
-                                    viewBox="0 0 24 24">
-                                    <path d="M12 2 L14 7 L19 5 L16 10 L21 12 L16 14 L19 19 L14 17 L12 22 L10 17 L5 19 L8 14 L3 12 L8 10 L5 5 L10 7 Z" 
-                                          fill="red" 
-                                          stroke="darkred" 
-                                          stroke-width="1"/>
-                                    <circle cx="12" cy="12" r="3" fill="darkred"/>
+                                :class="{
+                                    ship:
+                                        userBoard[row - 1][col - 1] &&
+                                        userBoard[row - 1][col - 1] !== 'X' &&
+                                        userBoard[row - 1][col - 1] !== 'O',
+                                    hit: userBoard[row - 1][col - 1] === 'X',
+                                    miss: userBoard[row - 1][col - 1] === 'O',
+                                }"
+                            >
+                                <svg
+                                    v-if="userBoard[row - 1][col - 1] === 'X'"
+                                    class="hit-marker"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        d="M12 2 L14 7 L19 5 L16 10 L21 12 L16 14 L19 19 L14 17 L12 22 L10 17 L5 19 L8 14 L3 12 L8 10 L5 5 L10 7 Z"
+                                        fill="red"
+                                        stroke="darkred"
+                                        stroke-width="1"
+                                    />
+                                    <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="3"
+                                        fill="darkred"
+                                    />
                                 </svg>
-                                <svg v-if="userBoard[row - 1][col - 1] === 'O'" 
-                                    class="miss-marker" 
-                                    viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10" stroke="#0d6efd" stroke-width="2" fill="none"/>
-                                    <circle cx="12" cy="12" r="3" fill="#0d6efd"/>
-                                    <line x1="12" y1="2" x2="12" y2="22" stroke="#0d6efd" stroke-width="2"/>
-                                    <line x1="2" y1="12" x2="22" y2="12" stroke="#0d6efd" stroke-width="2"/>
+                                <svg
+                                    v-if="userBoard[row - 1][col - 1] === 'O'"
+                                    class="miss-marker"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="#0d6efd"
+                                        stroke-width="2"
+                                        fill="none"
+                                    />
+                                    <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="3"
+                                        fill="#0d6efd"
+                                    />
+                                    <line
+                                        x1="12"
+                                        y1="2"
+                                        x2="12"
+                                        y2="22"
+                                        stroke="#0d6efd"
+                                        stroke-width="2"
+                                    />
+                                    <line
+                                        x1="2"
+                                        y1="12"
+                                        x2="22"
+                                        y2="12"
+                                        stroke="#0d6efd"
+                                        stroke-width="2"
+                                    />
                                 </svg>
                             </div>
                         </div>
@@ -59,25 +110,121 @@
                 <h2 class="title">{{ opponentUsername }}</h2>
                 <div class="board-container">
                     <div class="board-grid">
-                        <div v-for="row in 10" :key="`attack-row-${row}`" class="board-row">
-                            <div v-for="col in 10" 
-                                :key="`attack-cell-${row}-${col}`" 
+                        <div
+                            v-for="row in 10"
+                            :key="`attack-row-${row}`"
+                            class="board-row"
+                        >
+                            <div
+                                v-for="col in 10"
+                                :key="`attack-cell-${row}-${col}`"
                                 class="board-cell clickable"
                                 @click="handleAttack(row - 1, col - 1)"
-                                :class="{ hit: attackBoard[row - 1][col - 1] === '✓', miss: attackBoard[row - 1][col - 1] === '✗' }"
+                                :class="{
+                                    hit: attackBoard[row - 1][col - 1] === '✓',
+                                    miss: attackBoard[row - 1][col - 1] === '✗',
+                                }"
                             >
-                                <svg v-if="attackBoard[row - 1][col - 1] === '✓'" class="hit-marker" viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10" stroke="red" stroke-width="2" fill="none"/>
-                                    <circle cx="12" cy="12" r="3" fill="red"/>
-                                    <line x1="12" y1="2" x2="12" y2="22" stroke="red" stroke-width="2"/>
-                                    <line x1="2" y1="12" x2="22" y2="12" stroke="red" stroke-width="2"/>
+                                <svg
+                                    v-if="attackBoard[row - 1][col - 1] === '✓'"
+                                    class="hit-marker"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="red"
+                                        stroke-width="2"
+                                        fill="none"
+                                    />
+                                    <circle cx="12" cy="12" r="3" fill="red" />
+                                    <line
+                                        x1="12"
+                                        y1="2"
+                                        x2="12"
+                                        y2="22"
+                                        stroke="red"
+                                        stroke-width="2"
+                                    />
+                                    <line
+                                        x1="2"
+                                        y1="12"
+                                        x2="22"
+                                        y2="12"
+                                        stroke="red"
+                                        stroke-width="2"
+                                    />
                                 </svg>
-                                <svg v-if="attackBoard[row - 1][col - 1] === '✗'" class="miss-marker" viewBox="0 0 24 24">
-                                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="#0d6efd"/>
+                                <svg
+                                    v-if="attackBoard[row - 1][col - 1] === '✗'"
+                                    class="miss-marker"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"
+                                        fill="#0d6efd"
+                                    />
                                 </svg>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat de juego -->
+        <div class="game-chat">
+            <div class="chat-toggle" @click="toggleChat">
+                <i
+                    class="fas"
+                    :class="isChatOpen ? 'fa-chevron-down' : 'fa-comment'"
+                ></i>
+                <span
+                    v-if="!isChatOpen && unreadMessages > 0"
+                    class="unread-badge"
+                    >{{ unreadMessages }}</span
+                >
+            </div>
+
+            <div class="chat-container" :class="{ 'chat-open': isChatOpen }">
+                <div class="chat-header">
+                    <h3>Chat con {{ opponentUsername }}</h3>
+                </div>
+
+                <div class="chat-messages" ref="chatMessages">
+                    <div v-if="messages.length === 0" class="no-messages">
+                        No hay mensajes aún. ¡Inicia la conversación!
+                    </div>
+                    <div
+                        v-for="(message, index) in messages"
+                        :key="index"
+                        class="message"
+                        :class="
+                            message.user_id === authStore().user.id
+                                ? 'own-message'
+                                : 'other-message'
+                        "
+                    >
+                        <div class="message-header">
+                            <span class="message-user">{{
+                                message.username
+                            }}</span>
+                        </div>
+                        <div class="message-content">{{ message.message }}</div>
+                    </div>
+                </div>
+
+                <div class="chat-input">
+                    <input
+                        v-model="newMessage"
+                        @keyup.enter="sendMessage"
+                        placeholder="Escribe un mensaje..."
+                        type="text"
+                    />
+                    <button @click="sendMessage" :disabled="!newMessage.trim()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -86,9 +233,9 @@
 
 <script setup>
 /* -- IMPORTS -- */
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { authStore } from "../../store/auth";
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
 
 /* -- VARIABLES -- */
@@ -98,28 +245,47 @@ const gameStore = useGameStore();
 const yourTurn = ref(null);
 const timeLeft = ref(25);
 const isGameActive = ref(true);
-const userBoard = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
-const attackBoard = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
-const notification = ref({ 
-    show: false, 
-    message: '', 
-    type: 'info',
-    position: 'derecha' 
+const userBoard = ref(
+    Array(10)
+        .fill(null)
+        .map(() => Array(10).fill(null))
+);
+const attackBoard = ref(
+    Array(10)
+        .fill(null)
+        .map(() => Array(10).fill(null))
+);
+const notification = ref({
+    show: false,
+    message: "",
+    type: "info",
+    position: "derecha",
 });
 const username = ref("Sus barcos");
 const opponentUsername = ref("Tablero de ataque");
 
+// Variables para el chat
+const isChatOpen = ref(false);
+const messages = ref([]);
+const newMessage = ref("");
+const chatMessages = ref(null);
+const unreadMessages = ref(0);
+const lastMessageId = ref(0);
+const pollingInterval = ref(null);
+
 /* -- FUNCTIONS -- */
 
 // Función para mostrar notificaciones
-const showNotification = (message, type = 'info') => {
-    notification.value = { 
-        show: true, 
-        message, 
+const showNotification = (message, type = "info") => {
+    notification.value = {
+        show: true,
+        message,
         type,
-        position: 'derecha' 
+        position: "derecha",
     };
-    setTimeout(() => { notification.value.show = false; }, 3000);
+    setTimeout(() => {
+        notification.value.show = false;
+    }, 3000);
 };
 
 // Función para manejar el ataque
@@ -132,24 +298,24 @@ const handleAttack = async (row, col) => {
 
     try {
         console.log("Atacando a:", row, "/", col);
-        const response = await axios.post('/api/games/attack', {
+        const response = await axios.post("/api/games/attack", {
             gameCode: gameStore.matchCode,
             user: authStore().user,
-            coordinates: `${row + 1},${col + 1}`
+            coordinates: `${row + 1},${col + 1}`,
         });
 
-        if (response.data.status === 'success') {
+        if (response.data.status === "success") {
             const result = response.data.message;
-            attackBoard.value[row][col] = result === 'hit' ? '✓' : '✗';
+            attackBoard.value[row][col] = result === "hit" ? "✓" : "✗";
 
-            if (result === 'hit') {
+            if (result === "hit") {
                 if (response.data.is_sunk) {
-                    showNotification('¡Tocado y hundido!', 'success');
+                    showNotification("¡Tocado y hundido!", "success");
                 } else {
-                    showNotification('¡Tocado!', 'success');
+                    showNotification("¡Tocado!", "success");
                 }
             } else {
-                showNotification('¡Agua!', 'water');
+                showNotification("¡Agua!", "water");
             }
 
             await checkMatchWinner();
@@ -164,26 +330,25 @@ const handleAttack = async (row, col) => {
 const checkMatchWinner = async () => {
     try {
         // Obtener las coordenadas de los barcos del oponente
-        const response = await axios.post('/api/games/get-opponent-ship-placement-game', {
-            gameCode: gameStore.matchCode,
-            user: authStore().user
-        });
+        const response = await axios.post(
+            "/api/games/get-opponent-ship-placement-game",
+            {
+                gameCode: gameStore.matchCode,
+                user: authStore().user,
+            }
+        );
 
         // Validación de ganador de la partida
-        if(response.data.has_winned == false){
-
-            if(response.data.move_count < 100){
+        if (response.data.has_winned == false) {
+            if (response.data.move_count < 100) {
                 //showNotification("Te quedan " + response.data.ships_left + " barcos por hundir.", "info");
-            }else{
+            } else {
                 console.log("Límite de movimientos alcanzado.");
 
                 // Finalizar el juego
                 await endGame("draw");
             }
-            
-
-        }else if(response.data.has_winned == true){
-
+        } else if (response.data.has_winned == true) {
             console.log("Ganador de la partida.");
 
             // Mostrar notificación de victoria
@@ -191,10 +356,9 @@ const checkMatchWinner = async () => {
 
             // Finalizar el juego
             await endGame("winner");
-        }else{
+        } else {
             console.log("No se ha podido determinar el ganador.");
         }
-
     } catch (error) {
         console.error("Error al verificar el ganador:", error);
     }
@@ -202,17 +366,27 @@ const checkMatchWinner = async () => {
 
 // Función para reiniciar el estado del juego
 const resetGameState = () => {
-    userBoard.value = Array(10).fill(null).map(() => Array(10).fill(null));
-    attackBoard.value = Array(10).fill(null).map(() => Array(10).fill(null));
+    userBoard.value = Array(10)
+        .fill(null)
+        .map(() => Array(10).fill(null));
+    attackBoard.value = Array(10)
+        .fill(null)
+        .map(() => Array(10).fill(null));
     yourTurn.value = null;
     timeLeft.value = 25;
     isGameActive.value = false;
-    notification.value = { 
-        show: false, 
-        message: '', 
-        type: 'info',
-        position: 'derecha' 
+    notification.value = {
+        show: false,
+        message: "",
+        type: "info",
+        position: "derecha",
     };
+
+    // Detener el polling del chat
+    if (pollingInterval.value) {
+        clearInterval(pollingInterval.value);
+        pollingInterval.value = null;
+    }
 };
 
 // Función para finalizar la partida (ganando)
@@ -224,18 +398,18 @@ const endGame = async (status) => {
         isGameActive.value = false;
         yourTurn.value = false;
 
-        const response = await axios.post('/api/games/set-game-ending', {
+        const response = await axios.post("/api/games/set-game-ending", {
             gameCode: gameStore.matchCode,
             user: authStore().user,
-            status: status
+            status: status,
         });
 
         console.log("Respuesta del servidor:", response.data);
 
-        if (response.data.status === 'success') {
+        if (response.data.status === "success") {
             console.log("Partida finalizada con éxito.");
 
-            if(status == "winner"){
+            if (status == "winner") {
                 console.log("GANADOR");
                 // Almacenar los puntos ganados
                 gameStore.setPoints(response.data.points_earned);
@@ -268,7 +442,7 @@ const playTurn = async () => {
     }, 1000);
 
     while (timeLeft.value > 0 && yourTurn.value) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
     clearInterval(timer);
@@ -283,18 +457,25 @@ const waitTurn = async () => {
 
     while (!opponentMoved && attempts < 12 && isGameActive.value) {
         attempts++;
-        console.log(`Intento ${attempts}/12: Verificando movimiento del oponente...`);
+        console.log(
+            `Intento ${attempts}/12: Verificando movimiento del oponente...`
+        );
 
         try {
             // Verificar estado de la partida
-            const matchResponse = await axios.post('/api/games/get-match-info', {
-                gameCode: gameStore.matchCode
-            });
+            const matchResponse = await axios.post(
+                "/api/games/get-match-info",
+                {
+                    gameCode: gameStore.matchCode,
+                }
+            );
 
             // Verificar si la partida ha terminado y si hay un ganador que no es el usuario actual
-            if (matchResponse.data.data.game.is_finished && 
-                matchResponse.data.data.game.winner && 
-                matchResponse.data.data.game.winner !== authStore().user.id) {
+            if (
+                matchResponse.data.data.game.is_finished &&
+                matchResponse.data.data.game.winner &&
+                matchResponse.data.data.game.winner !== authStore().user.id
+            ) {
                 console.log("PERDEDOR");
 
                 // Mostrar los puntos perdidos
@@ -305,33 +486,43 @@ const waitTurn = async () => {
             }
 
             // Si la partida sigue activa, verificar el último movimiento
-            const moveResponse = await axios.post('/api/games/get-last-move', {
+            const moveResponse = await axios.post("/api/games/get-last-move", {
                 gameCode: gameStore.matchCode,
-                user: authStore().user
+                user: authStore().user,
             });
 
-            if (moveResponse.data.status === 'success' && moveResponse.data.move) {
+            if (
+                moveResponse.data.status === "success" &&
+                moveResponse.data.move
+            ) {
                 const move = moveResponse.data.move;
-                const [row, col] = move.coordinate.split(',').map(num => parseInt(num) - 1);
-                userBoard.value[row][col] = move.result === 'hit' ? 'X' : 'O';
+                const [row, col] = move.coordinate
+                    .split(",")
+                    .map((num) => parseInt(num) - 1);
+                userBoard.value[row][col] = move.result === "hit" ? "X" : "O";
                 opponentMoved = true;
                 console.log("Movimiento del oponente:", move);
             } else {
                 console.log("No se detectó movimiento del oponente.");
             }
         } catch (error) {
-            console.error("Error al verificar el movimiento del oponente:", error);
+            console.error(
+                "Error al verificar el movimiento del oponente:",
+                error
+            );
         }
 
         if (!opponentMoved) {
-            await new Promise(resolve => setTimeout(resolve, 2500));
+            await new Promise((resolve) => setTimeout(resolve, 2500));
         }
     }
 
     if (!opponentMoved) {
         console.log("El oponente no realizó ningún movimiento en 30 segundos.");
     } else {
-        console.log("Movimiento del oponente procesado. Cambiando al estado de jugar.");
+        console.log(
+            "Movimiento del oponente procesado. Cambiando al estado de jugar."
+        );
         yourTurn.value = true;
     }
 };
@@ -352,9 +543,9 @@ const gameLoop = async () => {
 // Función loadShips (cargar los barcos del jugador)
 const loadShips = async () => {
     // Verificación de usuario autenticado y código de partida
-    if(authStore().user == null) {
+    if (authStore().user == null) {
         // backToHome(true, "No tienes permiso para acceder a esta página (user)");
-    }else if(gameStore.matchCode == "null"){
+    } else if (gameStore.matchCode == "null") {
         // backToHome(false, "No tienes permiso para acceder a esta página (code)");
     }
 
@@ -362,12 +553,15 @@ const loadShips = async () => {
 
     // Obtener los barcos del jugador
     try {
-        const response = await axios.post('/api/games/get-user-ship-placement', {
-            gameCode: gameStore.matchCode,
-            user: authStore().user
-        });
+        const response = await axios.post(
+            "/api/games/get-user-ship-placement",
+            {
+                gameCode: gameStore.matchCode,
+                user: authStore().user,
+            }
+        );
 
-        if (response.data.status === 'failed') {
+        if (response.data.status === "failed") {
             // backToHome(true, "Error al cargar la partida.");
             console.log("Error al cargar la partida. [respuesta es failed]");
             return;
@@ -384,16 +578,113 @@ const loadShips = async () => {
 // Función para colocar los barcos en el tablero
 const setUserBoard = (shipsData) => {
     // Resetear el tablero
-    userBoard.value = Array(10).fill(null).map(() => Array(10).fill(null));
+    userBoard.value = Array(10)
+        .fill(null)
+        .map(() => Array(10).fill(null));
 
     // Recorrer cada barco y sus posiciones
     Object.entries(shipsData).forEach(([shipName, positions]) => {
-        positions.forEach(pos => {
+        positions.forEach((pos) => {
             // Split la posición en coordenadas X,Y y restar 1 para ajustar al índice 0
-            const [row, col] = pos.split(',').map(num => parseInt(num) - 1);
+            const [row, col] = pos.split(",").map((num) => parseInt(num) - 1);
             userBoard.value[row][col] = shipName;
         });
     });
+};
+
+// --- FUNCIONES DE CHAT ---
+
+// Mostrar u ocultar el chat
+const toggleChat = () => {
+    isChatOpen.value = !isChatOpen.value;
+    // Si abrimos el chat, resetear los mensajes no leídos
+    if (isChatOpen.value) {
+        unreadMessages.value = 0;
+        // Hacer scroll hasta el último mensaje
+        scrollToBottom();
+    }
+};
+
+// Cargar mensajes del chat
+const loadChatMessages = async () => {
+    try {
+        const response = await axios.post("/api/games/chat/get-messages", {
+            gameCode: gameStore.matchCode,
+        });
+
+        if (response.data.status === "success") {
+            const newMessages = response.data.data;
+
+            // Comprobar si hay nuevos mensajes
+            if (newMessages.length > messages.value.length) {
+                // Calcular los nuevos mensajes
+                const difference = newMessages.length - messages.value.length;
+
+                // Actualizar el contador de mensajes no leídos si el chat está cerrado
+                if (!isChatOpen.value) {
+                    unreadMessages.value += difference;
+                }
+
+                // Obtener el ID del último mensaje
+                if (newMessages.length > 0) {
+                    lastMessageId.value =
+                        newMessages[newMessages.length - 1].id;
+                }
+            }
+
+            messages.value = newMessages;
+
+            // Hacer scroll hacia abajo si el chat está abierto
+            if (isChatOpen.value) {
+                await nextTick();
+                scrollToBottom();
+            }
+        }
+    } catch (error) {
+        console.error("Error cargando mensajes:", error);
+    }
+};
+
+// Enviar un nuevo mensaje
+const sendMessage = async () => {
+    if (!newMessage.value.trim()) return;
+
+    try {
+        const response = await axios.post("/api/games/chat/send-message", {
+            gameCode: gameStore.matchCode,
+            user: authStore().user,
+            message: newMessage.value,
+        });
+
+        if (response.data.status === "success") {
+            // Añadir el mensaje a la lista
+            messages.value.push(response.data.data);
+            // Limpiar el input
+            newMessage.value = "";
+            // Hacer scroll hacia abajo
+            await nextTick();
+            scrollToBottom();
+        }
+    } catch (error) {
+        console.error("Error enviando mensaje:", error);
+        showNotification("Error al enviar mensaje", "error");
+    }
+};
+
+// Función para hacer scroll hasta el último mensaje
+const scrollToBottom = () => {
+    if (chatMessages.value) {
+        chatMessages.value.scrollTop = chatMessages.value.scrollHeight;
+    }
+};
+
+// Iniciar el polling para cargar mensajes
+const startChatPolling = () => {
+    // Cargar mensajes iniciales
+    loadChatMessages();
+
+    // Configurar el intervalo para polling (cada 3 segundos)
+    pollingInterval.value = setInterval(loadChatMessages, 3000);
 };
 
 // Inicialización del juego
@@ -401,25 +692,44 @@ onMounted(async () => {
     // Montar el tablero del usuario
     await loadShips();
     // Obtener los datos de la partida
-    const response = await axios.post('/api/games/get-match-info', {
-        gameCode: gameStore.matchCode
+    const response = await axios.post("/api/games/get-match-info", {
+        gameCode: gameStore.matchCode,
     });
 
     // Obtener el nombre del usuario actual y del oponente
     username.value = authStore().user.username;
     opponentUsername.value = response.data.data.players.find(
-        player => player.user_id !== authStore().user.id
+        (player) => player.user_id !== authStore().user.id
     ).username;
 
     // Definir quién empieza
     yourTurn.value = response.data.data.game.created_by === authStore().user.id;
     // Iniciar el bucle del juego
     gameLoop();
+
+    // Iniciar el polling del chat
+    startChatPolling();
 });
 
 // Limpiar cuando se desmonta el componente
 onUnmounted(() => {
     isGameActive.value = false;
+
+    // Detener el polling del chat
+    if (pollingInterval.value) {
+        clearInterval(pollingInterval.value);
+    }
+});
+
+// Vigilar cuando cambia lastMessageId para reproducir sonido si es un mensaje nuevo
+watch(lastMessageId, (newVal, oldVal) => {
+    if (oldVal !== 0 && newVal > oldVal) {
+        // Reproducir sonido de notificación
+        const audio = new Audio("/sounds/notification.mp3");
+        audio
+            .play()
+            .catch((e) => console.log("Error al reproducir sonido:", e));
+    }
 });
 </script>
 
@@ -445,7 +755,10 @@ onUnmounted(() => {
 
 .board-container {
     /* Tamaño base para pantallas grandes */
-    width: min(450px, calc((100vw - 6rem) / 2)); /* Aumentado el tamaño máximo y ajustado el cálculo */
+    width: min(
+        450px,
+        calc((100vw - 6rem) / 2)
+    ); /* Aumentado el tamaño máximo y ajustado el cálculo */
     height: min(450px, calc((100vw - 6rem) / 2));
     padding: 0.25rem;
     border-radius: 8px;
@@ -492,11 +805,13 @@ onUnmounted(() => {
     border-radius: 2px;
 }
 
-.board-cell.hit, .board-cell.miss {
+.board-cell.hit,
+.board-cell.miss {
     background-color: transparent !important;
 }
 
-.hit-marker, .miss-marker {
+.hit-marker,
+.miss-marker {
     width: 30px;
     height: 30px;
     position: absolute;
@@ -564,7 +879,8 @@ onUnmounted(() => {
         margin-bottom: 0.5rem;
     }
 
-    .timer, .waiting-message {
+    .timer,
+    .waiting-message {
         padding: 0.35rem 0.75rem;
         font-size: 0.9rem;
     }
@@ -622,7 +938,8 @@ onUnmounted(() => {
         padding: 0.25rem;
     }
 
-    .timer, .waiting-message {
+    .timer,
+    .waiting-message {
         font-size: 1rem;
         padding: 0.25rem 0.75rem;
     }
@@ -633,17 +950,17 @@ onUnmounted(() => {
         flex-direction: column;
         gap: 0.25rem;
     }
-    
+
     .board-container {
         width: min(calc(100vh - 450px), 85vw, 400px);
         height: min(calc(100vh - 450px), 85vw, 400px);
     }
-    
+
     /* Reordena los tableros en móvil */
     .board-section:first-child {
         order: 2;
     }
-    
+
     .board-section:last-child {
         order: 1;
     }
@@ -653,15 +970,15 @@ onUnmounted(() => {
     .game {
         padding: 0.5rem;
     }
-    
+
     .boards-container {
         padding: 0.5rem;
     }
-    
+
     .board-container {
         padding: 0.5rem;
     }
-    
+
     .game-status {
         padding: 0.5rem;
     }
@@ -751,4 +1068,192 @@ onUnmounted(() => {
     }
 }
 
+/* Estilos para el chat */
+.game-chat {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1000;
+}
+
+.chat-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.chat-toggle:hover {
+    transform: scale(1.1);
+}
+
+.unread-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--secondary-color);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-container {
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    width: 300px;
+    height: 0;
+    background-color: var(--background-secondary);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    transition: height 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-open {
+    height: 400px;
+}
+
+.chat-header {
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: var(--background-primary);
+}
+
+.no-messages {
+    color: var(--white-color-1);
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.message {
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.own-message {
+    align-self: flex-end;
+    background-color: var(--primary-v3-color);
+    color: var(--neutral-color);
+}
+
+.other-message {
+    align-self: flex-start;
+    background-color: var(--secondary-color);
+    color: var(--white-color);
+}
+
+.message-header {
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+}
+
+.own-message .message-header {
+    color: var(--neutral-color-2);
+}
+
+.other-message .message-header {
+    color: var(--neutral-color-3);
+}
+
+.message-user {
+    font-weight: bold;
+}
+
+.chat-input {
+    padding: 10px;
+    display: flex;
+    border-top: 1px solid var(--neutral-color-1);
+    background-color: var(--background-secondary);
+}
+
+.chat-input input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid var(--neutral-color-1);
+    border-radius: 4px;
+    outline: none;
+    background-color: var(--background-primary);
+    color: var(--white-color);
+}
+
+.chat-input button {
+    margin-left: 5px;
+    padding: 8px 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.chat-input button:hover {
+    background-color: var(--primary-v2-color);
+}
+
+.chat-input button:disabled {
+    background-color: var(--neutral-color-1);
+    cursor: not-allowed;
+}
+
+/* Media query para dispositivos móviles */
+@media (max-width: 1000px) {
+    .chat-container {
+        width: 280px;
+    }
+
+    .chat-open {
+        height: 350px;
+    }
+}
+
+@media (max-width: 600px) {
+    .game-chat {
+        bottom: 0.5rem;
+        right: 0.5rem;
+    }
+
+    .chat-toggle {
+        width: 45px;
+        height: 45px;
+    }
+
+    .chat-container {
+        width: calc(100vw - 20px);
+        max-width: 350px;
+    }
+}
 </style>

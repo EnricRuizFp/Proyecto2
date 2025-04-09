@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ShipController;
 use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\RankingController;
 use App\Http\Controllers\Api\UserAvatarController;
+use App\Http\Controllers\Api\ChatController;
 
 
 Route::post('forget-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('forget.password.post');
@@ -146,6 +147,10 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/ships', [ShipController::class, 'index']);
     Route::get('/game-ships', [ShipController::class, 'getGameShips']);
     Route::get('/game-ships', [GameController::class, 'getAvailableGameShips']);
+
+    /* -- CHAT FUNCTIONS -- */
+    Route::post('/games/chat/get-messages', [ChatController::class, 'getMessages']);
+    Route::post('/games/chat/send-message', [ChatController::class, 'sendMessage']);
 
     /* -- GAME VIEW FUNCTIONS -- */
     // Get current match status
