@@ -1326,14 +1326,18 @@ class GameController extends Controller
                 // Calcular los puntos a modificar basado en los puntos actuales
                 $points = ($winnerRanking->points < $loserRanking->points) ? 6 : 3;
 
-                // Actualizar los rankings
+                // Actualizar el ranking del ganador
                 DB::table('rankings')
                     ->where('user_id', $winner->user_id)
                     ->increment('points', $points);
 
+                // Verificar que los puntos a restar no dejen al perdedor con puntos negativos
+                $pointsToDecrease = min($points, $loserRanking->points);
+                
+                // Actualizar el ranking del perdedor
                 DB::table('rankings')
                     ->where('user_id', $loser->user_id)
-                    ->decrement('points', $points);
+                    ->decrement('points', $pointsToDecrease);
 
                 // Actualizar el estado del juego
                 $game->update([
@@ -1354,6 +1358,71 @@ class GameController extends Controller
         } catch (\Exception $e) {
             Log::error('Error in setGameEnding: ' . $e->getMessage());
             return response()->json(['status' => 'failed', 'message' => 'Error processing game ending']);
+        }
+    }
+
+
+
+
+
+    /**
+     * 
+     *  // FUNCIONES DE VISTA DE PARTIDAS //
+     * 
+     */
+    public function getCurrentMatchStatus(Request $request){
+        try {
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string'
+            ]);
+
+            // Buscar la partida por código con todas sus relaciones
+            $game = Game::where('code', $request->gameCode)
+                ->with(['players', 'observers'])
+                ->withCount(['players', 'observers'])
+                ->first();
+
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ], 404);
+            }
+
+            // Obtener datos detallados
+            $players = DB::table('game_players')
+                ->where('game_id', $game->id)
+                ->join('users', 'users.id', '=', 'game_players.user_id')
+                ->select('game_players.*', 'users.username', 'users.email')
+                ->get();
+
+            $observers = DB::table('game_viewers')
+                ->where('game_id', $game->id)
+                ->join('users', 'users.id', '=', 'game_viewers.user_id')
+                ->select('game_viewers.*', 'users.username')
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'game' => $game,
+                    'players' => $players,
+                    'observers' => $observers,
+                    'meta' => [
+                        'players_count' => $game->players_count,
+                        'observers_count' => $game->observers_count,
+                        'is_full' => $game->players_count >= 2,
+                        'has_started' => !empty($game->start_date),
+                        'has_finished' => !empty($game->end_date)
+                    ]
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error getting game status: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

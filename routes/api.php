@@ -146,6 +146,10 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/ships', [ShipController::class, 'index']);
     Route::get('/game-ships', [ShipController::class, 'getGameShips']);
     Route::get('/game-ships', [GameController::class, 'getAvailableGameShips']);
+
+    /* -- GAME VIEW FUNCTIONS -- */
+    // Get current match status
+    Route::post('/games/current-match-status', [GameController::class, 'getCurrentMatchStatus']);
 });
 
 Route::get('category-list', [CategoryController::class, 'getList']);

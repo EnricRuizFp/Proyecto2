@@ -231,7 +231,6 @@ const endGame = async (status) => {
         });
 
         console.log("Respuesta del servidor:", response.data);
-        console.log("UPDATED");
 
         if (response.data.status === 'success') {
             console.log("Partida finalizada con éxito.");
@@ -279,7 +278,6 @@ const playTurn = async () => {
 // Función para manejar el turno de esperar
 const waitTurn = async () => {
     if (!isGameActive.value) return;
-    console.log("Esperando el movimiento del oponente...");
     let opponentMoved = false;
     let attempts = 0;
 
@@ -317,7 +315,7 @@ const waitTurn = async () => {
                 const [row, col] = move.coordinate.split(',').map(num => parseInt(num) - 1);
                 userBoard.value[row][col] = move.result === 'hit' ? 'X' : 'O';
                 opponentMoved = true;
-                console.log("Movimiento del oponente detectado:", move);
+                console.log("Movimiento del oponente:", move);
             } else {
                 console.log("No se detectó movimiento del oponente.");
             }
