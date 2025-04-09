@@ -63,46 +63,19 @@
                 </a>
             </div>
             <hr class="dropdown-divider" />
-        </div>
-
-        <div class="tituloBarraLateral">
-            <router-link
-                to="/rankings"
-                class="bolder menu-item"
-                title="Compite y alcanza la cima"
-                @click.prevent="emitNavigation"
-                :class="{ 'disabled-menu-item': isMenuBlocked }"
-            >
-                <i class="fas fa-trophy"></i>
-                <span class="menu-text">RANKING</span>
-            </router-link>
-        </div>
-        <div class="subtituloBarraLateral">
             <div class="contenidoSubtituloBarraLateral">
                 <router-link
+                    to="/rankings"
                     class="menu-item"
-                    to="/global_ranking"
-                    title="Consulta el ranking global de jugadores"
+                    title="Compite y alcanza la cima"
                     @click.prevent="emitNavigation"
                     :class="{ 'disabled-menu-item': isMenuBlocked }"
                 >
-                    <i class="fas fa-globe-americas"></i>
-                    <span class="menu-text">Ranking global</span>
+                    <i class="fas fa-trophy"></i>
+                    <span class="menu-text">RANKING</span>
                 </router-link>
             </div>
             <hr class="dropdown-divider" />
-            <div class="contenidoSubtituloBarraLateral">
-                <router-link
-                    class="menu-item"
-                    to="/national_ranking"
-                    title="Consulta el ranking nacional de jugadores"
-                    @click.prevent="emitNavigation"
-                    :class="{ 'disabled-menu-item': isMenuBlocked }"
-                >
-                    <i class="fas fa-flag"></i>
-                    <span class="menu-text">Ranking nacional</span>
-                </router-link>
-            </div>
         </div>
     </div>
 
