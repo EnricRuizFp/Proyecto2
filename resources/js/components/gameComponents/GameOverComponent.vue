@@ -102,6 +102,8 @@
 <script setup>
 import { useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
+import { authStore } from "../../store/auth";
+import axios from "axios";
 
 const props = defineProps({
     visible: {
@@ -116,13 +118,38 @@ const router = useRouter();
 const gameStore = useGameStore();
 
 const goToHome = () => {
+    // Limpiar el estado actual
     emit('cleanup');
+    gameStore.resetGame();
+    
+    // Asegurarse de que todas las variables del juego se reinicien
+    gameStore.$reset(); // Reinicia todo el store a su estado inicial
+    
+    // Navegar al inicio
     router.push("/");
 };
 
-const handleRestart = () => {
+const handleRestart = async () => {
     emit('cleanup');
-    emit('restart');
+    gameStore.resetGame();
+
+    try {
+        const response = await axios.post('/api/games/check-user-requirements', {
+            gameType: gameStore.gameType,
+            gameCode: gameStore.matchCode,
+            user: authStore().user ?? null
+        });
+
+        if (response.data.status === 'success') {
+            router.push(`/game/${gameStore.gameType}/${gameStore.matchCode || 'null'}`);
+        } else {
+            console.error("Failed:", response.data.message);
+            goToHome();
+        }
+    } catch (error) {
+        console.error("Error checking requirements:", error);
+        goToHome();
+    }
 };
 </script>
 
