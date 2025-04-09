@@ -1370,6 +1370,14 @@ class GameController extends Controller
      *  // FUNCIONES DE VISTA DE PARTIDAS //
      * 
      */
+
+    
+    /**
+     * GET CURRENT MATCH STATUS
+     * Obtiene la información de una partida que esta en curso.
+     * Sólo se debe usar en caso de ser el especator de una partida (GAME VIEWER)
+     * @param \Illuminate\Http\Request $request
+     */
     public function getCurrentMatchStatus(Request $request){
         try {
             // Validar datos requeridos
@@ -1377,9 +1385,9 @@ class GameController extends Controller
                 'gameCode' => 'required|string'
             ]);
 
-            // Buscar la partida por código con todas sus relaciones
+            // Buscar la partida por código
             $game = Game::where('code', $request->gameCode)
-                ->with(['players', 'observers'])
+                ->with(['observers'])
                 ->withCount(['players', 'observers'])
                 ->first();
 
@@ -1390,38 +1398,192 @@ class GameController extends Controller
                 ], 404);
             }
 
-            // Obtener datos detallados
+            // Obtener los jugadores con sus datos y coordenadas
             $players = DB::table('game_players')
                 ->where('game_id', $game->id)
                 ->join('users', 'users.id', '=', 'game_players.user_id')
-                ->select('game_players.*', 'users.username', 'users.email')
+                ->select('users.*', 'game_players.coordinates')
                 ->get();
 
-            $observers = DB::table('game_viewers')
-                ->where('game_id', $game->id)
-                ->join('users', 'users.id', '=', 'game_viewers.user_id')
-                ->select('game_viewers.*', 'users.username')
-                ->get();
+            // Agregar los jugadores al objeto del juego
+            $game->players = $players;
 
             return response()->json([
                 'status' => 'success',
-                'data' => [
-                    'game' => $game,
-                    'players' => $players,
-                    'observers' => $observers,
-                    'meta' => [
-                        'players_count' => $game->players_count,
-                        'observers_count' => $game->observers_count,
-                        'is_full' => $game->players_count >= 2,
-                        'has_started' => !empty($game->start_date),
-                        'has_finished' => !empty($game->end_date)
-                    ]
-                ]
+                'data' => $game
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error getting game status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * VIEW GAME
+     * Une el jugador actual a la partida como espectador.
+     * @param \Illuminate\Http\Request $request
+     */
+    public function viewGame(Request $request)
+    {
+        try {
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array',
+                'user.id' => 'required|integer'
+            ]);
+
+            // Buscar la partida
+            $game = Game::where('code', $request->gameCode)->first();
+
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ], 404);
+            }
+
+            // Verificar si el usuario ya es observador
+            $existingViewer = DB::table('game_viewers')
+                ->where('game_id', $game->id)
+                ->where('user_id', $request->user['id'])
+                ->first();
+
+            if ($existingViewer) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'User is already viewing this game'
+                ]);
+            }
+
+            // Añadir el usuario como observador
+            DB::table('game_viewers')->insert([
+                'game_id' => $game->id,
+                'user_id' => $request->user['id'],
+                'joined' => now()
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Successfully joined as viewer'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error joining as viewer: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * VIEW GAME MOVES
+     * Obtiene todos los movimientos y estado actual de la partida para el espectador
+     * @param \Illuminate\Http\Request $request
+     */
+    public function viewGameMoves(Request $request)
+    {
+        try {
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array'
+            ]);
+
+            // Obtener la partida con sus jugadores
+            $game = Game::where('code', $request->gameCode)->first();
+            
+            if (!$game) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Game not found'
+                ], 404);
+            }
+
+            // Obtener los jugadores y sus datos
+            $players = DB::table('game_players as gp')
+                ->join('users as u', 'u.id', '=', 'gp.user_id')
+                ->where('gp.game_id', $game->id)
+                ->select('u.id', 'u.username', 'gp.coordinates')
+                ->get();
+
+            // Para cada jugador, obtener sus movimientos y estado de barcos
+            foreach ($players as $player) {
+                // Obtener todos los movimientos
+                $player->moves = Move::where('game_id', $game->id)
+                    ->whereHas('gamePlayer', function($q) use ($player) {
+                        $q->where('user_id', $player->id);
+                    })
+                    ->orderBy('updated_at', 'desc')
+                    ->get();
+
+                // Contar hits (barcos tocados)
+                $player->hits = Move::where('game_id', $game->id)
+                    ->whereHas('gamePlayer', function($q) use ($player) {
+                        $q->where('user_id', $player->id);
+                    })
+                    ->where('result', 'hit')
+                    ->count();
+
+                // Calcular barcos restantes
+                if ($player->coordinates) {
+                    $ships = json_decode($player->coordinates, true);
+                    $sunkShips = Move::where('game_id', $game->id)
+                        ->where('result', 'hit')
+                        ->where('sunk', true)
+                        ->whereHas('gamePlayer', function($q) use ($player) {
+                            $q->where('user_id', '!=', $player->id);
+                        })
+                        ->count();
+                    $player->remaining_ships = count($ships) - $sunkShips;
+                } else {
+                    $player->remaining_ships = 0;
+                }
+            }
+
+            // Calcular movimientos restantes
+            $totalMoves = Move::where('game_id', $game->id)->count();
+            $remainingMoves = 200 - $totalMoves;
+
+            // Determinar quién va ganando basado en hits
+            $player1 = $players[0];
+            $player2 = $players[1];
+            $currentLeader = null;
+
+            if ($player1->hits > $player2->hits) {
+                $currentLeader = $player1->username;
+            } elseif ($player2->hits > $player1->hits) {
+                $currentLeader = $player2->username;
+            } else {
+                $currentLeader = "Empate";
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'players' => $players->map(function($player) {
+                        return [
+                            'id' => $player->id,
+                            'username' => $player->username,
+                            'coordinates' => $player->coordinates,
+                            'moves' => $player->moves,
+                            'remaining_ships' => $player->remaining_ships,
+                            'hits' => $player->hits
+                        ];
+                    }),
+                    'game_status' => [
+                        'remaining_moves' => $remainingMoves,
+                        'current_leader' => $currentLeader,
+                        'leader_hits' => max($player1->hits, $player2->hits)
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error getting game moves: ' . $e->getMessage()
             ], 500);
         }
     }

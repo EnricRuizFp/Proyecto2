@@ -154,7 +154,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     /* -- GAME VIEW FUNCTIONS -- */
     // Get current match status
-    Route::post('/games/current-match-status', [GameController::class, 'getCurrentMatchStatus']);
+    Route::post('/games/get-current-match-status', [GameController::class, 'getCurrentMatchStatus']);
+    // Join a match as observer
+    Route::post('/games/view-game', [GameController::class, 'viewGame']);
+    // Get game moves and status for viewers
+    Route::post('/games/view-game-moves', [GameController::class, 'viewGameMoves']);
 });
 
 Route::get('category-list', [CategoryController::class, 'getList']);
