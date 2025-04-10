@@ -1,5 +1,13 @@
 <template>
     <div class="view-game">
+        <!-- Estado de carga inicial -->
+        <div v-if="isInitialLoading" class="loading-state">
+            <div class="loading-overlay">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p class="p3-dark">La partida está a punto de empezar...</p>
+            </div>
+        </div>
+
         <h2 class="white-color">Visualizando Partida: {{ gameCode }}</h2>
         <div class="boards-container">
             <!-- Primer tablero - Muestra barcos del jugador 1 y ataques del jugador 2 -->
@@ -105,6 +113,7 @@ const player1Board = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
 const player2Board = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
 const player1Name = ref('');
 const player2Name = ref('');
+const isInitialLoading = ref(true); // Nueva variable para controlar la carga inicial
 
 // Variables para los movimientos
 const player1Moves = ref({});
@@ -141,15 +150,21 @@ const getGameStatus = async () => {
             player1Name.value = currentGame.value.players[0].username;
             player2Name.value = currentGame.value.players[1].username;
 
-            // Establecer los tableros de cada jugador
+            // Establecer los tableros de cada jugador y verificar si hay datos
+            let hasBoards = false;
             if (currentGame.value.players[0].coordinates) {
                 setBoard(player1Board, JSON.parse(currentGame.value.players[0].coordinates));
                 console.log("Tablero 1 cargado: ", player1Board.value);
+                hasBoards = true;
             }
             if (currentGame.value.players[1].coordinates) {
                 setBoard(player2Board, JSON.parse(currentGame.value.players[1].coordinates));
                 console.log("Tablero 2 cargado: ", player2Board.value);
+                hasBoards = true;
             }
+
+            // Ocultar la pantalla de carga solo si hay tableros
+            isInitialLoading.value = !hasBoards;
         }
     } catch (error) {
         console.error("Error al obtener los datos de la partida:", error);
@@ -417,5 +432,46 @@ onUnmounted(() => {
     text-align: center;
     margin-bottom: 1rem;
     font-size: 1.5rem;
+}
+
+/* Estilos para la pantalla de carga */
+.loading-state {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    padding: 2rem; /* Añadido padding exterior */
+}
+
+.loading-overlay {
+    position: relative;
+    width: 340px; /* Aumentado para compensar el padding interior */
+    padding: 2.5rem;
+    background: var(--background-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    border-radius: 12px; /* Aumentado para mejor apariencia */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Añadido sombra para mejor profundidad */
+}
+
+.loading-overlay i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+}
+
+.loading-overlay p {
+    margin: 0;
+    padding: 0 1rem;
+    text-align: center;
+    width: 100%; /* Asegura que el texto use todo el ancho disponible */
 }
 </style>

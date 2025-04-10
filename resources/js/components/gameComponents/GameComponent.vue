@@ -1,5 +1,13 @@
 <template>
     <div class="game app-background-primary">
+        <!-- Estado de carga inicial -->
+        <div v-if="isInitialLoading" class="loading-state">
+            <div class="loading-overlay">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p class="p3-dark">Cargando tableros...</p>
+            </div>
+        </div>
+
         <!-- Estado del juego -->
         <div class="game-status">
             <div v-if="yourTurn" class="timer">
@@ -263,6 +271,7 @@ const notification = ref({
 });
 const username = ref("Sus barcos");
 const opponentUsername = ref("Tablero de ataque");
+const isInitialLoading = ref(true);
 
 // Variables para el chat
 const isChatOpen = ref(false);
@@ -381,12 +390,6 @@ const resetGameState = () => {
         type: "info",
         position: "derecha",
     };
-
-    // Detener el polling del chat
-    if (pollingInterval.value) {
-        clearInterval(pollingInterval.value);
-        pollingInterval.value = null;
-    }
 };
 
 // Función para finalizar la partida (ganando)
@@ -411,7 +414,6 @@ const endGame = async (status) => {
 
             if (status == "winner") {
                 console.log("GANADOR");
-                // Almacenar los puntos ganados
                 gameStore.setPoints(response.data.points_earned);
                 gameStore.setShowWin(true);
             } else {
@@ -542,6 +544,8 @@ const gameLoop = async () => {
 
 // Función loadShips (cargar los barcos del jugador)
 const loadShips = async () => {
+    isInitialLoading.value = true;
+    
     // Verificación de usuario autenticado y código de partida
     if (authStore().user == null) {
         // backToHome(true, "No tienes permiso para acceder a esta página (user)");
@@ -569,6 +573,7 @@ const loadShips = async () => {
 
         // Posicionar los barcos en el tablero
         setUserBoard(JSON.parse(response.data.data));
+        isInitialLoading.value = false;
     } catch (error) {
         // backToHome(true, "Error al cargar la partida.");
         console.log("Error al cargar la partida: ", error);
@@ -713,11 +718,39 @@ onMounted(async () => {
 
 // Limpiar cuando se desmonta el componente
 onUnmounted(() => {
+    console.log("Desmontando componente del juego...");
+    // Detener el juego
     isGameActive.value = false;
+    yourTurn.value = false;
+    
+    // Detener el intervalo del timer si existe
+    if (timeLeft.value > 0) {
+        timeLeft.value = 0;
+    }
 
-    // Detener el polling del chat
-    if (pollingInterval.value) {
-        clearInterval(pollingInterval.value);
+    // Limpiar el estado del juego
+    resetGameState();
+
+    // El polling del chat se mantiene activo intencionalmente
+    // para permitir la comunicación post-partida
+});
+
+// Vigilar cambios en la ruta para limpiar cuando se navega fuera
+watch(() => route.path, (newPath, oldPath) => {
+    if (oldPath.includes('/game') && !newPath.includes('/game')) {
+        console.log("Saliendo de la pantalla de juego...");
+        // Detener el juego y el chat
+        isGameActive.value = false;
+        yourTurn.value = false;
+        
+        // Ahora sí detenemos el polling del chat al salir de la pantalla
+        if (pollingInterval.value) {
+            clearInterval(pollingInterval.value);
+            pollingInterval.value = null;
+        }
+        
+        // Limpiar el estado del juego
+        resetGameState();
     }
 });
 
@@ -1256,4 +1289,37 @@ watch(lastMessageId, (newVal, oldVal) => {
         max-width: 350px;
     }
 }
+
+/* Estilos para la pantalla de carga */
+.loading-state {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.loading-overlay {
+    position: relative;
+    width: 300px;
+    padding: 1rem;
+    background: var(--background-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    border-radius: 8px;
+}
+
+.loading-overlay i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
 </style>
+``` 
