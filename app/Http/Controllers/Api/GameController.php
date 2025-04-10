@@ -1486,20 +1486,26 @@ class GameController extends Controller
     public function viewGameMoves(Request $request)
     {
         try {
+            Log::info('Starting viewGameMoves function');
+
             $request->validate([
                 'gameCode' => 'required|string',
                 'user' => 'required|array'
             ]);
 
-            // Obtener la partida con sus jugadores
+            Log::info('Validation passed, looking for game: ' . $request->gameCode);
+
             $game = Game::where('code', $request->gameCode)->first();
             
             if (!$game) {
+                Log::warning('Game not found: ' . $request->gameCode);
                 return response()->json([
                     'status' => 'failed',
                     'message' => 'Game not found'
                 ], 404);
             }
+
+            Log::info('Game found, fetching players data');
 
             // Obtener los jugadores y sus datos
             $players = DB::table('game_players as gp')
@@ -1508,17 +1514,52 @@ class GameController extends Controller
                 ->select('u.id', 'u.username', 'gp.coordinates')
                 ->get();
 
+            Log::info('Players found: ' . $players->count());
+
             // Para cada jugador, obtener sus movimientos y estado de barcos
             foreach ($players as $player) {
-                // Obtener todos los movimientos
-                $player->moves = Move::where('game_id', $game->id)
+                Log::info('Processing player: ' . $player->username);
+
+                // Debug de las coordenadas del jugador
+                Log::info('Player coordinates: ' . ($player->coordinates ?? 'null'));
+
+                // Obtener todos los movimientos con detalles
+                $moves = Move::where('game_id', $game->id)
                     ->whereHas('gamePlayer', function($q) use ($player) {
                         $q->where('user_id', $player->id);
                     })
+                    ->select('coordinate', 'result', 'ship', 'sunk', 'updated_at')
                     ->orderBy('updated_at', 'desc')
                     ->get();
 
-                // Contar hits (barcos tocados)
+                Log::info('Moves found for player: ' . $moves->count());
+
+                // Mapear los movimientos con manejo seguro de fecha
+                $player->moves = $moves->map(function($move) {
+                    $timestamp = null;
+                    try {
+                        // Intentar convertir el timestamp a formato Carbon si es un string
+                        if (is_string($move->updated_at)) {
+                            $timestamp = \Carbon\Carbon::parse($move->updated_at)->format('Y-m-d H:i:s');
+                        } else {
+                            $timestamp = $move->updated_at ? $move->updated_at->format('Y-m-d H:i:s') : null;
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Error formatting timestamp: ' . $e->getMessage());
+                    }
+
+                    Log::info('Processing move with timestamp: ' . $timestamp);
+                    
+                    return [
+                        'coordinate' => $move->coordinate,
+                        'result' => $move->result,
+                        'ship' => $move->ship,
+                        'is_sunk' => $move->sunk,
+                        'timestamp' => $timestamp
+                    ];
+                });
+
+                // Contar hits y calcular barcos restantes con logging
                 $player->hits = Move::where('game_id', $game->id)
                     ->whereHas('gamePlayer', function($q) use ($player) {
                         $q->where('user_id', $player->id);
@@ -1526,40 +1567,41 @@ class GameController extends Controller
                     ->where('result', 'hit')
                     ->count();
 
-                // Calcular barcos restantes
+                Log::info('Player hits: ' . $player->hits);
+
+                // Calcular barcos restantes con logging adicional
                 if ($player->coordinates) {
-                    $ships = json_decode($player->coordinates, true);
-                    $sunkShips = Move::where('game_id', $game->id)
-                        ->where('result', 'hit')
-                        ->where('sunk', true)
-                        ->whereHas('gamePlayer', function($q) use ($player) {
-                            $q->where('user_id', '!=', $player->id);
-                        })
-                        ->count();
-                    $player->remaining_ships = count($ships) - $sunkShips;
+                    try {
+                        $ships = json_decode($player->coordinates, true);
+                        Log::info('Decoded ships: ' . json_encode($ships));
+
+                        $sunkShips = Move::where('game_id', $game->id)
+                            ->where('result', 'hit')
+                            ->where('sunk', true)
+                            ->whereHas('gamePlayer', function($q) use ($player) {
+                                $q->where('user_id', '!=', $player->id);
+                            })
+                            ->count();
+
+                        Log::info('Sunk ships count: ' . $sunkShips);
+                        $player->remaining_ships = count($ships) - $sunkShips;
+                    } catch (\Exception $e) {
+                        Log::error('Error processing ships: ' . $e->getMessage());
+                        $player->remaining_ships = 0;
+                    }
                 } else {
                     $player->remaining_ships = 0;
                 }
             }
 
-            // Calcular movimientos restantes
+            // Resto del procesamiento con logging
             $totalMoves = Move::where('game_id', $game->id)->count();
             $remainingMoves = 200 - $totalMoves;
 
-            // Determinar quién va ganando basado en hits
-            $player1 = $players[0];
-            $player2 = $players[1];
-            $currentLeader = null;
+            Log::info('Total moves: ' . $totalMoves . ', Remaining moves: ' . $remainingMoves);
 
-            if ($player1->hits > $player2->hits) {
-                $currentLeader = $player1->username;
-            } elseif ($player2->hits > $player1->hits) {
-                $currentLeader = $player2->username;
-            } else {
-                $currentLeader = "Empate";
-            }
-
-            return response()->json([
+            // Preparar respuesta final
+            $response = [
                 'status' => 'success',
                 'data' => [
                     'players' => $players->map(function($player) {
@@ -1574,13 +1616,24 @@ class GameController extends Controller
                     }),
                     'game_status' => [
                         'remaining_moves' => $remainingMoves,
-                        'current_leader' => $currentLeader,
-                        'leader_hits' => max($player1->hits, $player2->hits)
+                        'current_leader' => $players[0]->hits > $players[1]->hits ? 
+                            $players[0]->username : 
+                            ($players[1]->hits > $players[0]->hits ? $players[1]->username : "Empate"),
+                        'leader_hits' => max($players[0]->hits, $players[1]->hits),
+                        'is_finished' => $game->is_finished,
+                        'winner' => $game->winner ? 
+                            $players->firstWhere('id', $game->winner)->username : 
+                            ($game->is_finished && !$game->winner ? 'draw' : null)
                     ]
                 ]
-            ]);
+            ];
+
+            Log::info('Sending response: ' . json_encode($response));
+            return response()->json($response);
 
         } catch (\Exception $e) {
+            Log::error('Error in viewGameMoves: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error getting game moves: ' . $e->getMessage()

@@ -2,7 +2,7 @@
     <div class="view-game">
         <h2 class="white-color">Visualizando Partida: {{ gameCode }}</h2>
         <div class="boards-container">
-            <!-- Primer tablero -->
+            <!-- Primer tablero - Muestra barcos del jugador 1 y ataques del jugador 2 -->
             <div class="board-section">
                 <h2 class="title">{{ player1Name }}</h2>
                 <div class="board-container">
@@ -11,15 +11,32 @@
                             <div v-for="col in 10" :key="`cell-${row}-${col}`" 
                                 class="board-cell"
                                 :class="{
-                                    ship: player1Board[row - 1][col - 1]
+                                    ship: player1Board[row - 1][col - 1],
+                                    hit: player2Moves[`${row},${col}`] === 'hit',
+                                    miss: player2Moves[`${row},${col}`] === 'miss'
                                 }">
+                                <svg v-if="player2Moves[`${row},${col}`] === 'hit'"
+                                    class="hit-marker"
+                                    viewBox="0 0 24 24">
+                                    <path d="M12 2 L14 7 L19 5 L16 10 L21 12 L16 14 L19 19 L14 17 L12 22 L10 17 L5 19 L8 14 L3 12 L8 10 L5 5 L10 7 Z"
+                                        fill="red" stroke="darkred" stroke-width="1"/>
+                                    <circle cx="12" cy="12" r="3" fill="darkred"/>
+                                </svg>
+                                <svg v-if="player2Moves[`${row},${col}`] === 'miss'"
+                                    class="miss-marker"
+                                    viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="#0d6efd" stroke-width="2" fill="none"/>
+                                    <circle cx="12" cy="12" r="3" fill="#0d6efd"/>
+                                    <line x1="12" y1="2" x2="12" y2="22" stroke="#0d6efd" stroke-width="2"/>
+                                    <line x1="2" y1="12" x2="22" y2="12" stroke="#0d6efd" stroke-width="2"/>
+                                </svg>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Segundo tablero -->
+            <!-- Segundo tablero - Muestra barcos del jugador 2 y ataques del jugador 1 -->
             <div class="board-section">
                 <h2 class="title">{{ player2Name }}</h2>
                 <div class="board-container">
@@ -28,14 +45,37 @@
                             <div v-for="col in 10" :key="`attack-cell-${row}-${col}`" 
                                 class="board-cell"
                                 :class="{
-                                    ship: player2Board[row - 1][col - 1]
+                                    ship: player2Board[row - 1][col - 1],
+                                    hit: player1Moves[`${row},${col}`] === 'hit',
+                                    miss: player1Moves[`${row},${col}`] === 'miss'
                                 }">
+                                <svg v-if="player1Moves[`${row},${col}`] === 'hit'"
+                                    class="hit-marker"
+                                    viewBox="0 0 24 24">
+                                    <path d="M12 2 L14 7 L19 5 L16 10 L21 12 L16 14 L19 19 L14 17 L12 22 L10 17 L5 19 L8 14 L3 12 L8 10 L5 5 L10 7 Z"
+                                        fill="red" stroke="darkred" stroke-width="1"/>
+                                    <circle cx="12" cy="12" r="3" fill="darkred"/>
+                                </svg>
+                                <svg v-if="player1Moves[`${row},${col}`] === 'miss'"
+                                    class="miss-marker"
+                                    viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="#0d6efd" stroke-width="2" fill="none"/>
+                                    <circle cx="12" cy="12" r="3" fill="#0d6efd"/>
+                                    <line x1="12" y1="2" x2="12" y2="22" stroke="#0d6efd" stroke-width="2"/>
+                                    <line x1="2" y1="12" x2="22" y2="12" stroke="#0d6efd" stroke-width="2"/>
+                                </svg>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <ViewGameResultComponent
+            :visible="showResult"
+            :winner-name="winnerName"
+            :is-draw="isDraw"
+            @cleanup="handleCleanup"
+        />
     </div>
 </template>
 
@@ -43,6 +83,8 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import axios from "axios";
 import { authStore } from "@/store/auth";
+import ViewGameResultComponent from "./ViewGameResultComponent.vue";
+import { useRouter } from "vue-router";
 
 const props = defineProps({
     gameCode: {
@@ -63,6 +105,15 @@ const player1Board = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
 const player2Board = ref(Array(10).fill(null).map(() => Array(10).fill(null)));
 const player1Name = ref('');
 const player2Name = ref('');
+
+// Variables para los movimientos
+const player1Moves = ref({});
+const player2Moves = ref({});
+
+const router = useRouter();
+const showResult = ref(false);
+const winnerName = ref('');
+const isDraw = ref(false);
 
 // Función para colocar los barcos en el tablero
 const setBoard = (board, shipsData) => {
@@ -122,38 +173,102 @@ const viewGame = async (gameCode) => {
     }
 };
 
+// Función para verificar si hay un ganador
+const checkWinner = (game) => {
+    if (!game) return false;
+
+    const player1Ships = Object.values(JSON.parse(game.players[0].coordinates)).flat().length;
+    const player2Ships = Object.values(JSON.parse(game.players[1].coordinates)).flat().length;
+    const player1Hits = game.players[0].moves.filter(move => move.result === 'hit').length;
+    const player2Hits = game.players[1].moves.filter(move => move.result === 'hit').length;
+
+    // Si algún jugador ha hundido todos los barcos del oponente
+    if (player1Hits === player2Ships) {
+        winnerName.value = game.players[0].username;
+        showResult.value = true;
+        return true;
+    } else if (player2Hits === player1Ships) {
+        winnerName.value = game.players[1].username;
+        showResult.value = true;
+        return true;
+    }
+
+    // Verificar empate (cuando se agotan los movimientos)
+    const maxMoves = player1Ships * 2; // Ajusta este valor según tus reglas
+    if (game.players[0].moves.length >= maxMoves && game.players[1].moves.length >= maxMoves) {
+        isDraw.value = true;
+        showResult.value = true;
+        return true;
+    }
+
+    return false;
+};
+
 // Función para el bucle de observación de la partida
 const viewGameLoop = async () => {
     try {
         let partidaFinalizada = false;
 
         while(!partidaFinalizada) {
+            try {
+                const response = await axios.post('/api/games/view-game-moves', {
+                    gameCode: props.gameCode,
+                    user: authStore().user
+                });
 
-            const response = await axios.post('/api/games/view-game-moves', {
-                gameCode: props.gameCode,
-                user: authStore().user
-            });
+                if (response.data.status === 'success') {
+                    currentGame.value = response.data.data;
 
-            console.log("Datos obtenidos: ", response.data);
-            
-            if (response.data.status === 'success') {
-                currentGame.value = response.data.data;
+                    // Procesar movimientos del jugador 1
+                    player1Moves.value = {};
+                    currentGame.value.players[0].moves.forEach(move => {
+                        const [row, col] = move.coordinate.split(',');
+                        player1Moves.value[`${row},${col}`] = move.result;
+                    });
 
-                // Actualizar los tableros
-                if (currentGame.value.players[0].coordinates) {
-                    setBoard(player1Board, JSON.parse(currentGame.value.players[0].coordinates));
+                    // Procesar movimientos del jugador 2
+                    player2Moves.value = {};
+                    currentGame.value.players[1].moves.forEach(move => {
+                        const [row, col] = move.coordinate.split(',');
+                        player2Moves.value[`${row},${col}`] = move.result;
+                    });
+
+                    // Actualizar los tableros
+                    if (currentGame.value.players[0].coordinates) {
+                        setBoard(player1Board, JSON.parse(currentGame.value.players[0].coordinates));
+                    }
+                    if (currentGame.value.players[1].coordinates) {
+                        setBoard(player2Board, JSON.parse(currentGame.value.players[1].coordinates));
+                    }
+
+                    // Verificar si la partida ha terminado
+                    if (currentGame.value.game_status.is_finished) {
+                        if (currentGame.value.game_status.winner === 'draw') {
+                            isDraw.value = true;
+                        } else {
+                            winnerName.value = currentGame.value.game_status.winner;
+                        }
+                        showResult.value = true;
+                        partidaFinalizada = true;
+                    }
                 }
-                if (currentGame.value.players[1].coordinates) {
-                    setBoard(player2Board, JSON.parse(currentGame.value.players[1].coordinates));
-                }
+            } catch (error) {
+                console.error("Error en iteración del bucle:", error.response?.data || error);
+                await new Promise(resolve => setTimeout(resolve, 5000));
             }
-
-            // Esperar 2.5 segundos antes de cada iteración
-            await new Promise(resolve => setTimeout(resolve, 2500));
+            if (!partidaFinalizada) {
+                await new Promise(resolve => setTimeout(resolve, 2500));
+            }
         }
     } catch (error) {
         console.error("Error en el bucle de observación:", error);
     }
+};
+
+const handleCleanup = () => {
+    showResult.value = false;
+    currentGame.value = null;
+    router.push('/');
 };
 
 // Llamar a la función cuando el componente se monta
@@ -186,6 +301,10 @@ onMounted(() => {
         console.error("Error al observar la partida:", error);
     }
     
+});
+
+onUnmounted(() => {
+    handleCleanup();
 });
 </script>
 
@@ -256,6 +375,26 @@ onMounted(() => {
     bottom: 4px;
     background-color: var(--secondary-color);
     border-radius: 2px;
+}
+
+.hit-marker,
+.miss-marker {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.board-cell.hit,
+.board-cell.miss {
+    background-color: transparent !important;
+}
+
+/* Asegurar que el SVG esté por encima del fondo del barco */
+.board-cell.ship.hit::after {
+    background-color: transparent;
 }
 
 /* Media queries para responsividad */
