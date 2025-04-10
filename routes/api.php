@@ -30,7 +30,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('users/updateimg', [UserController::class, 'updateimg']); //Listar
 
     Route::apiResource('posts', PostControllerAdvance::class);
-    Route::apiResource('categories', CategoryController::class);
     Route::apiResource('roles', RoleController::class);
 
     Route::get('role-list', [RoleController::class, 'getList']);
@@ -38,7 +37,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::put('/role-permissions', [PermissionController::class, 'updateRolePermissions']);
     Route::apiResource('permissions', PermissionController::class);
 
-    Route::get('category-list', [CategoryController::class, 'getList']);
     Route::get('/user', [ProfileController::class, 'user']);
     Route::put('/user', [ProfileController::class, 'update']);
 
@@ -161,7 +159,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/games/view-game-moves', [GameController::class, 'viewGameMoves']);
 });
 
-Route::get('category-list', [CategoryController::class, 'getList']);
 
 Route::get('get-posts', [PostControllerAdvance::class, 'getPosts']);
 Route::get('get-category-posts/{id}', [PostControllerAdvance::class, 'getCategoryByPosts']);
