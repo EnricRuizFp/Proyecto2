@@ -6,24 +6,34 @@
                     <h5 class="float-start mb-0">Users</h5>
                 </div>
 
+                <!-- Mostrar spinner mientras se carga -->
+                <div v-if="isLoadingUsers" class="text-center p-4">
+                    <i
+                        class="pi pi-spin pi-spinner"
+                        style="font-size: 2rem"
+                    ></i>
+                    <p>Cargando usuarios...</p>
+                </div>
+
                 <DataTable
+                    v-else
                     v-model:filters="filters"
                     :value="users.data"
                     paginator
                     :rows="10"
-                    :globalFilterFields="[
-                        'id',
-                        'username',
-                        'name',
-                        'surname1',
-                        'surname2',
-                        'email',
-                        'created_at',
-                        'type.name',
-                    ]"
+                    :totalRecords="users.meta?.total || 0"
                     stripedRows
                     dataKey="id"
                     size="small"
+                    v-model:first="first"
+                    :sortField="orderColumn"
+                    :sortOrder="sortOrder"
+                    @sort="onSort"
+                    @page="onPageChange($event)"
+                    :lazy="true"
+                    @filter="onFilter"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+                    :pageLinkSize="5"
                 >
                     <template #header>
                         <Toolbar pt:root:class="toolbar-table">
@@ -31,8 +41,9 @@
                                 <IconField>
                                     <InputIcon class="pi pi-search" />
                                     <InputText
-                                        v-model="filters['global'].value"
+                                        v-model="searchTerm"
                                         placeholder="Buscar"
+                                        @keyup.enter="applySearch"
                                     />
                                 </IconField>
                                 <Button
@@ -45,10 +56,17 @@
                                 />
                                 <Button
                                     type="button"
+                                    icon="pi pi-search"
+                                    class="ml-1"
+                                    outlined
+                                    @click="applySearch"
+                                />
+                                <Button
+                                    type="button"
                                     icon="pi pi-refresh"
                                     class="h-100 ml-1"
                                     outlined
-                                    @click="getUsers()"
+                                    @click="refreshData"
                                 />
                             </template>
                             <template #end>
@@ -63,7 +81,7 @@
                         </Toolbar>
                     </template>
 
-                    <template #empty> No customers found. </template>
+                    <template #empty> No users found. </template>
 
                     <Column field="id" header="ID" sortable />
                     <Column header="Avatar">
@@ -109,6 +127,10 @@
                                     severity="info"
                                     size="small"
                                     class="mr-1"
+                                    :loading="
+                                        isLoadingAction ===
+                                        `edit-${slotProps.data.id}`
+                                    "
                                 />
                             </router-link>
                             <Button
@@ -116,12 +138,16 @@
                                 severity="danger"
                                 v-if="can('user-delete')"
                                 @click.prevent="
-                                    deleteUser(
+                                    handleDelete(
                                         slotProps.data.id,
                                         slotProps.index
                                     )
                                 "
                                 size="small"
+                                :loading="
+                                    isLoadingAction ===
+                                    `delete-${slotProps.data.id}`
+                                "
                             />
                         </template>
                     </Column>
@@ -132,25 +158,104 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import useUsers from "../../../composables/users";
 import { useAbility } from "@casl/vue";
 import { FilterMatchMode } from "@primevue/core/api";
 
-const { users, getUsers, deleteUser } = useUsers();
-const { can } = useAbility();
-
+// Variables para filtros
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 
+// Variable separada para el término de búsqueda
+const searchTerm = ref("");
+// Control de la página actual
+const currentPage = ref(1);
+const first = ref(0); // Posición del primer registro en la página actual
+
+// Variables para ordenamiento
+const orderColumn = ref(null);
+const orderDirection = ref(null);
+
+// Variable para controlar qué acción específica está cargando
+const isLoadingAction = ref(null);
+
+// Computar sortOrder para PrimeVue (1 = asc, -1 = desc)
+const sortOrder = computed(() => {
+    return orderDirection.value === "asc" ? 1 : -1;
+});
+
+const { users, getUsers, deleteUser, isLoadingUsers } = useUsers();
+const { can } = useAbility();
+
+const defaultAvatar = "https://bootdey.com/img/Content/avatar/avatar7.png";
+
+// Inicializar filtros
 const initFilters = () => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
+    searchTerm.value = "";
+    first.value = 0;
+    currentPage.value = 1;
+
+    // Reseteamos el ordenamiento
+    orderColumn.value = null;
+    orderDirection.value = null;
+
+    getUsers(1);
 };
 
-const defaultAvatar = "https://bootdey.com/img/Content/avatar/avatar7.png";
+// Aplicar búsqueda solo cuando se presione Enter o el botón de búsqueda
+const applySearch = () => {
+    filters.value.global.value = searchTerm.value;
+    first.value = 0;
+    currentPage.value = 1;
+    getUsers(
+        1,
+        "",
+        "",
+        searchTerm.value,
+        orderColumn.value,
+        orderDirection.value
+    );
+};
+
+// Manejar cambio de página
+const onPageChange = (event) => {
+    first.value = event.first;
+    currentPage.value = event.page + 1;
+
+    getUsers(
+        currentPage.value,
+        "",
+        "",
+        searchTerm.value,
+        orderColumn.value,
+        orderDirection.value
+    );
+};
+
+// Manejar filtrado (deshabilitado para evitar búsqueda mientras escribe)
+const onFilter = (event) => {
+    // No hacer nada para evitar búsquedas mientras se escribe
+};
+
+// Función para ordenamiento
+const onSort = (event) => {
+    orderColumn.value = event.sortField;
+    orderDirection.value = event.sortOrder === 1 ? "asc" : "desc";
+
+    getUsers(
+        currentPage.value,
+        "",
+        "",
+        searchTerm.value,
+        orderColumn.value,
+        orderDirection.value
+    );
+};
 
 // Agregar esta función para capitalizar la primera letra
 const capitalizeFirstLetter = (string) => {
@@ -158,8 +263,33 @@ const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
+// Función para refrescar datos
+const refreshData = () => {
+    getUsers(currentPage.value);
+};
+
+// Modificar la función deleteUser para mostrar el estado de carga
+const handleDelete = async (id, index) => {
+    try {
+        isLoadingAction.value = `delete-${id}`;
+        await deleteUser(id, index);
+    } finally {
+        isLoadingAction.value = null;
+    }
+};
+
 onMounted(() => {
-    getUsers();
+    // Verificar si hay un parámetro de página en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageParam = parseInt(urlParams.get("page")) || 1;
+
+    if (pageParam > 1) {
+        currentPage.value = pageParam;
+        first.value = (pageParam - 1) * 10; // 10 es el número de filas por página
+    }
+
+    // Llamar a getUsers sin valores de ordenamiento predeterminados
+    getUsers(currentPage.value, "", "", "", null, null);
 });
 </script>
 
@@ -178,5 +308,10 @@ onMounted(() => {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.icon-column-2 {
+    width: 100px;
+    text-align: center;
 }
 </style>

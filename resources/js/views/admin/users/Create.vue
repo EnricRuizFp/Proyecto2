@@ -187,7 +187,7 @@
                             </div>
                         </div>
 
-                        <!-- Role field -->
+                        <!-- Role field con debug -->
                         <div class="form-group">
                             <label for="roles">Roles</label>
                             <MultiSelect
@@ -233,7 +233,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, inject } from "vue";
+import { onMounted, reactive, ref, inject, watch } from "vue";
 import { useRouter } from "vue-router"; // Añadir esta importación
 import useRoles from "@/composables/roles";
 import useUsers from "@/composables/users";
@@ -255,7 +255,7 @@ const toast = useToast();
 // Añadir antes de las otras constantes
 const router = useRouter();
 
-const { roleList, getRoleList } = useRoles();
+const { roleList, getRoleList, isLoadingRoles } = useRoles();
 const { storeUser, validationErrors, isLoading, uploadCustomAvatar } =
     useUsers();
 const formSubmitted = ref(false);
@@ -545,10 +545,53 @@ const uploadEvent = async (callback, uploadedFiles) => {
 };
 
 // Initialize data
-onMounted(() => {
-    getRoleList();
+onMounted(async () => {
+    console.log("Componente Create.vue montado");
+    try {
+        // Primera prueba con el endpoint normal
+        await getRoleList();
+        console.log("Roles obtenidos:", roleList.value);
+
+        // Si no se obtuvieron roles, intentar con el endpoint general
+        if (!roleList.value?.length) {
+            console.log("Intentando con endpoint alternativo...");
+            const response = await axios.get("/api/roles");
+            if (response.data && Array.isArray(response.data.data)) {
+                roleList.value = response.data.data;
+                console.log(
+                    "Roles obtenidos mediante endpoint alternativo:",
+                    roleList.value
+                );
+            }
+        }
+    } catch (error) {
+        console.error("Error al obtener roles:", error);
+        // Intentar un enfoque alternativo
+        try {
+            const response = await axios.get("/api/roles");
+            if (response.data && Array.isArray(response.data.data)) {
+                roleList.value = response.data.data;
+                console.log(
+                    "Roles recuperados mediante endpoint de respaldo:",
+                    roleList.value
+                );
+            }
+        } catch (e) {
+            console.error("Error en la recuperación de respaldo:", e);
+        }
+    }
+
     getPresetAvatars();
 });
+
+// Añadir un watch para detectar cambios en roleList
+watch(
+    roleList,
+    (newVal) => {
+        console.log("roleList actualizado:", newVal);
+    },
+    { deep: true }
+);
 </script>
 
 <style scoped>

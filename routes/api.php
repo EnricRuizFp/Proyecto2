@@ -33,6 +33,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::apiResource('roles', RoleController::class);
 
     Route::get('role-list', [RoleController::class, 'getList']);
+    Route::get('/roles/list', [App\Http\Controllers\Api\RoleController::class, 'getList']);
     Route::get('role-permissions/{id}', [PermissionController::class, 'getRolePermissions']);
     Route::put('/role-permissions', [PermissionController::class, 'updateRolePermissions']);
     Route::apiResource('permissions', PermissionController::class);
