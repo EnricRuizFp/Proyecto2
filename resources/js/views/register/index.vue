@@ -30,7 +30,7 @@
                         />
                         <div
                             v-for="message in validationErrors?.username"
-                            class="white-color"
+                            class="validation-error"
                         >
                             {{ message }}
                         </div>
@@ -51,7 +51,7 @@
                         />
                         <div
                             v-for="message in validationErrors?.name"
-                            class="white-color"
+                            class="validation-error"
                         >
                             {{ message }}
                         </div>
@@ -71,7 +71,7 @@
                         />
                         <div
                             v-for="message in validationErrors?.surname1"
-                            class="white-color"
+                            class="validation-error"
                         >
                             {{ message }}
                         </div>
@@ -91,7 +91,7 @@
                         />
                         <div
                             v-for="message in validationErrors?.surname2"
-                            class="white-color"
+                            class="validation-error"
                         >
                             {{ message }}
                         </div>
@@ -121,7 +121,7 @@
                         </select>
                         <div
                             v-for="message in validationErrors?.nationality"
-                            class="white-color"
+                            class="validation-error"
                         >
                             {{ message }}
                         </div>
@@ -142,7 +142,7 @@
                         />
                         <div
                             v-for="message in validationErrors?.email"
-                            class="white-color"
+                            class="validation-error"
                         >
                             {{ message }}
                         </div>
@@ -174,7 +174,7 @@
                         </div>
                         <div
                             v-for="message in validationErrors?.password"
-                            class="white-color"
+                            class="validation-error"
                         >
                             {{ message }}
                         </div>
@@ -213,7 +213,7 @@
                         </div>
                         <div
                             v-for="message in validationErrors?.password_confirmation"
-                            class="white-color"
+                            class="validation-error"
                         >
                             {{ message }}
                         </div>

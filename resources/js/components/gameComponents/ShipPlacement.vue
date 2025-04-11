@@ -774,6 +774,16 @@ const emit = defineEmits(["placement-confirmed"]);
     }
 }
 
+@media (max-width: 800px) {
+    .ship-placement {
+        padding-top: 1rem;
+    }
+    
+    .timer-container {
+        margin-bottom: 0;
+    }
+}
+
 /* Estilos para la pantalla de carga */
 .loading-state {
     position: fixed;
@@ -1149,6 +1159,37 @@ const emit = defineEmits(["placement-confirmed"]);
     .timer {
         padding: 0.3rem;
         font-size: 14px;
+    }
+}
+
+@media (max-width: 1000px) {
+    .board-container,
+    .ships-dock {
+        width: calc(450px - ((1000px - 100vw) * 0.3));
+        height: calc(450px - ((1000px - 100vw) * 0.3));
+    }
+
+    .board-grid {
+        width: calc(400px - ((1000px - 100vw) * 0.3));
+        height: calc(400px - ((1000px - 100vw) * 0.3));
+    }
+
+    .board-cell {
+        width: calc(40px - ((1000px - 100vw) * 0.03));
+        height: calc(40px - ((1000px - 100vw) * 0.03));
+    }
+
+    .ship-segment {
+        width: calc(36px - ((1000px - 100vw) * 0.03));
+        height: calc(36px - ((1000px - 100vw) * 0.03));
+    }
+
+    .ship-preview {
+        height: calc(40px - ((1000px - 100vw) * 0.03));
+    }
+
+    .ship-item {
+        --cell-size: calc(40px - ((1000px - 100vw) * 0.03));
     }
 }
 </style>

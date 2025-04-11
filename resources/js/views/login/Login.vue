@@ -24,7 +24,7 @@
                         />
                         <!-- Validation Errors -->
                         <div>
-                            <div v-for="message in validationErrors?.email">
+                            <div v-for="message in validationErrors?.email" class="validation-error">
                                 {{ message }}
                             </div>
                         </div>
@@ -55,7 +55,7 @@
                         </div>
                         <!-- Validation Errors -->
                         <div>
-                            <div v-for="message in validationErrors?.password">
+                            <div v-for="message in validationErrors?.password" class="validation-error">
                                 {{ message }}
                             </div>
                         </div>

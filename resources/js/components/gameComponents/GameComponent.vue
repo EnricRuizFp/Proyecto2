@@ -1022,6 +1022,7 @@ watch(lastMessageId, (newVal, oldVal) => {
     padding: 1rem;
     text-align: center;
     margin-bottom: 1rem;
+    margin-top: 20px;
 }
 
 .timer {
@@ -1076,19 +1077,6 @@ watch(lastMessageId, (newVal, oldVal) => {
     right: 20px;
     animation: slideInRight 0.3s ease-out;
 }
-
-/* Remover o comentar las otras posiciones que no usaremos
-.notification.izquierda {
-    left: 20px;
-    animation: slideInLeft 0.3s ease-out;
-}
-
-.notification.centro {
-    left: 50%;
-    transform: translateX(-50%);
-    animation: slideInTop 0.3s ease-out;
-}
-*/
 
 @keyframes slideInRight {
     from {

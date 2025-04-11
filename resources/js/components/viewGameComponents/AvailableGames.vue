@@ -1,6 +1,10 @@
 <template>
     <div class="games-table">
-        <table v-if="games.length > 0">
+        <div v-if="loading" class="loading-container">
+            <div class="spinner"></div>
+        </div>
+
+        <table v-else-if="games.length > 0">
             <thead>
                 <tr>
                     <th>Código de Partida</th>
@@ -24,13 +28,13 @@
             </tbody>
         </table>
 
-        <div v-if="games.length > 10" class="show-more-container">
+        <div v-if="!loading && games.length > 10" class="show-more-container">
             <button @click="toggleShowAll" class="show-more-btn">
                 {{ showAll ? "Mostrar menos" : `Ver ${games.length - 10} más` }}
             </button>
         </div>
 
-        <div v-else-if="games.length === 0" class="no-games">
+        <div v-else-if="!loading && games.length === 0" class="no-games">
             No hay partidas disponibles para observar
         </div>
     </div>
@@ -43,6 +47,10 @@ const props = defineProps({
     games: {
         type: Array,
         required: true
+    },
+    loading: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -169,6 +177,27 @@ tr:hover td {
     background-color: var(--primary-color);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(112, 72, 236, 0.2);
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--neutral-color-1);
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {

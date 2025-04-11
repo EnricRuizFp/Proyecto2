@@ -144,11 +144,9 @@ const getGameStatus = async () => {
         if (response.data.status === 'success') {
             currentGame.value = response.data.data;
 
-            console.log("GAME: ", currentGame.value);
-            
             // Establecer nombres de jugadores
-            player1Name.value = currentGame.value.players[0].username;
-            player2Name.value = currentGame.value.players[1].username;
+            player1Name.value = currentGame.value.players[0]?.username || '';
+            player2Name.value = currentGame.value.players[1]?.username || '';
 
             // Establecer los tableros de cada jugador y verificar si hay datos
             let hasBoards = false;
@@ -168,6 +166,7 @@ const getGameStatus = async () => {
         }
     } catch (error) {
         console.error("Error al obtener los datos de la partida:", error);
+        isInitialLoading.value = false;
     }
 };
 
