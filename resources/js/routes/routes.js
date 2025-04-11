@@ -187,40 +187,6 @@ export default [
                 meta: { breadCrumb: "Edit post" },
             },
             {
-                name: "categories",
-                path: "categories",
-                meta: { breadCrumb: "Categories" },
-                children: [
-                    {
-                        name: "categories.index",
-                        path: "",
-                        component: () =>
-                            import("../views/admin/categories/Index.vue"),
-                        meta: { breadCrumb: "View category" },
-                    },
-                    {
-                        name: "categories.create",
-                        path: "create",
-                        component: () =>
-                            import("../views/admin/categories/Create.vue"),
-                        meta: {
-                            breadCrumb: "Add new category",
-                            linked: false,
-                        },
-                    },
-                    {
-                        name: "categories.edit",
-                        path: "edit/:id",
-                        component: () =>
-                            import("../views/admin/categories/Edit.vue"),
-                        meta: {
-                            breadCrumb: "Edit category",
-                            linked: false,
-                        },
-                    },
-                ],
-            },
-            {
                 name: "permissions",
                 path: "permissions",
                 meta: { breadCrumb: "Permisos" },
