@@ -12,7 +12,7 @@
         <div class="boards-container">
             <!-- Primer tablero - Muestra barcos del jugador 1 y ataques del jugador 2 -->
             <div class="board-section">
-                <h2 class="title">{{ player1Name }}</h2>
+                <ViewUserComponent :userId="player1Id" />
                 <div class="board-container">
                     <div class="board-grid">
                         <div v-for="row in 10" :key="`row-${row}`" class="board-row">
@@ -46,7 +46,7 @@
 
             <!-- Segundo tablero - Muestra barcos del jugador 2 y ataques del jugador 1 -->
             <div class="board-section">
-                <h2 class="title">{{ player2Name }}</h2>
+                <ViewUserComponent :userId="player2Id" />
                 <div class="board-container">
                     <div class="board-grid">
                         <div v-for="row in 10" :key="`attack-row-${row}`" class="board-row">
@@ -92,6 +92,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import axios from "axios";
 import { authStore } from "@/store/auth";
 import ViewGameResultComponent from "./ViewGameResultComponent.vue";
+import ViewUserComponent from './ViewUserComponent.vue';
 import { useRouter } from "vue-router";
 
 const props = defineProps({
@@ -119,6 +120,10 @@ const isInitialLoading = ref(true); // Nueva variable para controlar la carga in
 const player1Moves = ref({});
 const player2Moves = ref({});
 
+// Referencias para IDs de jugadores
+const player1Id = ref(null);
+const player2Id = ref(null);
+
 const router = useRouter();
 const showResult = ref(false);
 const winnerName = ref('');
@@ -143,6 +148,10 @@ const getGameStatus = async () => {
         
         if (response.data.status === 'success') {
             currentGame.value = response.data.data;
+
+            // Asignar IDs de jugadores
+            player1Id.value = currentGame.value.players[0]?.id || null;
+            player2Id.value = currentGame.value.players[1]?.id || null;
 
             // Establecer nombres de jugadores
             player1Name.value = currentGame.value.players[0]?.username || '';
@@ -472,5 +481,12 @@ onUnmounted(() => {
     padding: 0 1rem;
     text-align: center;
     width: 100%; /* Asegura que el texto use todo el ancho disponible */
+}
+
+.board-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
 }
 </style>
