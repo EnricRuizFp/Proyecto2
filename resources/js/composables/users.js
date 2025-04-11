@@ -10,7 +10,7 @@ export default function useUsers() {
 
     const router = useRouter();
     const validationErrors = ref({});
-    const isLoading = ref(false);
+    const isLoadingUsers = ref(false);
     const swal = inject("$swal");
     const toast = useToast();
 
@@ -22,6 +22,7 @@ export default function useUsers() {
         order_column = "created_at",
         order_direction = "desc"
     ) => {
+        isLoadingUsers.value = true;
         axios
             .get(
                 "/api/users?page=" +
@@ -38,11 +39,20 @@ export default function useUsers() {
                     order_direction
             )
             .then((response) => {
-                console.log("Respuesta de usuarios:", response.data);
                 users.value = response.data;
+
+                // Añadir propiedades de paginación directamente al objeto users.value
+                if (response.data.meta) {
+                    users.value.total = response.data.meta.total;
+                    users.value.current_page = response.data.meta.current_page;
+                    users.value.last_page = response.data.meta.last_page;
+                }
             })
             .catch((error) => {
                 console.error("Error en getUsers:", error);
+            })
+            .finally(() => {
+                isLoadingUsers.value = false;
             });
     };
 
@@ -80,12 +90,10 @@ export default function useUsers() {
     };
 
     const storeUser = async (data) => {
-        isLoading.value = true;
+        isLoadingUsers.value = true;
         validationErrors.value = {};
 
         try {
-            console.log("Sending data:", data); // Debug log
-
             const formattedData = {
                 ...data,
                 role_id: Array.isArray(data.role_id)
@@ -96,10 +104,7 @@ export default function useUsers() {
                 avatar_id: data.avatar_id || null,
             };
 
-            console.log("Formatted data:", formattedData); // Debug log
-
             const response = await axios.post("/api/users", formattedData);
-            console.log("Response:", response.data); // Debug log
 
             toast.add({
                 severity: "success",
@@ -112,8 +117,7 @@ export default function useUsers() {
                 return response;
             }
         } catch (error) {
-            console.error("Full error:", error); // Debug log
-            console.error("Error response:", error.response?.data); // Debug log
+            console.error("Error al crear usuario:", error);
 
             if (error.response?.data?.errors) {
                 validationErrors.value = error.response.data.errors;
@@ -138,13 +142,13 @@ export default function useUsers() {
             }
             throw error;
         } finally {
-            isLoading.value = false;
+            isLoadingUsers.value = false;
         }
     };
 
     const updateUser = async (user) => {
-        if (isLoading.value) return;
-        isLoading.value = true;
+        if (isLoadingUsers.value) return;
+        isLoadingUsers.value = true;
         validationErrors.value = {};
 
         try {
@@ -162,8 +166,6 @@ export default function useUsers() {
                     : [user.role_id],
             };
 
-            console.log("Sending update with data:", userData);
-
             const response = await axios.put(`/api/users/${user.id}`, userData);
 
             toast.add({
@@ -175,10 +177,7 @@ export default function useUsers() {
 
             return response.data;
         } catch (error) {
-            console.error("Update error:", {
-                message: error.message,
-                response: error.response?.data,
-            });
+            console.error("Error al actualizar usuario:", error);
 
             if (error.response?.data?.errors) {
                 validationErrors.value = error.response.data.errors;
@@ -208,40 +207,43 @@ export default function useUsers() {
 
             throw error;
         } finally {
-            isLoading.value = false;
+            isLoadingUsers.value = false;
         }
     };
 
     const deleteUser = async (id, index) => {
-        swal({
-            title: "Are you sure?",
-            text: "You won't be able to revert this action!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-            confirmButtonColor: "#ef4444",
-            timer: 20000,
-            timerProgressBar: true,
-            reverseButtons: true,
-        }).then((result) => {
+        try {
+            const result = await swal({
+                title: "Are you sure?",
+                text: "You won't be able to revert this action!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+                confirmButtonColor: "#ef4444",
+                timer: 20000,
+                timerProgressBar: true,
+                reverseButtons: true,
+            });
+
             if (result.isConfirmed) {
-                axios
-                    .delete(`/api/users/${id}`)
-                    .then((response) => {
-                        users.value.data.splice(index, 1);
-                        swal({
-                            icon: "success",
-                            title: "User deleted successfully",
-                        });
-                    })
-                    .catch((error) => {
-                        swal({
-                            icon: "error",
-                            title: "Something went wrong",
-                        });
-                    });
+                const response = await axios.delete(`/api/users/${id}`);
+                users.value.data.splice(index, 1);
+
+                await swal({
+                    icon: "success",
+                    title: "User deleted successfully",
+                });
+
+                return response;
             }
-        });
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            await swal({
+                icon: "error",
+                title: "Something went wrong",
+            });
+            throw error;
+        }
     };
 
     const assignAvatar = async (userId, data) => {
@@ -295,6 +297,6 @@ export default function useUsers() {
         assignAvatar,
         uploadCustomAvatar,
         validationErrors,
-        isLoading,
+        isLoadingUsers,
     };
 }

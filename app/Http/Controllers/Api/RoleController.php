@@ -85,7 +85,15 @@ class RoleController extends Controller
     public function getList()
     {
         try {
-            return response()->json(Role::all());
+            $roles = Role::all();
+
+            // Log para debug
+            Log::debug('Roles list requested', [
+                'count' => $roles->count(),
+                'roles' => $roles->pluck('name')
+            ]);
+
+            return response()->json($roles);
         } catch (\Exception $e) {
             Log::error('Error getting roles list: ' . $e->getMessage());
             return response()->json(['message' => 'Error retrieving roles list'], 500);

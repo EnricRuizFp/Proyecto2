@@ -1,5 +1,6 @@
 import { ref, inject } from "vue";
 import { useRouter } from "vue-router";
+import { useToast } from "primevue/usetoast";
 
 export default function useRoles() {
     const roles = ref([]);
@@ -170,9 +171,25 @@ export default function useRoles() {
     };
 
     const getRoleList = async () => {
-        axios.get("/api/role-list").then((response) => {
-            roleList.value = response.data.data;
-        });
+        isLoadingRoles.value = true;
+        try {
+            console.log("Solicitando lista de roles...");
+            const response = await axios.get("/api/roles");
+            console.log("Roles recibidos:", response.data);
+
+            if (response.data.data) {
+                roleList.value = response.data.data;
+            } else {
+                roleList.value = response.data;
+            }
+
+            return roleList.value;
+        } catch (error) {
+            console.error("Error al obtener la lista de roles:", error);
+            return [];
+        } finally {
+            isLoadingRoles.value = false;
+        }
     };
 
     return {

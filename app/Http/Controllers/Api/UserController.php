@@ -21,27 +21,58 @@ class UserController extends Controller
     public function index()
     {
         $orderColumn = request('order_column', 'created_at');
-        if (!in_array($orderColumn, ['id', 'name', 'created_at'])) {
+        if (!in_array($orderColumn, ['id', 'username', 'name', 'surname1', 'surname2', 'email', 'nationality', 'created_at'])) {
             $orderColumn = 'created_at';
         }
         $orderDirection = request('order_direction', 'desc');
         if (!in_array($orderDirection, ['asc', 'desc'])) {
             $orderDirection = 'desc';
         }
-        $users = User::when(request('search_id'), function ($query) {
+
+        // Iniciar la consulta base - ELOQUENT
+        $query = User::query();
+
+        // Buscar por ID específico - ELOQUENT FILTERING
+        if (request('search_id')) {
             $query->where('id', request('search_id'));
-        })
-            ->when(request('search_title'), function ($query) {
-                $query->where('name', 'like', '%' . request('search_title') . '%');
-            })
-            ->when(request('search_global'), function ($query) {
-                $query->where(function ($q) {
-                    $q->where('id', request('search_global'))
-                        ->orWhere('name', 'like', '%' . request('search_global') . '%');
-                });
-            })
-            ->orderBy($orderColumn, $orderDirection)
-            ->paginate(100);
+        }
+
+        // Buscar por nombre - ELOQUENT FILTERING
+        if (request('search_title')) {
+            $query->where('name', 'like', '%' . request('search_title') . '%');
+        }
+
+        // Búsqueda global en múltiples columnas - ELOQUENT FILTERING
+        if (request('search_global')) {
+            $searchTerm = request('search_global');
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('id', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('username', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('surname1', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('surname2', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('email', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('nationality', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('created_at', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        // Añadir dentro del método index() para depuración:
+        Log::debug('Filtros de búsqueda aplicados', [
+            'search_global' => request('search_global'),
+            'search_id' => request('search_id'),
+            'search_title' => request('search_title'),
+            'count_after_filter' => $query->count(), // Número de registros tras el filtro
+        ]);
+
+        // Aplicar ordenamiento
+        $query->orderBy($orderColumn, $orderDirection);
+
+        // Paginar con 10 elementos por página (igual que en roles)
+        $users = $query->paginate(10);
+
+        // Añadir parámetros de consulta a los links de paginación
+        $users->appends(request()->all());
 
         return UserResource::collection($users);
     }
