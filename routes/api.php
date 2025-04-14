@@ -71,14 +71,14 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     // Ruta de obtención de la cantidad de puntos del usuario
     Route::get('/rankings/user-points', [RankingController::class, 'getUserPoints']);
 
+    // Route for getting the national ranking list (NEW)
+    Route::get('/rankings/national', [RankingController::class, 'getNationalRankingList']);
+
     // Rankings - Admin specific route
     Route::get('rankings/admin', [RankingController::class, 'indexAdmin']);
 
-    // National ranking route
-    Route::get('/rankings/national', [RankingController::class, 'getNationalRanking']);
-
     // Rankings - Regular routes (must be after specific routes)
-    Route::apiResource('rankings', RankingController::class);
+    // Removed conflicting Route::apiResource('rankings', RankingController::class);
 
     // Ruta de obtención del historial de partidas (authenticated version)
     Route::get('/games/user-match-history', [GameController::class, 'getUserMatchHistory']);
@@ -162,11 +162,10 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
 // Rankings routes outside auth:sanctum
 Route::post('/rankings', [RankingController::class, 'store'])->name('rankings.store');
-Route::get('/rankings/admin', [RankingController::class, 'indexAdmin'])->middleware('auth:sanctum');
 Route::get('/rankings/{id}', [RankingController::class, 'show'])->name('rankings.show');
+Route::get('/rankings', [RankingController::class, 'index'])->name('rankings.index');
 Route::put('/rankings/{id}', [RankingController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('/rankings/{id}', [RankingController::class, 'destroy'])->middleware('auth:sanctum');
-Route::get('/rankings', [RankingController::class, 'index'])->name('rankings.index');
 
 Route::get('get-posts', [PostControllerAdvance::class, 'getPosts']);
 Route::get('get-category-posts/{id}', [PostControllerAdvance::class, 'getCategoryByPosts']);

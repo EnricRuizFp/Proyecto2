@@ -243,13 +243,13 @@ export default function useRankings() {
             const response = await axios.get(
                 `/api/rankings?limit=${limit}&order_column=points&order_direction=desc`
             );
-            console.log("Global Ranking Data:", {
-                total: response.data.data.length,
-                rankingData: response.data.data.map((user) => ({
-                    id: user.user_id,
-                    points: user.points,
-                })),
-            });
+            // console.log("Global Ranking Data:", {
+            //     total: response.data.data.length,
+            //     rankingData: response.data.data.map((user) => ({
+            //         id: user.user_id,
+            //         points: user.points,
+            //     })),
+            // });
             return response.data;
         } catch (error) {
             console.error("Error al obtener el ranking global:", error);
