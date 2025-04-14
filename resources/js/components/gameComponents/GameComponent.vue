@@ -282,6 +282,8 @@ const unreadMessages = ref(0);
 const lastMessageId = ref(0);
 const pollingInterval = ref(null);
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 /* -- FUNCTIONS -- */
 
 // Función para mostrar notificaciones
@@ -373,29 +375,10 @@ const checkMatchWinner = async () => {
     }
 };
 
-// Función para reiniciar el estado del juego
-const resetGameState = () => {
-    userBoard.value = Array(10)
-        .fill(null)
-        .map(() => Array(10).fill(null));
-    attackBoard.value = Array(10)
-        .fill(null)
-        .map(() => Array(10).fill(null));
-    yourTurn.value = null;
-    timeLeft.value = 25;
-    isGameActive.value = false;
-    notification.value = {
-        show: false,
-        message: "",
-        type: "info",
-        position: "derecha",
-    };
-};
-
 // Función para finalizar la partida (ganando)
 const endGame = async (status) => {
     try {
-        console.log("Setteando el ganador de la partida...");
+        console.log("Setteando el STATUS de la partida...");
         console.log("Status: ", status);
         // Detener todas las funciones estableciendo isGameActive a false
         isGameActive.value = false;
@@ -414,14 +397,20 @@ const endGame = async (status) => {
 
             if (status == "winner") {
                 console.log("GANADOR");
-                gameStore.setPoints(response.data.points_earned);
+                gameStore.setPoints(response.data.points_earned_by_winner);
                 gameStore.setShowWin(true);
-            } else {
+            }else if(status == "loser") {
+                console.log("PERDEDOR");
+                gameStore.setPoints(response.data.points_lost_by_loser);
+                gameStore.setShowGameOver(true);
+            }else{
                 console.log("EMPATE");
                 gameStore.setPoints(0);
                 gameStore.setShowDraw(true);
             }
-            resetGameState();
+
+            console.log("Notificación mostrada, reseteando datos.");
+            // resetGameState();
         }
     } catch (error) {
         console.error("Error al finalizar la partida:", error);
@@ -430,24 +419,26 @@ const endGame = async (status) => {
 
 // Función para manejar el turno de jugar
 const playTurn = async () => {
+
     if (!isGameActive.value) return;
     console.log("Tu turno. Tienes 25 segundos para atacar.");
     timeLeft.value = 25;
 
-    const timer = setInterval(() => {
-        if (timeLeft.value > 0) {
-            timeLeft.value--;
-        } else {
-            clearInterval(timer);
-            console.log("Se acabó el tiempo de tu turno.");
-        }
-    }, 1000);
-
+    // Esperar 25 segundos o hasta que el usuario ataque
     while (timeLeft.value > 0 && yourTurn.value) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        timeLeft.value--;
     }
 
-    clearInterval(timer);
+    if(timeLeft.value === 0){
+        console.log("Tiempo agotado.");
+        showNotification("Tiempo agotado.", "error");
+        endGame("loser");
+
+        // Detener el juego
+        isGameActive.value = false;
+    }
+
     console.log("Turno finalizado.");
 };
 
@@ -489,9 +480,9 @@ const waitTurn = async () => {
                 
                 // Mostrar notificación
                 showNotification("El oponente ha abandonado la partida", "error");
-                
+
                 // Esperar 2 segundos para que se vea la notificación
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 
                 // Detener el juego
                 isGameActive.value = false;
@@ -539,6 +530,10 @@ const waitTurn = async () => {
     if (!opponentMoved) {
         // console.log("El oponente no realizó ningún movimiento en 30 segundos.");
         showNotification("El oponente no realizó ningún movimiento en 30 segundos", "error");
+
+        // Finalizar loop de juego
+        isGameActive.value = false;
+
         // Finalizar el juego
         await endGame("winner");
     } else {
@@ -704,18 +699,25 @@ const scrollToBottom = () => {
 };
 
 // Iniciar el polling para cargar mensajes
-const startChatPolling = () => {
-    // Cargar mensajes iniciales
-    loadChatMessages();
+const startChatPolling = async () => {
 
-    // Configurar el intervalo para polling (cada 3 segundos)
-    pollingInterval.value = setInterval(loadChatMessages, 3000);
+    console.log("Cargando los mensajes...");
+
+    while(isGameActive.value) {
+
+        await loadChatMessages();
+        console.log("Chats obtenidos.");
+        await sleep(2000);
+    }
+    // // Configurar el intervalo para polling (cada 3 segundos)
+    // pollingInterval.value = setInterval(loadChatMessages, 3000);
 };
 
 // Inicialización del juego
 onMounted(async () => {
     // Montar el tablero del usuario
     await loadShips();
+    
     // Obtener los datos de la partida
     const response = await axios.post("/api/games/get-match-info", {
         gameCode: gameStore.matchCode,

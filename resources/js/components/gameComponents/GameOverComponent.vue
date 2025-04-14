@@ -100,6 +100,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
 import { authStore } from "../../store/auth";
@@ -116,12 +117,18 @@ const emit = defineEmits(['restart', 'cleanup']);
 
 const router = useRouter();
 const gameStore = useGameStore();
+const isGameActive = ref(true);
+
+const resetGameState = () => {
+    gameStore.resetGame();
+};
 
 const goToHome = () => {
-    // Limpiar el estado actual
-    emit('cleanup');
-    gameStore.resetGame();
-    gameStore.$reset(); // Reinicia todo el store a su estado inicial
+    // Detener el juego
+    isGameActive.value = false;
+
+    // Limpiar el estado del juego
+    resetGameState();
     
     // Navegar al inicio
     router.push("/");
@@ -202,18 +209,18 @@ const handleRestart = async () => {
     text-transform: uppercase;
 }
 
-/* Botón de jugar de nuevo mantiene el color primario por defecto */
 button:first-child {
     background: var(--primary-color);
 }
+
 button:first-child:hover {
     background: var(--primary-v2-color);
 }
 
-/* Botón de volver al inicio usa el color secundario */
 button:last-child {
     background: var(--secondary-color);
 }
+
 button:last-child:hover {
     background: var(--secondary-v2-color);
 }
@@ -224,9 +231,9 @@ button:hover {
 
 .button-icon {
     margin-left: 10px;
-    vertical-align: middle;
     width: 24px;
     height: 24px;
+    vertical-align: middle;
 }
 
 .points-container {
@@ -254,11 +261,7 @@ svg {
     transition: all 0.3s ease;
 }
 
-.modal-enter-from {
-    opacity: 0;
-    transform: scale(0.8);
-}
-
+.modal-enter-from,
 .modal-leave-to {
     opacity: 0;
     transform: scale(0.8);

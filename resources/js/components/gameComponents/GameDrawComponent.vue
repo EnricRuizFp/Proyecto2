@@ -100,6 +100,7 @@
 </template>
 
 <script setup>
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
 import { authStore } from "../../store/auth";
@@ -116,12 +117,14 @@ const emit = defineEmits(['next-level', 'cleanup']);
 
 const router = useRouter();
 const gameStore = useGameStore();
+const isGameActive = ref(true);
 
 const goToHome = () => {
-    // Limpiar el estado actual
-    emit('cleanup');
-    gameStore.resetGame();
-    gameStore.$reset(); // Reinicia todo el store a su estado inicial
+    // Detener el juego
+    isGameActive.value = false;
+
+    // Limpiar el estado del juego
+    resetGameState();
     
     // Navegar al inicio
     router.push("/");

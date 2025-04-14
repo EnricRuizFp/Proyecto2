@@ -1354,6 +1354,49 @@ class GameController extends Controller
                 ]);
             }
 
+            // Si el jugador que hace la petición es el perdedor
+            if ($status === 'loser') {
+                // Identificar al perdedor como el usuario que envía la petición
+                $loser = $players->where('user_id', $userId)->first();
+                $winner = $players->where('user_id', '!=', $userId)->first();
+
+                // Obtener los rankings actuales
+                $winnerRanking = Ranking::where('user_id', $winner->user_id)->first();
+                $loserRanking = Ranking::where('user_id', $loser->user_id)->first();
+
+                // Calcular los puntos a modificar
+                $points = ($winnerRanking->points < $loserRanking->points) ? 6 : 3;
+
+                // Actualizar el ranking del ganador
+                DB::table('rankings')
+                    ->where('user_id', $winner->user_id)
+                    ->increment('points', $points);
+
+                // Verificar que los puntos a restar no dejen al perdedor con puntos negativos
+                $pointsToDecrease = min($points, $loserRanking->points);
+
+                // Actualizar el ranking del perdedor
+                DB::table('rankings')
+                    ->where('user_id', $loser->user_id)
+                    ->decrement('points', $pointsToDecrease);
+
+                // Actualizar el estado del juego
+                $game->update([
+                    'is_finished' => true,
+                    'end_date' => now(),
+                    'winner' => $winner->user_id,
+                    'points' => $points
+                ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Game ended with loser',
+                    'winner_id' => $winner->user_id,
+                    'points_earned_by_winner' => $points,
+                    'points_lost_by_loser' => $pointsToDecrease
+                ]);
+            }
+
             return response()->json(['status' => 'failed', 'message' => 'Invalid status']);
         } catch (\Exception $e) {
             Log::error('Error in setGameEnding: ' . $e->getMessage());

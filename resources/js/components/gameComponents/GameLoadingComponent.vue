@@ -216,6 +216,11 @@ onMounted(() => {
         backToHome(true, "No tienes permiso para acceder a esta página");
     }
 
+    // Esconder finales de partida (en caso de estar abiertos)
+    gameStore.setShowWin(false);
+    gameStore.setShowGameOver(false);
+    gameStore.setShowDraw(false);
+
     // Encontrar partida
     findMatch();
 });
