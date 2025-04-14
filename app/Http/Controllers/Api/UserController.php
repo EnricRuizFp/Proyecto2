@@ -111,10 +111,10 @@ class UserController extends Controller
                 'surname1' => 'required',
                 'surname2' => 'nullable',
                 'avatar_id' => 'nullable|exists:avatars,id',
-                'nationality' => 'required|string|in:africa,america,asia,europe,oceania', // Modificar esta línea
+                'nationality' => 'required|string|in:africa,america,asia,europe,oceania',
             ]);
 
-            Log::info('Validated data:', $validatedData);  // Log para debug
+            Log::info('Validated data:', $validatedData);
 
             DB::beginTransaction();
 
@@ -137,16 +137,31 @@ class UserController extends Controller
                     $user->avatares()->sync([$validatedData['avatar_id']]);
                 }
 
+                // Crear un ranking inicial para el usuario solo si no existe
+                $existingRanking = $user->ranking()->first();
+                if (!$existingRanking) {
+                    $user->ranking()->create([
+                        'wins' => 0,
+                        'losses' => 0,
+                        'draws' => 0,
+                        'points' => 0
+                    ]);
+                }
+
                 DB::commit();
 
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Usuario creado exitosamente',
-                    'user' => $user
+                    'data' => [
+                        'user' => $user,
+                        'ranking_created' => true
+                    ]
                 ], 201);
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('Database error: ' . $e->getMessage());
+                Log::error('Stack trace: ' . $e->getTraceAsString());
                 throw $e;
             }
         } catch (\Illuminate\Validation\ValidationException $e) {

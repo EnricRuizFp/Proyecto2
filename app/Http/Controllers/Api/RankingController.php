@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Ranking;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log; // Asegúrate de importar Log
 
 class RankingController extends Controller
 {
@@ -52,27 +53,44 @@ class RankingController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'wins'    => 'required|integer|min:0',
-            'losses'  => 'required|integer|min:0',
-            'draws'   => 'required|integer|min:0',
-            'points'  => 'required|numeric',
-        ]);
+        Log::info('[RankingController@store] Received request data:', $request->all()); // Log incoming data
 
-        $ranking = Ranking::create([
-            'user_id'    => $request->user_id,
-            'wins'       => $request->wins,
-            'losses'     => $request->losses,
-            'draws'      => $request->draws,
-            'points'     => $request->points,
-            'updated_at' => now(),
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'user_id' => 'required|exists:users,id|unique:rankings,user_id', // Añadido unique si cada usuario solo debe tener un ranking
+                'wins'    => 'required|integer|min:0',
+                'losses'  => 'required|integer|min:0',
+                'draws'   => 'required|integer|min:0',
+                'points'  => 'required|numeric',
+            ]);
 
-        return response()->json([
-            'message' => 'Ranking created successfully',
-            'data'    => $ranking,
-        ], 201);
+            Log::info('[RankingController@store] Validation passed. Data:', $validatedData); // Log validated data
+
+            $ranking = Ranking::create([
+                'user_id'    => $validatedData['user_id'],
+                'wins'       => $validatedData['wins'],
+                'losses'     => $validatedData['losses'],
+                'draws'      => $validatedData['draws'],
+                'points'     => $validatedData['points'],
+                // 'updated_at' => now(), // 'created_at' y 'updated_at' suelen ser manejados automáticamente por Eloquent
+            ]);
+
+            Log::info('[RankingController@store] Ranking created successfully. ID:', ['ranking_id' => $ranking->ranking_id ?? null, 'user_id' => $ranking->user_id]); // Log success
+
+            return response()->json([
+                'message' => 'Ranking created successfully',
+                'data'    => $ranking,
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('[RankingController@store] Validation failed:', ['errors' => $e->errors()]); // Log validation errors
+            return response()->json(['message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('[RankingController@store] Exception during creation:', [ // Log any other exceptions
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString() // Optional: for detailed debugging
+            ]);
+            return response()->json(['message' => 'Failed to create ranking', 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**

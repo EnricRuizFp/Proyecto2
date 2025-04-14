@@ -93,32 +93,83 @@ export default function useAuth() {
         validationErrors.value = {};
 
         try {
-            const response = await axios.post("/register", registerForm);
+            // 1. Register the user
+            const registerResponse = await axios.post(
+                "/register",
+                registerForm
+            );
 
-            if (!response.data || !response.data.data) {
-                throw new Error("Invalid response format from server");
+            // Check if registration response is valid and contains user data
+            if (
+                !registerResponse.data ||
+                !registerResponse.data.data ||
+                !registerResponse.data.data.id
+            ) {
+                console.error(
+                    "Registration response missing user data:",
+                    registerResponse.data
+                );
+                throw new Error(
+                    "Invalid response format from server during registration."
+                );
             }
 
-            const newUser = response.data.data;
+            const newUser = registerResponse.data.data;
+            const newUserId = newUser.id;
+            console.log("User registered successfully with ID:", newUserId); // Log user ID
 
-            // Crear ranking silenciosamente
-            await storeRankingSilently({
-                user_id: newUser.id,
-                points: 0,
-                wins: 0,
-                losses: 0,
-                draws: 0,
-            });
+            // 2. Create initial ranking for the new user
+            try {
+                console.log(
+                    "Attempting to create initial ranking for user ID:",
+                    newUserId
+                );
+                await storeRankingSilently({
+                    user_id: newUserId,
+                    points: 0,
+                    wins: 0,
+                    losses: 0,
+                    draws: 0,
+                });
+                console.log(
+                    "Initial ranking created successfully for user ID:",
+                    newUserId
+                );
+            } catch (rankingError) {
+                // Log the specific error during ranking creation but continue the process
+                console.error(
+                    `Failed to create initial ranking for user ${newUserId}:`,
+                    rankingError.response?.data || rankingError.message
+                );
+                // Optionally notify the user or admin about the ranking issue, but don't block login
+                swal({
+                    icon: "warning",
+                    title: "Registro parcial",
+                    text: "Tu cuenta fue creada, pero hubo un problema al inicializar tu ranking. Por favor, contacta soporte si el problema persiste.",
+                    showConfirmButton: true,
+                    background: "#1a1a1a",
+                    customClass: {
+                        title: "swal-title",
+                        content: "swal-text",
+                        popup: "swal-popup",
+                        confirmButton: "swal-button",
+                    },
+                });
+            }
 
-            // Login automático
+            // 3. Login the new user automatically
+            console.log("Attempting automatic login for:", registerForm.email);
             await axios.post("/login", {
                 email: registerForm.email,
                 password: registerForm.password,
             });
+            console.log("Automatic login successful");
 
+            // 4. Fetch user data and abilities
             await auth.getUser();
-            await loginUser();
+            await loginUser(); // This updates local state and abilities
 
+            // 5. Show success message
             swal({
                 icon: "success",
                 title: "¡Registro exitoso!",
@@ -133,22 +184,27 @@ export default function useAuth() {
                 },
             });
 
-            return true;
+            return true; // Indicate overall success for redirection
         } catch (error) {
-            console.error("Registration error:", error.response || error);
+            console.error(
+                "Registration process failed:",
+                error.response?.data || error.message
+            );
 
             if (error.response?.data?.errors) {
                 validationErrors.value = error.response.data.errors;
             } else {
+                // General error during registration or login steps
                 validationErrors.value = {
                     general: [
-                        "An error occurred during registration. Please try again.",
+                        error.message ||
+                            "An unexpected error occurred during registration. Please try again.",
                     ],
                 };
                 swal({
                     icon: "error",
                     title: "Error de registro",
-                    text: "Ha ocurrido un problema durante el registro. Por favor, inténtalo de nuevo.",
+                    text: validationErrors.value.general[0],
                     showConfirmButton: true,
                     background: "#1a1a1a",
                     customClass: {
@@ -159,7 +215,7 @@ export default function useAuth() {
                     },
                 });
             }
-            return false;
+            return false; // Indicate failure
         } finally {
             processing.value = false;
         }
@@ -216,12 +272,9 @@ export default function useAuth() {
     };
 
     const loginUser = () => {
-        //const auth = authStore(); //TODO test
         console.log("loginUser auth Compostable " + auth.user);
         console.log(auth.user);
         user = auth.user;
-        //user = store.state.auth.user
-        // Cookies.set('loggedIn', true)
         getAbilities();
     };
 
@@ -248,7 +301,6 @@ export default function useAuth() {
                 user.name = "";
                 user.email = "";
                 auth.logout();
-                //store.dispatch('auth/logout')
                 router.push({ name: "auth.login" });
             })
             .catch((error) => {
@@ -260,7 +312,6 @@ export default function useAuth() {
             })
             .finally(() => {
                 processing.value = false;
-                // Cookies.remove('loggedIn')
             });
     };
 

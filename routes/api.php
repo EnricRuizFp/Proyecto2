@@ -160,11 +160,17 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/games/view-game-moves', [GameController::class, 'viewGameMoves']);
 });
 
+// Rankings routes outside auth:sanctum
+Route::post('/rankings', [RankingController::class, 'store'])->name('rankings.store');
+Route::get('/rankings/admin', [RankingController::class, 'indexAdmin'])->middleware('auth:sanctum');
+Route::get('/rankings/{id}', [RankingController::class, 'show'])->name('rankings.show');
+Route::put('/rankings/{id}', [RankingController::class, 'update'])->middleware('auth:sanctum');
+Route::delete('/rankings/{id}', [RankingController::class, 'destroy'])->middleware('auth:sanctum');
+Route::get('/rankings', [RankingController::class, 'index'])->name('rankings.index');
 
 Route::get('get-posts', [PostControllerAdvance::class, 'getPosts']);
 Route::get('get-category-posts/{id}', [PostControllerAdvance::class, 'getCategoryByPosts']);
 Route::get('get-post/{id}', [PostControllerAdvance::class, 'getPost']);
-
 
 Route::get('notes', [NoteController::class, 'index'])->name('notes.index');
 Route::post('notes', [NoteController::class, 'store'])->name('notes.store');
