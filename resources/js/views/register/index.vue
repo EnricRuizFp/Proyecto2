@@ -290,4 +290,62 @@ const handleRegister = async () => {
     cursor: pointer;
     color: var(--white-color);
 }
+
+/* Added responsive styles for register form */
+#registerContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--background-primary);
+    min-height: 100vh;
+    width: 100%;
+    padding: 100px 20px;
+}
+
+#registerContainer > div {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#registerForm {
+    width: 100%;
+    max-width: 500px;
+    margin: 0;
+    padding: 2rem;
+}
+
+@media (max-width: 768px) {
+    #registerContainer {
+        padding-top: 80px;
+    }
+
+    .registerFormField {
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    #registerContainer {
+        padding: 60px 10px 10px;
+    }
+
+    #registerForm {
+        padding: 1.5rem;
+    }
+
+    .registerFormFields {
+        font-size: 14px;
+    }
+
+    #registerButton {
+        width: 100%;
+    }
+
+    #registerFormTitle {
+        margin-bottom: 20px;
+    }
+}
 </style>
