@@ -108,6 +108,15 @@ const gameStore = useGameStore(); // Utilizado para settear las fases del juego
 const opponentUsername = ref("Esperando oponente...");
 let matchStatus = ref(null);
 
+// Settear el CHAT a 0 siempre que se entre a una partida
+const isChatOpen = ref(false);
+const messages = ref([]);
+const newMessage = ref("");
+const chatMessages = ref(null);
+const unreadMessages = ref(0);
+const lastMessageId = ref(0);
+const pollingInterval = ref(null);
+
 // Nueva variable para controlar el tiempo mínimo de carga
 const minLoadingTime = 2500; // Tiempo mínimo de carga en milisegundos (2.5 segundos)
 const loadingStartTime = ref(Date.now());

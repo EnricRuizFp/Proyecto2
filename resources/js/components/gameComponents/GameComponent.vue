@@ -472,19 +472,36 @@ const waitTurn = async () => {
                 }
             );
 
-            // Verificar si la partida ha terminado y si hay un ganador que no es el usuario actual
+            // Verificar si hay un ganador que no es el usuario actual
             if (
                 matchResponse.data.data.game.is_finished &&
                 matchResponse.data.data.game.winner &&
                 matchResponse.data.data.game.winner !== authStore().user.id
             ) {
                 console.log("PERDEDOR");
-
-                // Mostrar los puntos perdidos
                 gameStore.setPoints(matchResponse.data.data.game.points);
                 gameStore.setShowGameOver(true);
+            } else if (
+                matchResponse.data.data.game.is_finished &&
+                matchResponse.data.data.game.winner
+            ) {
+                console.log("Oponente ha abandonado la partida.");
+                
+                // Mostrar notificación
+                showNotification("El oponente ha abandonado la partida", "error");
+                
+                // Esperar 2 segundos para que se vea la notificación
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Detener el juego
+                isGameActive.value = false;
+                yourTurn.value = false;
+
+                // Limpiar el estado del juego
                 resetGameState();
-                return;
+                
+                // Navegar al inicio
+                router.push("/");
             }
 
             // Si la partida sigue activa, verificar el último movimiento
@@ -520,7 +537,10 @@ const waitTurn = async () => {
     }
 
     if (!opponentMoved) {
-        console.log("El oponente no realizó ningún movimiento en 30 segundos.");
+        // console.log("El oponente no realizó ningún movimiento en 30 segundos.");
+        showNotification("El oponente no realizó ningún movimiento en 30 segundos", "error");
+        // Finalizar el juego
+        await endGame("winner");
     } else {
         console.log(
             "Movimiento del oponente procesado. Cambiando al estado de jugar."
@@ -1310,4 +1330,3 @@ watch(lastMessageId, (newVal, oldVal) => {
     color: var(--primary-color);
 }
 </style>
-``` 

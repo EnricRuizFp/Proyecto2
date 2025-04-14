@@ -121,8 +121,6 @@ const goToHome = () => {
     // Limpiar el estado actual
     emit('cleanup');
     gameStore.resetGame();
-    
-    // Asegurarse de que todas las variables del juego se reinicien
     gameStore.$reset(); // Reinicia todo el store a su estado inicial
     
     // Navegar al inicio

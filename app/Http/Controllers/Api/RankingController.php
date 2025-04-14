@@ -76,11 +76,11 @@ class RankingController extends Controller
     }
 
     /**
-     * Muestra un ranking en particular.
+     * Muestra un ranking en particular basado en el user_id.
      */
     public function show($id)
     {
-        $ranking = Ranking::findOrFail($id);
+        $ranking = Ranking::where('user_id', $id)->firstOrFail();
         return response()->json($ranking);
     }
 
@@ -131,76 +131,6 @@ class RankingController extends Controller
     }
 
     /**
-     * Obtiene la posición global del usuario autenticado
-     */
-    public function getGlobalPosition(Request $request)
-    {
-        try {
-            $userId = $request->user()->id;
-
-            // Obtener todos los rankings ordenados por puntos
-            $rankings = Ranking::orderBy('points', 'desc')->get();
-
-            // Encontrar la posición del usuario
-            $position = null;
-            foreach ($rankings as $index => $ranking) {
-                if ($ranking->user_id === $userId) {
-                    $position = $index + 1;
-                    break;
-                }
-            }
-
-            return response()->json([
-                'status' => 'success',
-                'position' => $position
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'failed',
-                'message' => 'Error al obtener la posición global'
-            ], 500);
-        }
-    }
-
-    /**
-     * Obtiene la posición nacional del usuario autenticado
-     */
-    public function getNationalPosition(Request $request)
-    {
-        try {
-            $user = $request->user();
-            $userNationality = $user->nationality;
-
-            // Obtener rankings de usuarios con la misma nacionalidad
-            $rankings = Ranking::with('user')
-                ->whereHas('user', function ($query) use ($userNationality) {
-                    $query->where('nationality', $userNationality);
-                })
-                ->orderBy('points', 'desc')
-                ->get();
-
-            // Encontrar la posición del usuario
-            $position = null;
-            foreach ($rankings as $index => $ranking) {
-                if ($ranking->user_id === $user->id) {
-                    $position = $index + 1;
-                    break;
-                }
-            }
-
-            return response()->json([
-                'status' => 'success',
-                'position' => $position
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'failed',
-                'message' => 'Error al obtener la posición nacional'
-            ], 500);
-        }
-    }
-
-    /**
      * Obtiene los puntos del usuario autenticado
      */
     public function getUserPoints(Request $request)
@@ -217,55 +147,6 @@ class RankingController extends Controller
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error al obtener los puntos del usuario'
-            ], 500);
-        }
-    }
-
-    /**
-     * Retorna un listado de rankings filtrado por nacionalidad
-     */
-    public function getNationalRanking(Request $request)
-    {
-        try {
-            $limit = $request->query('limit', 10);
-            $user = $request->user();
-
-            if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Usuario no autenticado'
-                ], 401);
-            }
-
-            $userNationality = $user->nationality;
-
-            if (empty($userNationality)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'El usuario no tiene una nacionalidad asignada'
-                ], 400);
-            }
-
-            // Obtener rankings de usuarios con la misma nacionalidad
-            $rankings = Ranking::with('user')
-                ->whereHas('user', function ($query) use ($userNationality) {
-                    $query->where('nationality', $userNationality);
-                })
-                ->orderBy('points', 'desc')
-                ->take($limit)
-                ->get();
-
-            // Preparar respuesta con datos adicionales para debugging
-            return response()->json([
-                'status' => 'success',
-                'user_nationality' => $userNationality,
-                'data' => $rankings,
-                'count' => $rankings->count()
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error al obtener el ranking nacional: ' . $e->getMessage()
             ], 500);
         }
     }

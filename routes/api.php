@@ -74,7 +74,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     // Rankings - Admin specific route
     Route::get('rankings/admin', [RankingController::class, 'indexAdmin']);
 
-    // National ranking route - IMPORTANT: Place this BEFORE the resource route
+    // National ranking route
     Route::get('/rankings/national', [RankingController::class, 'getNationalRanking']);
 
     // Rankings - Regular routes (must be after specific routes)

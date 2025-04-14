@@ -12,10 +12,12 @@
                 </div>
                 <div class="usernameContainer">
                     <div class="username-wrapper">
-                        <span class="username">{{ userData?.username }}</span>
+                        <span class="username">
+                            {{ userData?.username || 'Cargando usuario...' }}
+                        </span>
                         <div class="pointsContainer">
                             <span class="points">
-                                {{ userPoints }}
+                                {{ userPoints !== null ? userPoints : '...' }}
                                 <img
                                     src="/images/icons/trophy-icon-dark.svg"
                                     alt="Trophy icon"
@@ -30,7 +32,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import useUsers from "@/composables/users";
 import useRankings from "@/composables/rankings";
 
@@ -44,26 +46,35 @@ const props = defineProps({
 const { getUser } = useUsers();
 const { getRanking } = useRankings();
 const userData = ref(null);
-const userPoints = ref(0);
+const userPoints = ref(null); // Cambiado de 0 a null para distinguir el estado inicial
 const avatarUrl = ref('/images/icons/user-icon-dark.svg');
 
 const handleAvatarError = (e) => {
     e.target.src = '/images/icons/user-icon-dark.svg';
 };
 
+// Watcher para userId
+watch(() => props.userId, (newUserId) => {
+    if (newUserId) {
+        loadUserData();
+    }
+}, { immediate: true });
+
+// Modificar loadUserData para usar la nueva función
 const loadUserData = async () => {
-    // Add validation to prevent calls with null userId
     if (!props.userId) {
-        console.warn('No user ID provided to ViewUserComponent');
-        userData.value = null;
-        userPoints.value = 0;
-        avatarUrl.value = '/images/icons/user-icon-dark.svg';
+        console.log("No user ID available yet, waiting...");
         return;
     }
+
+    userData.value = null;
+    userPoints.value = null;
 
     try {
         // Obtener datos del usuario
         const user = await getUser(props.userId);
+        console.log("User data received:", user);
+        
         if (!user) {
             throw new Error('User not found');
         }
@@ -75,19 +86,15 @@ const loadUserData = async () => {
 
         // Obtener puntos del usuario
         const rankingData = await getRanking(props.userId);
+        console.log("Ranking data received:", rankingData);
         userPoints.value = rankingData?.points ?? 0;
     } catch (error) {
         console.error('Error loading user data:', error);
-        // Set default values on error
         userData.value = null;
-        userPoints.value = 0;
+        userPoints.value = null;
         avatarUrl.value = '/images/icons/user-icon-dark.svg';
     }
 };
-
-onMounted(() => {
-    loadUserData();
-});
 </script>
 
 <style scoped>
@@ -153,6 +160,7 @@ onMounted(() => {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: opacity 0.3s ease;
 }
 
 .pointsContainer {
@@ -168,12 +176,17 @@ onMounted(() => {
     white-space: nowrap;
     color: var(--white-color);
     font-size: 0.9rem;
+    transition: opacity 0.3s ease;
 }
 
 .points img {
     width: 20px;
     height: 20px;
     margin-left: 0.2rem;
+}
+
+.username:empty, .points:empty {
+    opacity: 0.6;
 }
 
 @media (max-width: 768px) {

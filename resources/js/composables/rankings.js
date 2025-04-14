@@ -74,7 +74,7 @@ export default function useRankings() {
     };
 
     /**
-     * Obtiene datos de un solo avatar por ID.
+     * Obtiene datos de un solo ranking por ID.
      */
     const getRanking = async (id) => {
         return axios

@@ -288,6 +288,9 @@ const viewGameLoop = async () => {
     }
 };
 
+
+
+
 const handleCleanup = () => {
     showResult.value = false;
     currentGame.value = null;
@@ -296,6 +299,8 @@ const handleCleanup = () => {
 
 // Llamar a la función cuando el componente se monta
 onMounted(() => {
+
+    console.log();
 
     // Verificar si el usuario está autenticado y se ha proporcionado un código de partida
     if(!authStore().user) {
