@@ -103,8 +103,8 @@ onMounted(() => {
     // Bloquear el menú cuando se monta el componente
     document.dispatchEvent(new CustomEvent("block-menu", { detail: true }));
 
-    console.log("Game Type:", route.params.gameType);
-    console.log("Game Code:", route.params.gameCode);
+    // console.log("Game Type:", route.params.gameType);
+    // console.log("Game Code:", route.params.gameCode);
     gameStore.setGamePhase("loading");
 });
 

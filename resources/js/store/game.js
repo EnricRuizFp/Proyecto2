@@ -13,6 +13,8 @@ export const useGameStore = defineStore("game", {
     }),
 
     actions: {
+
+        // Setters de gameMode, matchCode y gamePhase
         setGameMode(mode) {
             this.gameMode = mode;
         },
@@ -22,12 +24,21 @@ export const useGameStore = defineStore("game", {
         setGamePhase(phase) {
             this.gamePhase = phase;
         },
+
+        // Reiniciar todas las variables de juego
         resetGame() {
             this.gameMode = null;
-            this.gamePhase = "placement";
+            this.gamePhase = "loading";
             this.matchCode = null;
             this.playerBoard = null;
+            this.showWin = false;
+            this.showDraw = false;
+            this.showGameOver = false;
+            this.points = 0;
+            // console.log("Juego reiniciado.");
         },
+
+        // Mostrar u ocultar pantallas finales
         setShowWin(value) {
             this.showWin = value;
         },
@@ -37,6 +48,8 @@ export const useGameStore = defineStore("game", {
         setShowGameOver(value) {
             this.showGameOver = value;
         },
+
+        // Settear los puntos a mostrar en pantallas finales
         setPoints(points) {
             this.points = points;
         }

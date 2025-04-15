@@ -200,10 +200,10 @@ const backToHome = (type, message = "Ha ocurrido un error desconocido.") => {
     if (type) {
         showNotification(message, "error");
         setTimeout(() => {
-            router.push("/");
+            router.replace({ path: '/', replace: true });
         }, 3000);
     } else {
-        router.push("/");
+        router.replace({ path: '/', replace: true });
     }
 };
 

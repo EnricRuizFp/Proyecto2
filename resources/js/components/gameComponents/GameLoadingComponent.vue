@@ -183,11 +183,7 @@ const ensureMinimumLoadingTime = async () => {
     const elapsedTime = Date.now() - loadingStartTime.value;
     if (elapsedTime < minLoadingTime) {
         // Si no ha pasado suficiente tiempo, esperar la diferencia
-        console.log(
-            `Esperando ${
-                minLoadingTime - elapsedTime
-            }ms adicionales para mejor experiencia de carga...`
-        );
+        console.log(`Esperando ${minLoadingTime - elapsedTime} ms adicionales para mejor experiencia de carga...`);
         await sleep(minLoadingTime - elapsedTime);
     }
     forceLoading.value = false;
@@ -206,10 +202,10 @@ const waitForTimestamp = async (timestamp) => {
 
 // Función onMounted
 onMounted(() => {
-    console.log("GameLoadingComponent mounted.");
-    console.log("User: ", authStore().user);
-    console.log("Game type: ", route.params.gameType);
-    console.log("Game code: ", route.params.gameCode);
+    // console.log("GameLoadingComponent cargado.");
+    // console.log("User: ", authStore().user);
+    // console.log("Game type: ", route.params.gameType);
+    // console.log("Game code: ", route.params.gameCode);
 
     // Verificación de usuario autenticado, modo de juego y código
     if (!authStore().user || !route.params.gameType) {
@@ -252,7 +248,7 @@ window.addEventListener("beforeunload", () => {
 
 // Función FindMatch
 const findMatch = async () => {
-    console.log("Finding match...");
+    // console.log("Finding match...");
     isLoading.value = true;
     loadingStartTime.value = Date.now(); // Registrar el tiempo de inicio de carga
 
@@ -263,7 +259,8 @@ const findMatch = async () => {
             gameCode: route.params.gameCode,
             user: authStore().user,
         });
-        console.log("Match found:", response.data);
+        // console.log("Match found:", response.data);
+        console.log("Match code: ",response.data.game.code);
 
         // Si se ha encontrado partida, entrar
         if (response.data.status == "success") {
@@ -274,7 +271,7 @@ const findMatch = async () => {
             // Obtener el creador de la partida
             if (response.data.game.created_by == authStore().user.id) {
                 //Si eres el creador de la partida
-                console.log("Creador de la partida");
+                console.log("Creador.");
                 matchCode.value = response.data.game.code;
 
                 if (!response.data.game.is_public) {
@@ -297,7 +294,7 @@ const findMatch = async () => {
                 setTimestampMatchCreator();
             } else {
                 // Si eres el invitado de la partida
-                console.log("Invitado a la partida.");
+                console.log("Invitado.");
                 if (route.params.gameType === "private") {
                     matchCode.value = route.params.gameCode;
                 } else {
@@ -337,7 +334,7 @@ const setTimestampMatchCreator = async () => {
 
         // Mostrar por consola contador
         if (contador % 10 === 0) {
-            console.log("Quedan ", 40 - contador, " trys.");
+            // console.log("Quedan ", 40 - contador, " trys.");
         }
     } while (matchStatus == "waiting" && contador <= 40);
 
@@ -352,7 +349,7 @@ const setTimestampMatchCreator = async () => {
         });
 
         if (response.data.status == "success") {
-            console.log("Timestamp uploaded: ", response.data.game.start_date);
+            // console.log("Timestamp uploaded: ", response.data.game.start_date);
 
             await waitForTimestamp(response.data.game.start_date);
             gameStore.setMatchCode(matchCode.value);
@@ -381,7 +378,7 @@ const pollMatchStatusGuest = async () => {
         contador++;
 
         if (contador % 10 === 0) {
-            console.log("Quedan ", 40 - contador, " polls.");
+            // console.log("Quedan ", 40 - contador, " polls.");
         }
     } while (matchStatus != "success" && contador <= 40);
 

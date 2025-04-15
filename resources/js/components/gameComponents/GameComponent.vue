@@ -294,21 +294,22 @@ const showNotification = (message, type = "info") => {
         type,
         position: "derecha",
     };
+
     setTimeout(() => {
         notification.value.show = false;
-    }, 3000);
+    }, message === "El oponente ha abandonado la partida" ? 6500 : 3000);
 };
 
 // Función para manejar el ataque
 const handleAttack = async (row, col) => {
     if (!isGameActive.value || !yourTurn.value || attackBoard.value[row][col]) {
-        console.log("Ataque inválido.");
+        // console.log("Ataque inválido.");
         showNotification("Espera tu turno.", "error");
         return;
     }
 
     try {
-        console.log("Atacando a:", row, "/", col);
+        // console.log("Atacando a:", row, "/", col);
         const response = await axios.post("/api/games/attack", {
             gameCode: gameStore.matchCode,
             user: authStore().user,
@@ -357,16 +358,16 @@ const checkMatchWinner = async () => {
                 console.log("Límite de movimientos alcanzado.");
 
                 // Finalizar el juego
-                await endGame("draw");
+                await endGame("draw", true);
             }
         } else if (response.data.has_winned == true) {
-            console.log("Ganador de la partida.");
+            // console.log("Ganador de la partida.");
 
             // Mostrar notificación de victoria
             showNotification("¡Has ganado la partida!", "success");
 
             // Finalizar el juego
-            await endGame("winner");
+            await endGame("winner", true);
         } else {
             console.log("No se ha podido determinar el ganador.");
         }
@@ -376,44 +377,60 @@ const checkMatchWinner = async () => {
 };
 
 // Función para finalizar la partida (ganando)
-const endGame = async (status) => {
+const endGame = async (status, subirDato) => {
     try {
-        console.log("Setteando el STATUS de la partida...");
-        console.log("Status: ", status);
+
         // Detener todas las funciones estableciendo isGameActive a false
         isGameActive.value = false;
         yourTurn.value = false;
 
-        const response = await axios.post("/api/games/set-game-ending", {
-            gameCode: gameStore.matchCode,
-            user: authStore().user,
-            status: status,
-        });
+        // Si subirDato es true, subir el dato, si es false (el oponente debe haberlo subido ya)
+        if(subirDato){
+            // console.log("Setteando el STATUS de la partida...");
+            // console.log("Status: ", status);
+            
 
-        console.log("Respuesta del servidor:", response.data);
+            const response = await axios.post("/api/games/set-game-ending", {
+                gameCode: gameStore.matchCode,
+                user: authStore().user,
+                status: status,
+            });
 
-        if (response.data.status === "success") {
-            console.log("Partida finalizada con éxito.");
+            // console.log("Respuesta del servidor:", response.data);
 
-            if (status == "winner") {
-                console.log("GANADOR");
-                gameStore.setPoints(response.data.points_earned_by_winner);
-                gameStore.setShowWin(true);
-            }else if(status == "loser") {
-                console.log("PERDEDOR");
-                gameStore.setPoints(response.data.points_lost_by_loser);
-                gameStore.setShowGameOver(true);
-            }else{
-                console.log("EMPATE");
-                gameStore.setPoints(0);
-                gameStore.setShowDraw(true);
+            if (response.data.status === "success") {
+                // console.log("Partida finalizada con éxito.");
+
+                if (status == "winner") {
+                    console.log("Ganador.");
+                    gameStore.setPoints(response.data.points_earned);
+                    gameStore.setShowWin(true);
+                }else if(status == "loser") {
+                    console.log("Perdedor.");
+                    gameStore.setPoints(response.data.points_lost_by_loser);
+                    gameStore.setShowGameOver(true);
+                }else{
+                    console.log("Empate.");
+                    gameStore.setPoints(0);
+                    gameStore.setShowDraw(true);
+                }
+
+                // console.log("ENDGAME mostrado.");
             }
+        }else{
 
-            console.log("Notificación mostrada, reseteando datos.");
-            // resetGameState();
+            // Obtener el dato de la partida y mostrar el resultado
+            const response = await axios.post("/api/games/get-match-info", {
+                gameCode: gameStore.matchCode,
+            });
+
+            // console.log("No has subido ningún dato.");
+            // console.log("Respuesta del servidor:", response.data);
         }
+
+        
     } catch (error) {
-        console.error("Error al finalizar la partida:", error);
+        console.error("Error al finalizar la partida: ", error);
     }
 };
 
@@ -421,7 +438,7 @@ const endGame = async (status) => {
 const playTurn = async () => {
 
     if (!isGameActive.value) return;
-    console.log("Tu turno. Tienes 25 segundos para atacar.");
+    // console.log("Tu turno. Tienes 25 segundos para atacar.");
     timeLeft.value = 25;
 
     // Esperar 25 segundos o hasta que el usuario ataque
@@ -431,15 +448,15 @@ const playTurn = async () => {
     }
 
     if(timeLeft.value === 0){
-        console.log("Tiempo agotado.");
+        // console.log("Tiempo agotado.");
         showNotification("Tiempo agotado.", "error");
-        endGame("loser");
+        endGame("loser", true);
 
         // Detener el juego
         isGameActive.value = false;
     }
 
-    console.log("Turno finalizado.");
+    // console.log("Turno finalizado.");
 };
 
 // Función para manejar el turno de esperar
@@ -450,33 +467,32 @@ const waitTurn = async () => {
 
     while (!opponentMoved && attempts < 12 && isGameActive.value) {
         attempts++;
-        console.log(
-            `Intento ${attempts}/12: Verificando movimiento del oponente...`
-        );
+        // console.log(`Verificando movimientos: ${attempts}/12.`);
 
         try {
             // Verificar estado de la partida
-            const matchResponse = await axios.post(
-                "/api/games/get-match-info",
+            const matchResponse = await axios.post("/api/games/get-match-info",
                 {
                     gameCode: gameStore.matchCode,
                 }
             );
 
             // Verificar si hay un ganador que no es el usuario actual
-            if (
-                matchResponse.data.data.game.is_finished &&
-                matchResponse.data.data.game.winner &&
-                matchResponse.data.data.game.winner !== authStore().user.id
-            ) {
-                console.log("PERDEDOR");
+            if (matchResponse.data.data.game.is_finished && matchResponse.data.data.game.winner && matchResponse.data.data.game.winner !== authStore().user.id)
+            {
+
+                // Detener todas las funciones estableciendo isGameActive a false
+                isGameActive.value = false;
+                yourTurn.value = false;
+
+                // Mostrar notificación de derrota
+                console.log("Perdedor.");
                 gameStore.setPoints(matchResponse.data.data.game.points);
                 gameStore.setShowGameOver(true);
-            } else if (
-                matchResponse.data.data.game.is_finished &&
-                matchResponse.data.data.game.winner
-            ) {
-                console.log("Oponente ha abandonado la partida.");
+
+            } else if (matchResponse.data.data.game.is_finished && matchResponse.data.data.game.winner)
+            {
+                // console.log("Oponente ha abandonado la partida.");
                 
                 // Mostrar notificación
                 showNotification("El oponente ha abandonado la partida", "error");
@@ -487,12 +503,7 @@ const waitTurn = async () => {
                 // Detener el juego
                 isGameActive.value = false;
                 yourTurn.value = false;
-
-                // Limpiar el estado del juego
-                resetGameState();
-                
-                // Navegar al inicio
-                router.push("/");
+                await endGame("winner", false);
             }
 
             // Si la partida sigue activa, verificar el último movimiento
@@ -511,9 +522,9 @@ const waitTurn = async () => {
                     .map((num) => parseInt(num) - 1);
                 userBoard.value[row][col] = move.result === "hit" ? "X" : "O";
                 opponentMoved = true;
-                console.log("Movimiento del oponente:", move);
+                // console.log("Movimiento del oponente:", move);
             } else {
-                console.log("No se detectó movimiento del oponente.");
+                // console.log("No se detectó movimiento del oponente.");
             }
         } catch (error) {
             console.error(
@@ -529,24 +540,22 @@ const waitTurn = async () => {
 
     if (!opponentMoved) {
         // console.log("El oponente no realizó ningún movimiento en 30 segundos.");
-        showNotification("El oponente no realizó ningún movimiento en 30 segundos", "error");
+        // showNotification("El oponente no realizó ningún movimiento en 30 segundos", "error");
 
         // Finalizar loop de juego
         isGameActive.value = false;
 
         // Finalizar el juego
-        await endGame("winner");
+        await endGame("winner", true);
     } else {
-        console.log(
-            "Movimiento del oponente procesado. Cambiando al estado de jugar."
-        );
+        // console.log("Movimiento del oponente procesado. Cambiando al estado de jugar.");
         yourTurn.value = true;
     }
 };
 
 // Función principal del juego
 const gameLoop = async () => {
-    console.log("Iniciando el bucle del juego...");
+    // console.log("Iniciando el bucle del juego...");
     while (isGameActive.value) {
         if (yourTurn.value) {
             await playTurn();
@@ -568,7 +577,7 @@ const loadShips = async () => {
         // backToHome(false, "No tienes permiso para acceder a esta página (code)");
     }
 
-    console.log("Obteniendo coordenadas de los barcos del jugador");
+    // console.log("Obteniendo coordenadas de los barcos del jugador");
 
     // Obtener los barcos del jugador
     try {
@@ -582,7 +591,7 @@ const loadShips = async () => {
 
         if (response.data.status === "failed") {
             // backToHome(true, "Error al cargar la partida.");
-            console.log("Error al cargar la partida. [respuesta es failed]");
+            // console.log("Error al cargar la partida. [respuesta es failed]");
             return;
         }
 
@@ -701,12 +710,12 @@ const scrollToBottom = () => {
 // Iniciar el polling para cargar mensajes
 const startChatPolling = async () => {
 
-    console.log("Cargando los mensajes...");
+    // console.log("Cargando los mensajes...");
 
     while(isGameActive.value) {
 
         await loadChatMessages();
-        console.log("Chats obtenidos.");
+        // console.log("Chats obtenidos.");
         await sleep(2000);
     }
     // // Configurar el intervalo para polling (cada 3 segundos)
@@ -738,29 +747,10 @@ onMounted(async () => {
     startChatPolling();
 });
 
-// Limpiar cuando se desmonta el componente
-onUnmounted(() => {
-    console.log("Desmontando componente del juego...");
-    // Detener el juego
-    isGameActive.value = false;
-    yourTurn.value = false;
-    
-    // Detener el intervalo del timer si existe
-    if (timeLeft.value > 0) {
-        timeLeft.value = 0;
-    }
-
-    // Limpiar el estado del juego
-    resetGameState();
-
-    // El polling del chat se mantiene activo intencionalmente
-    // para permitir la comunicación post-partida
-});
-
 // Vigilar cambios en la ruta para limpiar cuando se navega fuera
 watch(() => route.path, (newPath, oldPath) => {
     if (oldPath.includes('/game') && !newPath.includes('/game')) {
-        console.log("Saliendo de la pantalla de juego...");
+        console.log("Saliendo de la pantalla de juego.");
         // Detener el juego y el chat
         isGameActive.value = false;
         yourTurn.value = false;
@@ -770,9 +760,6 @@ watch(() => route.path, (newPath, oldPath) => {
             clearInterval(pollingInterval.value);
             pollingInterval.value = null;
         }
-        
-        // Limpiar el estado del juego
-        resetGameState();
     }
 });
 

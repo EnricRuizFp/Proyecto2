@@ -130,6 +130,7 @@ class GameController extends Controller
         $unfinishedUserGames = Game::whereIn('id', function ($query) use ($user) {
             $query->select('game_id')->from('game_players')->where('user_id', $user);
         })->where('is_finished', false)->get();
+
         if (count($unfinishedUserGames) > 0) {
 
             // Terminar todas las posibles partidas que tenga el usuario
@@ -1392,7 +1393,7 @@ class GameController extends Controller
                     'status' => 'success',
                     'message' => 'Game ended with loser',
                     'winner_id' => $winner->user_id,
-                    'points_earned_by_winner' => $points,
+                    'points_earned' => $points,
                     'points_lost_by_loser' => $pointsToDecrease
                 ]);
             }

@@ -47,7 +47,7 @@
                 <div class="buttons">
                     <button
                         class="primary-button light"
-                        @click="handleRestart"
+                        @click="handlePlayAgain"
                     >
                         JUGAR DE NUEVO
                         <svg
@@ -119,34 +119,30 @@ const router = useRouter();
 const gameStore = useGameStore();
 const isGameActive = ref(true);
 
-const resetGameState = () => {
-    gameStore.resetGame();
-};
-
 const goToHome = () => {
     // Detener el juego
     isGameActive.value = false;
-
-    // Limpiar el estado del juego
-    resetGameState();
     
     // Navegar al inicio
     router.push("/");
 };
 
-const handleRestart = async () => {
-    emit('cleanup');
-    gameStore.resetGame();
-
+const handlePlayAgain = async () => {
+    
     try {
         const response = await axios.post('/api/games/check-user-requirements', {
-            gameType: gameStore.gameType,
-            gameCode: gameStore.matchCode,
+            gameType: gameStore.gameMode,
+            gameCode: 'null',
             user: authStore().user ?? null
         });
 
+        // Limpiar el estado actual y resetear el juego
+        console.log("Reseteando el juego.");
+        emit('cleanup');
+        await gameStore.resetGame();
+
         if (response.data.status === 'success') {
-            router.push(`/game/${gameStore.gameType}/${gameStore.matchCode || 'null'}`);
+            router.push(`/game/public/null`);
         } else {
             console.error("Failed:", response.data.message);
             goToHome();
