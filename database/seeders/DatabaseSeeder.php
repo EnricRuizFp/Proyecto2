@@ -1,13 +1,13 @@
 <?php
 
 namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run()
     {
-        $this->call(CategoryTableSeeder::class);
         $this->call(PermissionTableSeeder::class);
 
         // Creates Admin, User and 50 more random users

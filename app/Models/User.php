@@ -31,7 +31,7 @@ class User extends Authenticatable implements HasMedia
         'password',
         'surname1',
         'surname2',
-        'nationality', // Asegurarse de que está incluido aquí
+        'nationality',
     ];
 
     protected $hidden = [
@@ -41,6 +41,7 @@ class User extends Authenticatable implements HasMedia
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password' => 'hashed',
         'nationality' => 'string',
     ];
 
@@ -58,6 +59,7 @@ class User extends Authenticatable implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('users-avatars')
+            ->singleFile()
             ->useFallbackUrl('/images/placeholder.jpg')
             ->useFallbackPath(public_path('/images/placeholder.jpg'));
     }
@@ -77,17 +79,16 @@ class User extends Authenticatable implements HasMedia
      |---------------------------------------------------------
      */
 
-    public function assignaments()
-    {
-        return $this->hasMany(UserAssignment::class, 'user_id');
-    }
+    // public function assignaments()
+    // {
+    //     return $this->hasMany(UserAssignment::class, 'user_id');
+    // }
 
     //  Relation with games
 
     public function partidasCreadas()
     {
-        // Ajusta nombres si estás en inglés
-        return $this->hasMany(Game::class, 'created_by');
+        return $this->hasMany(Game::class, 'creator_id');
     }
 
     //  Relation with game_players
@@ -107,8 +108,6 @@ class User extends Authenticatable implements HasMedia
     // Si además quieres "los Games en los que el User es viewer":
     public function viewedGames()
     {
-        // belongsToMany, asumiendo 'game_viewers' es tu tabla intermedia
-        // con 'game_id' y 'user_id' como FKs:
         return $this->belongsToMany(
             Game::class,
             'game_viewers',
@@ -136,12 +135,12 @@ class User extends Authenticatable implements HasMedia
     public function moves()
     {
         return $this->hasManyThrough(
-            Move::class,          // Modelo final
-            GamePlayer::class,    // Modelo intermedio
-            'user_id',            // FK en 'game_players'
-            'game_player_id',     // FK en 'moves'
-            'id',                 // PK local en 'users' (por defecto 'id')
-            'id'                  // PK local en 'game_players' (por defecto 'id')
+            Move::class,
+            GamePlayer::class,
+            'user_id',
+            'game_player_id',
+            'id',
+            'id'
         );
     }
 
@@ -160,7 +159,7 @@ class User extends Authenticatable implements HasMedia
             'user_id',
             'avatar_id'
         )
-            ->withTimestamps();  // Solo mantenemos withTimestamps() ya que la tabla tiene created_at y updated_at
+            ->withTimestamps();
     }
 
     public function getAvatarUrlAttribute()
