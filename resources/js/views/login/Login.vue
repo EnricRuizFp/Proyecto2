@@ -24,7 +24,10 @@
                         />
                         <!-- Validation Errors -->
                         <div>
-                            <div v-for="message in validationErrors?.email" class="validation-error">
+                            <div
+                                v-for="message in validationErrors?.email"
+                                class="validation-error"
+                            >
                                 {{ message }}
                             </div>
                         </div>
@@ -55,7 +58,10 @@
                         </div>
                         <!-- Validation Errors -->
                         <div>
-                            <div v-for="message in validationErrors?.password" class="validation-error">
+                            <div
+                                v-for="message in validationErrors?.password"
+                                class="validation-error"
+                            >
                                 {{ message }}
                             </div>
                         </div>
@@ -94,13 +100,13 @@
                     </button>
                 </div>
 
-                <div id="forgotPasswordText">
+                <!-- <div id="forgotPasswordText">
                     <router-link
                         :to="{ name: 'auth.forgot-password' }"
                         class="white-color"
                         >{{ $t("forgot_password") }}</router-link
                     >
-                </div>
+                </div> -->
             </form>
         </div>
     </div>
