@@ -19,21 +19,32 @@ use App\Http\Controllers\Api\RankingController;
 use App\Http\Controllers\Api\UserAvatarController;
 use App\Http\Controllers\Api\ChatController;
 
-
+// --- Public Routes ---
 Route::post('forget-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('forget.password.post');
 Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');
+Route::post('/users', [UserController::class, 'store'])->name('users.store'); // User Registration
+Route::get('/rankings', [RankingController::class, 'index']);   // Get all rankings
+Route::get('/rankings/national', [RankingController::class, 'getNationalRanking']); // Get national ranking
+Route::get('/rankings/global-position', [RankingController::class, 'getGlobalPosition']); // Get global ranking position
+Route::get('/rankings/national-position', [RankingController::class, 'getNationalPosition']);   // Get national ranking position
+Route::get('/rankings/user-points', [RankingController::class, 'getUserPoints']); // Get user points
 
-Route::group(['middleware' => 'auth:sanctum'], function () {
+// Add any other truly public API routes here
 
-    Route::apiResource('users', UserController::class);
+// --- Protected Routes ---
+// Apply the 'api' middleware group (for throttling, bindings) AND 'auth:sanctum'
+Route::middleware(['api', 'auth:sanctum'])->group(function () {
 
-    Route::post('users/updateimg', [UserController::class, 'updateimg']); //Listar
+    // Use apiResource but exclude the 'store' method as it's defined publicly above
+    Route::apiResource('users', UserController::class)->except(['store']);
+
+    Route::post('users/updateimg', [UserController::class, 'updateimg']);
 
     Route::apiResource('posts', PostControllerAdvance::class);
     Route::apiResource('roles', RoleController::class);
 
     Route::get('role-list', [RoleController::class, 'getList']);
-    Route::get('/roles/list', [App\Http\Controllers\Api\RoleController::class, 'getList']);
+    // Route::get('/roles/list', [App\Http\Controllers\Api\RoleController::class, 'getList']); // Duplicate?
     Route::get('role-permissions/{id}', [PermissionController::class, 'getRolePermissions']);
     Route::put('/role-permissions', [PermissionController::class, 'updateRolePermissions']);
     Route::apiResource('permissions', PermissionController::class);
@@ -48,137 +59,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
             ->flatten()
             ->pluck('name')
             ->unique()
-            ->values()
             ->toArray();
     });
 
-    // Modificar esta ruta para que coincida con la URL que estás usando
-    Route::post('users/assign-avatar/{id}', [UserController::class, 'assignAvatar'])
-        ->name('users.assign-avatar');
-
-    // Avatars
-    Route::get('avatars', [AvatarController::class, 'index']);
-    Route::apiResource('avatars', AvatarController::class)->except(['index']);
-
-    // Rutas de gestión de avatares de usuario
-    Route::get('user-avatars', [UserController::class, 'getUserAvatars']);
-    Route::get('users/{userId}/avatars', [UserController::class, 'getUserAvatar']);
-    Route::delete('users/{userId}/avatars/{avatarId}', [UserController::class, 'removeAvatar']);
-
-    // Rutas de obtención de posiciones globales y nacionales
-    Route::get('/rankings/global-position', [RankingController::class, 'getGlobalPosition']);
-    Route::get('/rankings/national-position', [RankingController::class, 'getNationalPosition']);
-    // Ruta de obtención de la cantidad de puntos del usuario
-    Route::get('/rankings/user-points', [RankingController::class, 'getUserPoints']);
-
-    // Route for getting the national ranking list (NEW)
-    Route::get('/rankings/national', [RankingController::class, 'getNationalRankingList']);
-
-    // Rankings - Admin specific route
-    Route::get('rankings/admin', [RankingController::class, 'indexAdmin']);
-
-    // Rankings - Regular routes (must be after specific routes)
-    // Removed conflicting Route::apiResource('rankings', RankingController::class);
-
-    // Ruta de obtención del historial de partidas (authenticated version)
-    Route::get('/games/user-match-history', [GameController::class, 'getUserMatchHistory']);
-
-    /* -- APP ROUTES -- */
-
-    /* - GAMES - */
-    // Get available games for viewing
-    Route::get('/games/available', [GameController::class, 'getAvailableGames']);
-    // Check user requirements function
-    Route::post('/games/check-user-requirements', [GameController::class, 'checkUserRequirements']);
-    // Join user to game function
-    Route::post('/games/matchmaking-function', [GameController::class, 'matchmakingFunction']);
-    // Ship placement function
-    Route::post('/games/ship-placement-function', [GameController::class, 'shipPlacementFunction']);
-    // Game play function
-    Route::post('/games/game-function', [GameController::class, 'gameFunction']);
-    // Result function
-    Route::post('/games/result-function', [GameController::class, 'resultFunction']);
-
-    // Play a public game (ruta personalizada)
-    Route::post('/games/play-public', [GameController::class, 'playPublicGame']);
-    // Create a private game (ruta personalizada)
-    Route::post('/games/create-private', [GameController::class, 'createPrivateGame']);
-    // Join a private game (ruta personalizada)
-    Route::post('/games/join-private', [GameController::class, 'joinPrivateGame']);
-    // Find match function (nueva ruta)
-    Route::post('/games/find-match', [GameController::class, 'findMatchFunction']);
-    // Finish match function
-    Route::post('/games/finish-match', [GameController::class, 'finishMatchFunction']);
-    // Check match status
-    Route::post('/games/check-match-status', [GameController::class, 'checkMatchStatus']);
-    // Create timestamp
-    Route::post('/games/create-timestamp', [GameController::class, 'createTimestamp']);
-    // Check timestamp
-    Route::post('/games/check-timestamp', [GameController::class, 'checkTimestamp']);
-    // Get match information
-    Route::post('/games/get-match-info', [GameController::class, 'getMatchInfo']);
-    // Get last move
-    Route::post('/games/get-last-move', [GameController::class, 'getLastMove']);
-    // Set game winner
-    Route::post('/games/set-game-winner', [GameController::class, 'setGameWinner']);
-
-    /* -- GAME PLAY -- */
-    // Attack function
-    Route::post('/games/attack', [GameController::class, 'attackPosition']);
-    // Get user moves
-    Route::post('/games/get-user-moves', [GameController::class, 'getUserMoves']);
-    // Get game state
-    Route::post('/games/get-opponent-ship-placement-game', [GameController::class, 'getOpponentShipPlacementGame']);
-    // Set game ending
-    Route::post('/games/set-game-ending', [GameController::class, 'setGameEnding']);
-
-    /* -- SHIP PLACEMENT -- */
-    // Store ship placement
-    Route::post('/games/store-ship-placement', [GameController::class, 'storeShipPlacement']);
-    Route::post('/games/get-opponent-ship-placement-validation', [GameController::class, 'getOpponentShipPlacementValidation']);
-    Route::post('/games/get-user-ship-placement', [GameController::class, 'getUserShipPlacement']);
-
-    // Games (después de la personalizada)
-    Route::apiResource('games', GameController::class);
-
-    // Ships
-    Route::apiResource('ships', ShipController::class);
-    Route::get('/ships', [ShipController::class, 'index']);
-    Route::get('/game-ships', [ShipController::class, 'getGameShips']);
-    Route::get('/game-ships', [GameController::class, 'getAvailableGameShips']);
-
-    /* -- CHAT FUNCTIONS -- */
-    Route::post('/games/chat/get-messages', [ChatController::class, 'getMessages']);
-    Route::post('/games/chat/send-message', [ChatController::class, 'sendMessage']);
-
-    /* -- GAME VIEW FUNCTIONS -- */
-    // Get current match status
-    Route::post('/games/get-current-match-status', [GameController::class, 'getCurrentMatchStatus']);
-    // Join a match as observer
-    Route::post('/games/view-game', [GameController::class, 'viewGame']);
-    // Get game moves and status for viewers
     Route::post('/games/view-game-moves', [GameController::class, 'viewGameMoves']);
 });
-
-// Rankings routes outside auth:sanctum
-Route::post('/rankings', [RankingController::class, 'store'])->name('rankings.store');
-Route::get('/rankings/{id}', [RankingController::class, 'show'])->name('rankings.show');
-Route::get('/rankings', [RankingController::class, 'index'])->name('rankings.index');
-Route::put('/rankings/{id}', [RankingController::class, 'update'])->middleware('auth:sanctum');
-Route::delete('/rankings/{id}', [RankingController::class, 'destroy'])->middleware('auth:sanctum');
-
-Route::get('get-posts', [PostControllerAdvance::class, 'getPosts']);
-Route::get('get-category-posts/{id}', [PostControllerAdvance::class, 'getCategoryByPosts']);
-Route::get('get-post/{id}', [PostControllerAdvance::class, 'getPost']);
-
-Route::get('notes', [NoteController::class, 'index'])->name('notes.index');
-Route::post('notes', [NoteController::class, 'store'])->name('notes.store');
-Route::get('notes/{id}', [NoteController::class, 'show'])->name(name: 'notes.show');
-Route::put('notes/{id}', [NoteController::class, 'update'])->name(name: 'notes.update');
-Route::delete('notes/{id}', [NoteController::class, 'destroy'])->name('notes.destroy');
-
-Route::get('authors', [AuthorController::class, 'index'])->name('authors.index');
-Route::post('authors', [AuthorController::class, 'store'])->name('authors.store');
-Route::delete('authors/{author}', [AuthorController::class, 'destroy'])->name('authors.destroy');
-Route::get('authors/{author}', [AuthorController::class, 'show'])->name('authors.show');
-Route::put('authors/{author}', [AuthorController::class, 'update'])->name('authors.update');

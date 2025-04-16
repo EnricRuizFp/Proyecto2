@@ -248,7 +248,7 @@ class RankingController extends Controller
     /**
      * Obtiene el listado del ranking nacional paginado.
      */
-    public function getNationalRankingList(Request $request)
+    public function getNationalRanking(Request $request)
     {
         try {
             $user = $request->user();
