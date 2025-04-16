@@ -10,6 +10,20 @@ use Illuminate\Support\Facades\Log;
 
 class AvatarController extends Controller
 {
+    /**
+     * LISTAR AVATARES
+     * 
+     * Devuelve el listado de avatares disponibles.
+     * Sólo para usuarios autenticados.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * Usuario autenticado.
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse|\Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * Respuesta exitosa: Listado de avatares en formato JSON.
+     * Respuesta error: error y mensaje de error en formato JSON.
+     */
     public function index(Request $request)
     {
         try {
@@ -57,6 +71,17 @@ class AvatarController extends Controller
         }
     }
 
+    /**
+     * MOSTRAR AVATAR
+     * 
+     * Devuelve los detalles de un avatar específico.
+     * 
+     * @param mixed $id
+     * Datos esperados: ID del avatar a mostrar.
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta: Datos del avatar en formato JSON.
+     */
     public function show($id)
     {
         $avatar = Avatar::findOrFail($id);
@@ -64,7 +89,19 @@ class AvatarController extends Controller
     }
 
     /**
-     * Almacena un nuevo avatar.
+     * ALMACENAR AVATAR
+     * 
+     * Crea un nuevo avatar con la imagen proporcionada.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *    "name": string|required|max:50,
+     *    "image": file|required|image|mimes:webp,png,jpeg
+     * }
+     * 
+     * @param mixed|\Illuminate\Http\JsonResponse
+     * Respuesta: Mensaje de éxito y datos del avatar creado en formato JSON.
      */
     public function store(Request $request)
     {
@@ -92,6 +129,24 @@ class AvatarController extends Controller
         ], 201);
     }
 
+    /**
+     * ACTUALIZAR AVATAR
+     * 
+     * Actualiza el nombre y/o imagen de un avatar existente.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *    "name": string|required|max:50,
+     *    "image": file|nullable|image|mimes:webp,png,jpeg
+     * }
+     * 
+     * @param mixed $id
+     * Datos esperados: ID del avatar a actualizar.
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta: Mensaje de éxito y datos del avatar actualizado en formato JSON.
+     */
     public function update(Request $request, $id)
     {
         $avatar = Avatar::findOrFail($id);
@@ -122,6 +177,18 @@ class AvatarController extends Controller
             'data'    => $avatar,
         ]);
     }
+
+    /**
+     * ELIMINAR AVATAR
+     * 
+     * Elimina el avatar especificado y sus archivos asociados.
+     * 
+     * @param mixed $id
+     * Datos esperados: ID del avatar a eliminar.
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta: Mensaje de éxito en formato JSON.
+     */
     public function destroy($id)
     {
         $avatar = Avatar::findOrFail($id);

@@ -18,31 +18,64 @@ use Illuminate\Support\Facades\Log;
 class GameController extends Controller
 {
     /**
-     * Retorna un listado paginado de partidas.
+     * LISTAR PARTIDAS
+     * 
+     * Devuelve un listado paginado de las partidas existentes.
+     * 
+     * Sin parámetros de entrada
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta: Listado de partidas en formato JSON.
      */
     public function index(Request $request)
     {
-        // Puedes incluir relaciones si lo deseas, por ejemplo 'creator'
         $games = Game::with('creator')->paginate(10);
         return response()->json($games);
     }
 
+    /**
+     * MOSTRAR PARTIDA
+     * 
+     * Devuelve los datos de una partida específica.
+     * 
+     * @param int $id
+     * Datos esperados: ID de la partida.
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta: Datos de la partida en formato JSON.
+     */
     public function show($id)
     {
         $game = Game::findOrFail($id);
         return response()->json($game);
     }
 
-
+    /**
+     * CREAR PARTIDA SIMPLE
+     * 
+     * Crea una nueva partida con los datos proporcionados.
+     * No necesita estar autenticado.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "is_public": boolean|required
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta: Datos de la partida creada en formato JSON.
+     */
     public function store(Request $request)
     {
+        // Validación de los datos recibidos
         $request->validate([
             'is_public' => 'required|boolean'
         ]);
 
-        // Si usas autenticación, asigna el id del usuario autenticado; de lo contrario, se puede dejar nulo
+        // Permitir que el usuario no esté autenticado
         $userId = auth()->check() ? auth()->id() : null;
 
+        // Crear la partida
         $game = Game::create([
             'creation_date' => now(),
             'is_public'     => $request->is_public,
@@ -51,35 +84,91 @@ class GameController extends Controller
             'created_by'    => $userId,
         ]);
 
+        // Devolver la respuesta en formato JSON
         return response()->json([
             'message' => 'Game created successfully',
             'data'    => $game,
         ], 201);
     }
+
+    /**
+     * ACTUALIZAR PARTIDA
+     * 
+     * Actualiza los datos de una partida existente.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "creation_date": date|nullable
+     *   "start_date": date|nullable
+     *   "is_public": required|boolean
+     *   "is_finished": boolean|nullable
+     *   "end_date": date|nullable
+     *   "winner": integer|nullable
+     *  "points": integer|nullable
+     *  "created_by": integer|nullable
+     * }
+     * 
+     * @param mixed $id
+     * Datos esperados: ID de la partida a actualizar.
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta: Mensaje de éxito y datos de la partida actualizada en formato JSON.
+     */
     public function update(Request $request, $id)
     {
+        // Validación de los datos recibidos
+        $request->validate([
+            'creation_date' => 'date|nullable',
+            'start_date' => 'date|nullable',
+            'is_public' => 'required|boolean',
+            'is_finished' => 'boolean|nullable',
+            'end_date' => 'date|nullable',
+            'winner' => 'integer|nullable',
+            'points' => 'integer|nullable',
+            'created_by' => 'integer|nullable',
+        ]);
+
+        // Obtener la partida por ID
         $game = Game::findOrFail($id);
 
-        // Validación (en este ejemplo, solo se actualiza is_public)
-        $request->validate([
-            'is_public' => 'required|boolean'
-        ]);
-
-        $game->update([
+        // Actualizar los datos
+        $game->update([            
+            'creation_date' => $request->creation_date,
+            'start_date' => $request->start_date,
             'is_public' => $request->is_public,
-            // Puedes actualizar otros campos si fuese necesario.
+            'is_finished' => $request->is_finished,
+            'end_date' => $request->end_date,
+            'winner' => $request->winner,
+            'points' => $request->points,
+            'created_by' => $request->created_by
         ]);
 
+        // Devolver la respuesta en formato JSON
         return response()->json([
             'message' => 'Game updated successfully',
             'data'    => $game,
         ]);
     }
+
+    /**
+     * ELIMINAR PARTIDA
+     * 
+     * Elimina la partida especificada.
+     * 
+     * @param mixed $id
+     * Datos esperados: ID de la partida a eliminar.
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta: Mensaje de éxito en formato JSON.
+     */
     public function destroy($id)
     {
+        // Buscar la partida por ID y eliminarla
         $game = Game::findOrFail($id);
         $game->delete();
 
+        // Devolver la respuesta en formato JSON
         return response()->json([
             'message' => 'Game deleted successfully'
         ]);
@@ -95,22 +184,32 @@ class GameController extends Controller
 
     /**
      * CHECK USER REQUIREMENTS
-     * Esta función comprueba si el usuario cumple con los requisitos para jugar una partida.
      * 
+     * Combrueba si el usuario cumple con los requisitos para jugar una partida.
+     * En caso de estar en una partida, la termina.
      * 
-     * Summary of checkUserRequirements
      * @param \Illuminate\Http\Request $request
-     *
-     * Summary of checkUserRequirements
-     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "user": {
+     *     "id": int|required,
+     *     "username": string|required
+     *   }
+     * }
+     * 
      * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y mensaje en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function checkUserRequirements(Request $request)
     {
 
-        // Inclusión de los datos pasados por parámetro
-        $gameType = $request->input('gameType');
-        $gameCode = $request->input('gameCode');
+        // Validación de los datos recibidos
+        $request->validate([
+            'user' => 'required'
+        ]);
+
+        // Pasar valor a variable
         $user = $request->input('user');
 
         /*
@@ -171,17 +270,28 @@ class GameController extends Controller
 
     /**
      * FIND MATCH FUNCTION
-     * Esta función tiene diversas salidas.
-     * Partida pública: Si no hay partidas públicas disponibles, crea una nueva y conecta al usuario.
-     *                 Si hay partidas públicas disponibles, conecta al usuario a la primera que encuentre.
      * 
-     * Partida privada: Si no se pasa el código, crea una nueva partida privada y conecta al usuario.
-     *                 Si se pasa el código, intenta unirse a la partida privada.
+     * Gestiona la búsqueda o creción de partidas según los parámetros de entrada.
+     * Esta función tiene diversas salidas:
+     * - Partida pública: Si no hay partidas públicas disponibles, crea una nueva y conecta al usuario.
+     *                    Si hay partidas públicas disponibles, conecta al usuario a la primera que encuentre.
      * 
-     *
-     * Summary of findMatchFunction
+     * - Partida privada: Si no se pasa el código, crea una nueva partida privada y conecta al usuario.
+     *                    Si se pasa el código, intenta unirse a la partida privada.
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameType": "public"|"private"|required,
+     *   "user": {
+     *     "id": int|required
+     *   },
+     *   "gameCode": string|nullable
+     * }
+     * 
      * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function findMatchFunction(Request $request)
     {
@@ -192,6 +302,8 @@ class GameController extends Controller
             'user.id' => 'required|integer',
             'gameCode' => 'nullable|string'
         ]);
+
+        // Pasar datos a variables
         $gameType = $request->input('gameType');
         $gameCode = $request->input('gameCode');
         $user = $request->input('user');
@@ -244,11 +356,32 @@ class GameController extends Controller
 
     /**
      * FINISH MATCH FUNCTION
-     * Esta función finaliza la partida y asigna el ganador.
+     * 
+     * Finaliza la partida y asigna el ganador.
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida finalizada en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function finishMatchFunction(Request $request)
     {
+        // Validar los datos recibidos
+        $request->validate([
+            'gameCode' => 'required|string',
+            'user' => 'required|array',
+            'user.id' => 'required|integer'
+        ]);
+
+        // Pasar datos a variables
         $gameCode = $request->input('gameCode');
         $user = $request->input('user');
 
@@ -298,15 +431,19 @@ class GameController extends Controller
 
     /**
      * PLAY A PUBLIC GAME
-     * This function searches a public game to join. If there are no public games available, it creates a new one.
-     * Returns the game you have joined.
+     * 
+     * Busca una partida disponible o crea una nueva si no existen.
+     * -> Si hay una partida pública disponible, se une a ella.
+     * -> Si no hay partidas públicas, crea una nueva partida pública y se une a ella.
+     * 
+     * @param mixed $user
+     * Datos esperados: Usuario que quiere jugar.
+     * 
      * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
-    public function playPublicGame($user)
-    {
-
-        // Obtener el usuario del frontend
-        //$user = $request->input('user');
+    public function playPublicGame($user){
 
         // Buscar todos los juegos públicos que no han comenzado
         $publicUnstartedGames = Game::where('is_public', true)
@@ -346,7 +483,7 @@ class GameController extends Controller
         ]);
 
         $newGame->players()->attach($user['id'], [
-            'joined' => now() // La fecha de unión del jugador
+            'joined' => now()
         ]);
 
         // Devolver el juego encontrado
@@ -359,8 +496,20 @@ class GameController extends Controller
 
     /**
      * CREATE A PRIVATE GAME
-     * This function creates a new private game and connects the user to it.
+     * 
+     * Crea una partida privada y conecta al usuario a ella.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
      * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida creada en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function createPrivateGame(Request $request)
     {
@@ -379,7 +528,7 @@ class GameController extends Controller
 
         // Unirse a la partida privada
         $newPrivateGame->players()->attach($user['id'], [
-            'joined' => now() // La fecha de unión del jugador
+            'joined' => now()
         ]);
 
         // Devolver el juego creado
@@ -392,19 +541,38 @@ class GameController extends Controller
 
     /**
      * JOIN A PRIVATE GAME
-     * This function allows a user to join a private game using the game code.
-     * If the code does not exist, it returns an error message.
-     * If the game is public, it returns an error message.
-     * If the game is full, it returns an error message.
-     * @param mixed $code
+     * 
+     * Permite al usuario unirse a una partida privada mediante el código del juego.
+     * -> Si la partida no existe, devuelve un mensaje de error.
+     * -> Si la partida es pública, devuelve un mensaje de error.
+     * -> Si la partida está llena, devuelve un mensaje de error.
+     * 
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "user": {
+     *     "id": int|required
+     *   },
+     *   "code": string|required
+     * }
+     * 
      * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function joinPrivateGame(Request $request)
     {
+        // Validar los datos recibidos
+        $request->validate([
+            'user' => 'required|array',
+            'user.id' => 'required|integer',
+            'code' => 'required|string'
+        ]);
+
         // Obtener el usuario y el código de la request
         $user = $request->input('user');
         $code = $request->input('code');
-
 
         // Buscar todos los juegos privados que no hay comenzado
         $privateGame = Game::where('code', $code)
@@ -439,7 +607,7 @@ class GameController extends Controller
 
                     // Unir al usuario a la partida
                     $privateGame->players()->attach($user['id'], [
-                        'joined' => now() // La fecha de unión del jugador
+                        'joined' => now()
                     ]);
 
                     // Devolver los datos de la partida
@@ -462,13 +630,30 @@ class GameController extends Controller
 
     /**
      * CHECK MATCH STATUS
-     * Verifica el estado actual de la partida y devuelve todos sus datos
+     * 
+     * Verifica el estado actual de la partida y devuelve sus datos.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function checkMatchStatus(Request $request)
     {
+        // Validar los datos recibidos
+        $request->validate([
+            'gameCode' => 'required|string'
+        ]);
+
+        // Obtener el código de la partida del request
         $gameCode = $request->input('gameCode');
 
-        // Buscar la partida con las mismas relaciones que otras funciones
+        // Buscar la partida por el código
         $game = Game::where('code', $gameCode)
             ->with(['players', 'observers'])
             ->withCount('players')
@@ -481,7 +666,7 @@ class GameController extends Controller
             ]);
         }
 
-        // Devolver respuesta en el mismo formato que otras funciones
+        // Devolver respuesta (si no hay 2 usuarios, esperar a que los haya)
         return response()->json([
             'status' => 'success',
             'message' => $game->players_count >= 2 ? 'user joined' : 'waiting',
@@ -490,53 +675,31 @@ class GameController extends Controller
     }
 
     /**
-     * Obtiene el historial de las últimas 100 partidas del usuario
-     */
-    public function getUserMatchHistory(Request $request)
-    {
-        try {
-            $userId = $request->user()->id;
-            $userController = new UserController();
-
-            $games = Game::query()
-                ->whereHas('players', function ($query) use ($userId) {
-                    $query->where('user_id', $userId);
-                })
-                ->orderByDesc('creation_date')
-                ->take(100)
-                ->get()
-                ->map(function ($game) use ($userController) {
-                    $winnerUsername = $game->winner ?
-                        $userController->getUsernameById($game->winner) :
-                        'Empate';
-
-                    return [
-                        'date' => $game->creation_date->format('d/m/Y'),  // Cambiado el formato
-                        'is_public' => $game->is_public ? 'Pública' : 'Privada',
-                        'winner_id' => $game->winner,
-                        'winner' => $winnerUsername,
-                        'id' => $game->id
-                    ];
-                });
-
-            return response()->json([
-                'status' => 'success',
-                'data' => $games
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'failed',
-                'message' => 'Error al obtener el historial de partidas'
-            ], 500);
-        }
-    }
-
-    /**
      * CREATE TIMESTAMP
-     * Crea un timestamp para la partida después de 10 segundos
+     * 
+     * Crea un timestamp en la columna especificada a 5 segundos vista.
+     * -> Añade un timestamp en la columna que se especifique por parámetro "data"
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "data": string|required (Columna a actualizar)
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function createTimestamp(Request $request)
     {
+        // Validar los datos recibidos
+        $request->validate([
+            'gameCode' => 'required|string',
+            'data' => 'required|string'
+        ]);
+
+        // Obtener el código de la partida y la columna a actualizar
         $gameCode = $request->input('gameCode');
         $updateColumn = $request->input('data');
 
@@ -551,17 +714,10 @@ class GameController extends Controller
                 ]);
             }
 
-            // Habilitar log de consultas
-            DB::enableQueryLog();
-
-            // Actualizar el timestamp solicitado con now() + 15 segundos
+            // Actualizar el timestamp solicitado con now() + 5 segundos
             $game->update([
                 $updateColumn => now()->addSeconds(5)
             ]);
-
-            // Obtener el log de la consulta ejecutada
-            $queries = DB::getQueryLog();
-            Log::info('SQL Executed TIMESTAMP/LOG: ', $queries);
 
             return response()->json([
                 'status' => 'success',
@@ -578,10 +734,30 @@ class GameController extends Controller
 
     /**
      * CHECK TIMESTAMP
-     * Verifica si existe el timestamp solicitado
+     * 
+     * Verifica si existe el timestamp solicitado.
+     * -> Verifica si existe un timestamp en la columna especificada.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "data": string|required (Columna a verificar)
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function checkTimestamp(Request $request)
     {
+        // Validar los datos recibidos
+        $request->validate([
+            'gameCode' => 'required|string',
+            'data' => 'required|string'
+        ]);
+
+        // Obtener el código de la partida y la columna a verificar
         $gameCode = $request->input('gameCode');
         $checkColumn = $request->input('data');
 
@@ -620,59 +796,26 @@ class GameController extends Controller
     }
 
     /**
-     * GET AVAILABLE GAMES
-     * Esta función obtiene las partidas disponibles para observar.
-     * @return mixed|\Illuminate\Http\JsonResponse
-     */
-    public function getAvailableGames()
-    {
-        try {
-            // Primero obtenemos las partidas que tienen 2 jugadores y están empezadas
-            $twoPlayerGames = DB::table('game_players')
-                ->select('game_id')
-                ->groupBy('game_id')
-                ->havingRaw('COUNT(*) = 2')
-                ->pluck('game_id');
-
-            // Luego obtenemos los detalles de esas partidas
-            $games = DB::table('games as g')
-                ->select([
-                    'g.id',
-                    'g.code',
-                    DB::raw('MIN(u.username) as player1'),
-                    DB::raw('MAX(u.username) as player2')
-                ])
-                ->join('game_players as gp', 'g.id', '=', 'gp.game_id')
-                ->join('users as u', 'gp.user_id', '=', 'u.id')
-                ->whereIn('g.id', $twoPlayerGames)
-                ->where('g.is_finished', false)
-                ->where('g.is_public', true)
-                ->whereNotNull('g.start_date')
-                ->whereRaw('DATE_ADD(g.start_date, INTERVAL 10 SECOND) <= ?', [now()]) // Cambiado para verificar start_date + 15 segundos
-                ->whereNull('g.end_date')
-                ->groupBy('g.id', 'g.code')
-                ->get()
-                ->map(function ($game) {
-                    return [
-                        'id' => $game->id,
-                        'code' => $game->code,
-                        'player1' => $game->player1,
-                        'player2' => $game->player2
-                    ];
-                });
-
-            Log::info('Partidas disponibles encontradas: ' . $games->count());
-            return response()->json($games);
-        } catch (\Exception $e) {
-            Log::info('No hay partidas disponibles para observar');
-            return response()->json([], 200);
-        }
-    }
-
-    /**
      * STORE SHIP PLACEMENT
-     * Esta función almacena las posiciones de los barcos del usuario en la partida pasada por parámetro.
+     * 
+     * Guarda la posición de los barcos del usuario en la partida.
+     * Los datos se guardan en formato JSON y se especifica al barco al que pertenece cada coord.
+     * -> Formato del JSON esperado:
+     *    {"Acorazado": ["1,6", "1,7", "1,8", "1,9"], "Crucero_1": ["2,1", "2,2", "2,3"], "Crucero_2": ["2,4", "2,5", "2,6"], "Destructor": ["2,7", "2,8"], "Portaaviones": ["1,1", "1,2", "1,3", "1,4", "1,5"]}
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *   },
+     *   "shipsInfo": string|required (JSON con posiciones de los barcos)
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function storeShipPlacement(Request $request)
     {
@@ -709,14 +852,10 @@ class GameController extends Controller
                 ], 403);
             }
 
-            // Actualizar la colocación de barcos
-            DB::enableQueryLog(); // Para debugging
-
+            // Subir las coordenadas a la partida
             $updated = $game->players()
                 ->where('user_id', $request->user['id'])
                 ->update(['coordinates' => $request->shipsInfo]);
-
-            Log::info('SQL Query Ships Placement: ', DB::getQueryLog());
 
             if (!$updated) {
                 return response()->json([
@@ -734,7 +873,6 @@ class GameController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
-            Log::error('Error storing ships placement: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error storing ships placement',
@@ -745,8 +883,23 @@ class GameController extends Controller
 
     /**
      * GET OPPONENT SHIP PLACEMENT VALIDATION
-     * Esta función verifica si el oponente ha colocado sus barcos en la partida.
+     * 
+     * Comprueba si el oponente ha colocado sus barcos en la partida.
+     * -> Devuelve "OK" si el oponente ha colocado sus barcos.
+     * -> Devuelve "NOK" si el oponente no ha colocado sus barcos.
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getOpponentShipPlacementValidation(Request $request)
     {
@@ -787,7 +940,6 @@ class GameController extends Controller
                 'message' => !empty($opponentPlayer->coordinates) ? 'OK' : 'NOK'
             ]);
         } catch (\Exception $e) {
-            Log::error('Error checking opponent ships placement: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error checking opponent ships placement: ' . $e->getMessage()
@@ -797,8 +949,21 @@ class GameController extends Controller
 
     /**
      * GET USER SHIP PLACEMENT
-     * Esta función obtiene la colocación de barcos del usuario en la partida.
+     * 
+     * Devuelve las coordenadas de los barcos del usuario especificado en la partida especificada.
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y coordenadas de los barcos en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getUserShipPlacement(Request $request)
     {
@@ -847,7 +1012,6 @@ class GameController extends Controller
                 'data' => $playerData->coordinates
             ]);
         } catch (\Exception $e) {
-            Log::error('Error getting user ship placement: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error getting user ship placement: ' . $e->getMessage()
@@ -857,8 +1021,18 @@ class GameController extends Controller
 
     /**
      * GET MATCH INFO
-     * Esta función obtiene toda la información de la partida actual.
+     * 
+     * Devuelve toda la información posible de la partida especificada.
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getMatchInfo(Request $request)
     {
@@ -881,7 +1055,7 @@ class GameController extends Controller
                 ], 404);
             }
 
-            // Obtener todos los datos relacionados usando DB para tener más detalle
+            // Obtener todos los datos relacionados a la partida
             $players = DB::table('game_players')
                 ->where('game_id', $game->id)
                 ->join('users', 'users.id', '=', 'game_players.user_id')
@@ -894,7 +1068,7 @@ class GameController extends Controller
                 ->select('game_viewers.*', 'users.username')
                 ->get();
 
-            // Construir respuesta detallada
+            // Generar JSON con toda la información de la partida.
             $gameDetails = [
                 'game' => $game,
                 'players' => $players,
@@ -904,8 +1078,7 @@ class GameController extends Controller
                     'observers_count' => $game->observers_count,
                     'is_full' => $game->players_count >= 2,
                     'has_started' => !empty($game->start_date),
-                    'has_finished' => !empty($game->end_date),
-                    'duration' => null // Simplemente dejamos duration como null
+                    'has_finished' => !empty($game->end_date)
                 ]
             ];
 
@@ -914,7 +1087,6 @@ class GameController extends Controller
                 'data' => $gameDetails
             ]);
         } catch (\Exception $e) {
-            Log::error('Error getting match info: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error getting match info: ' . $e->getMessage()
@@ -924,8 +1096,25 @@ class GameController extends Controller
 
     /**
      * ATTACK POSITION
-     * Esta función verifica si un ataque ha dado a un barco enemigo
+     * 
+     * Procesa el ataque a una posición y verifica si le ha dado a un barco enemigo.
+     * -> Formato de las coordenadas: 4,1 (x,y)
+     * -> Devuelve "hit" si le ha dado a un barco, "miss" si no le ha dado a nada.
+     * -> Devuelve "sunk" -> true si ha hundido un barco enemigo.
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *   },
+     *   "coordinates": string|required (formato: "x,y")
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos del ataque en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function attackPosition(Request $request)
     {
@@ -964,10 +1153,10 @@ class GameController extends Controller
             $opponentShips = json_decode($opponentData->coordinates, true);
             $attackCoordinate = $request->coordinates;
 
-            // Buscar si la coordenada coincide con algún barco
             $hitShip = null;
             $isSunk = false;
 
+            // Buscar si la coordenada coincide con algún barco
             foreach ($opponentShips as $shipName => $positions) {
                 if (in_array($attackCoordinate, $positions)) {
                     $hitShip = $shipName;
@@ -1018,7 +1207,6 @@ class GameController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in attack position: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error processing attack: ' . $e->getMessage(),
@@ -1410,12 +1598,120 @@ class GameController extends Controller
 
 
 
+    /*
+
+        ///// MY PROFILE FUNCTIONS /////
+
+    */
+
     /**
+     * GET MATCH HISTORY
      * 
-     *  // FUNCIONES DE VISTA DE PARTIDAS //
+     * Devuelve las últimas 100 partidas del usuario.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos
      * 
      */
+    public function getUserMatchHistory(Request $request)
+    {
+        try {
+            $userId = $request->user()->id;
+            $userController = new UserController();
 
+            $games = Game::query()
+                ->whereHas('players', function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                })
+                ->orderByDesc('creation_date')
+                ->take(100)
+                ->get()
+                ->map(function ($game) use ($userController) {
+                    $winnerUsername = $game->winner ?
+                        $userController->getUsernameById($game->winner) :
+                        'Empate';
+
+                    return [
+                        'date' => $game->creation_date->format('d/m/Y'),  // Cambiado el formato
+                        'is_public' => $game->is_public ? 'Pública' : 'Privada',
+                        'winner_id' => $game->winner,
+                        'winner' => $winnerUsername,
+                        'id' => $game->id
+                    ];
+                });
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $games
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Error al obtener el historial de partidas'
+            ], 500);
+        }
+    }
+
+
+
+    /*
+
+        ///// VIEW GAME FUNCTIONS /////
+
+    */
+
+    /**
+     * GET AVAILABLE GAMES
+     * 
+     * Devuelve todas las partidas disponibles para observar.
+     * 
+     * Esta función obtiene las partidas disponibles para observar.
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
+    public function getAvailableGames()
+    {
+        try {
+            // Primero obtenemos las partidas que tienen 2 jugadores y están empezadas
+            $twoPlayerGames = DB::table('game_players')
+                ->select('game_id')
+                ->groupBy('game_id')
+                ->havingRaw('COUNT(*) = 2')
+                ->pluck('game_id');
+
+            // Luego obtenemos los detalles de esas partidas
+            $games = DB::table('games as g')
+                ->select([
+                    'g.id',
+                    'g.code',
+                    DB::raw('MIN(u.username) as player1'),
+                    DB::raw('MAX(u.username) as player2')
+                ])
+                ->join('game_players as gp', 'g.id', '=', 'gp.game_id')
+                ->join('users as u', 'gp.user_id', '=', 'u.id')
+                ->whereIn('g.id', $twoPlayerGames)
+                ->where('g.is_finished', false)
+                ->where('g.is_public', true)
+                ->whereNotNull('g.start_date')
+                ->whereRaw('DATE_ADD(g.start_date, INTERVAL 10 SECOND) <= ?', [now()]) // Cambiado para verificar start_date + 15 segundos
+                ->whereNull('g.end_date')
+                ->groupBy('g.id', 'g.code')
+                ->get()
+                ->map(function ($game) {
+                    return [
+                        'id' => $game->id,
+                        'code' => $game->code,
+                        'player1' => $game->player1,
+                        'player2' => $game->player2
+                    ];
+                });
+
+            Log::info('Partidas disponibles encontradas: ' . $games->count());
+            return response()->json($games);
+        } catch (\Exception $e) {
+            Log::info('No hay partidas disponibles para observar');
+            return response()->json([], 200);
+        }
+    }
     
     /**
      * GET CURRENT MATCH STATUS

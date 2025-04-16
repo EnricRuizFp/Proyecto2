@@ -12,15 +12,29 @@ use Illuminate\Support\Facades\Log;
 class ChatController extends Controller
 {
     /**
-     * Obtener todos los mensajes de un juego específico
+     * OBTENER MENSAJES
+     * 
+     * Devuelve todos los mensajes asociados a un juego en específico.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *    "gameCode": string|required (Código único del juego)
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Listado de mensajes en formato JSON.
+     * Respuesta error: error y mensaje de error en formato JSON.
      */
     public function getMessages(Request $request)
     {
         try {
+            // Validar los datos de entrada
             $request->validate([
                 'gameCode' => 'required|string'
             ]);
 
+            // Obtener los datos del juego
             $game = Game::where('code', $request->gameCode)->first();
             if (!$game) {
                 return response()->json([
@@ -29,7 +43,7 @@ class ChatController extends Controller
                 ], 404);
             }
 
-            // Obtener los mensajes con información del usuario
+            // Obtener los mensajes con información del usuario a partir del gameID
             $messages = DB::table('chats')
                 ->join('users', 'users.id', '=', 'chats.user_id')
                 ->where('chats.game_id', $game->id)
@@ -37,11 +51,14 @@ class ChatController extends Controller
                 ->orderBy('chats.id', 'asc')
                 ->get();
 
+            // Devolver la respuesta en formato JSON
             return response()->json([
                 'status' => 'success',
                 'data' => $messages
             ]);
         } catch (\Exception $e) {
+
+            // Crear LOG y devolver error
             Log::error('Error getting chat messages: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
@@ -51,11 +68,29 @@ class ChatController extends Controller
     }
 
     /**
-     * Guardar un nuevo mensaje en el chat
+     * ENVIAR MENSAJE
+     * 
+     * Guarda un nuevo mensaje en el chat de la partida.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *    "gameCode": string|required,
+     *    "user": { --> El usuario actual
+     *      "id": integer|required
+     *    },
+     *    "message": string|required|max:255
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje guardado en formato JSON.
+     * Respuesta error: error y mensaje de error en formato JSON.
      */
     public function sendMessage(Request $request)
     {
         try {
+
+            // Validar los datos de entrada
             $request->validate([
                 'gameCode' => 'required|string',
                 'user' => 'required|array',
@@ -63,6 +98,7 @@ class ChatController extends Controller
                 'message' => 'required|string|max:255'
             ]);
 
+            // Obtener los datos del juego
             $game = Game::where('code', $request->gameCode)->first();
             if (!$game) {
                 return response()->json([
@@ -85,11 +121,14 @@ class ChatController extends Controller
                 ->select('chats.*', 'users.username')
                 ->first();
 
+            // Devolver la respuesta en formato JSON
             return response()->json([
                 'status' => 'success',
                 'data' => $message
             ]);
         } catch (\Exception $e) {
+
+            // Crear LOG y devolver error
             Log::error('Error sending chat message: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
