@@ -627,7 +627,7 @@ class GameController extends Controller
     public function getAvailableGames()
     {
         try {
-            // Primero obtenemos las partidas que tienen exactamente 2 jugadores
+            // Primero obtenemos las partidas que tienen 2 jugadores y están empezadas
             $twoPlayerGames = DB::table('game_players')
                 ->select('game_id')
                 ->groupBy('game_id')
@@ -648,6 +648,7 @@ class GameController extends Controller
                 ->where('g.is_finished', false)
                 ->where('g.is_public', true)
                 ->whereNotNull('g.start_date')
+                ->whereRaw('DATE_ADD(g.start_date, INTERVAL 10 SECOND) <= ?', [now()]) // Cambiado para verificar start_date + 15 segundos
                 ->whereNull('g.end_date')
                 ->groupBy('g.id', 'g.code')
                 ->get()

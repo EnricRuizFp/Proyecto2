@@ -17,7 +17,7 @@
                         </span>
                         <div class="pointsContainer">
                             <span class="points">
-                                {{ userPoints !== null ? userPoints : '...' }}
+                                {{ userPoints !== null ? userPoints : '---' }}
                                 <img
                                     src="/images/icons/trophy-icon-dark.svg"
                                     alt="Trophy icon"
@@ -100,16 +100,25 @@ const loadUserData = async () => {
 <style scoped>
 .view-user-component {
     width: 100%;
+    display: flex;
     padding: 0.5rem;
     border-radius: 8px;
     background-color: var(--background-secondary);
     border: 1px solid var(--primary-color);
+    transition: all 0.2s ease;
+}
+
+.view-user-component:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
 }
 
 .profile-content {
+    height: 100%;
     display: flex;
     align-items: center;
     width: 100%;
+    justify-content: flex-start;
     padding: 0.25rem;
 }
 
@@ -206,6 +215,34 @@ const loadUserData = async () => {
     .points img {
         width: 16px;
         height: 16px;
+    }
+}
+
+/* Mejoras de responsividad específicas para ViewUserComponent */
+@media (max-width: 800px) and (min-width: 601px) {
+    .view-user-component {
+        padding: 0.5rem;
+    }
+
+    .userImageContainer {
+        width: 40px;
+        height: 40px;
+        margin: 0 0.5rem 0 0;
+    }
+
+    .username {
+        font-size: 0.9rem;
+        max-width: 110px;
+    }
+
+    .points {
+        font-size: 0.8rem;
+    }
+
+    .points img {
+        width: 16px;
+        height: 16px;
+        margin-left: 0.2rem;
     }
 }
 </style>

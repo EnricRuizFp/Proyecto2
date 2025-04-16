@@ -229,9 +229,9 @@ const startTimer = () => {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 onMounted(() => {
-    console.log("SHIP PLACEMENT.");
-    console.log("Game code:", gameStore.matchCode);
-    console.log("User: ", authStore().user);
+    // console.log("SHIP PLACEMENT.");
+    // console.log("Game code:", gameStore.matchCode);
+    // console.log("User: ", authStore().user);
 
     loadShips();
     startTimer();
