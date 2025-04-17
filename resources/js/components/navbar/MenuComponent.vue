@@ -3,16 +3,17 @@
     <div id="lateralMenu">
         <hr class="dropdown-divider" />
         <div class="tituloBarraLateral">
-            <router-link
-                to="/"
+            <!-- Cambiado de router-link a 'a' -->
+            <a
+                href="#"
                 class="bolder menu-item"
                 title="Menú principal del juego"
-                @click.prevent="emitNavigation"
-                :class="{ 'disabled-menu-item': isMenuBlocked }"
+                @click.prevent="handleInicio"
+                :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
             >
                 <i class="fas fa-home"></i>
                 <span class="menu-text">INICIO</span>
-            </router-link>
+            </a>
         </div>
         <div class="subtituloBarraLateral">
             <div class="contenidoSubtituloBarraLateral">
@@ -20,7 +21,7 @@
                     class="menu-item"
                     @click.prevent="handlePublicGame"
                     title="Únete a partidas públicas con otros jugadores"
-                    :class="{ 'disabled-menu-item': isMenuBlocked }"
+                    :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                 >
                     <i class="fas fa-globe"></i>
                     <span class="menu-text">Partida pública</span>
@@ -32,7 +33,7 @@
                     class="menu-item"
                     @click.prevent="handleCreateGame"
                     title="Crea tu propia partida personalizada"
-                    :class="{ 'disabled-menu-item': isMenuBlocked }"
+                    :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                 >
                     <i class="fas fa-plus"></i>
                     <span class="menu-text">Crear partida</span>
@@ -44,7 +45,7 @@
                     class="menu-item"
                     @click.prevent="showJoinMatchModal"
                     title="Únete a una partida privada con amigos"
-                    :class="{ 'disabled-menu-item': isMenuBlocked }"
+                    :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                 >
                     <i class="fas fa-users"></i>
                     <span class="menu-text">Unirse a partida</span>
@@ -56,24 +57,43 @@
                     class="menu-item"
                     @click.prevent="handleViewGame"
                     title="Observa partidas en curso"
-                    :class="{ 'disabled-menu-item': isMenuBlocked }"
+                    :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                 >
                     <i class="fas fa-eye"></i>
                     <span class="menu-text">Observar partida</span>
                 </a>
             </div>
+            <!-- Enlace a Mi Perfil (solo si está logueado) -->
+            <template v-if="authStore().user?.id">
+                <hr class="dropdown-divider" />
+                <div class="contenidoSubtituloBarraLateral">
+                    <!-- Cambiado de router-link a 'a' -->
+                    <a
+                        href="#"
+                        class="menu-item"
+                        title="Accede a tu perfil de usuario"
+                        @click.prevent="handleProfile"
+                        :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
+                    >
+                        <i class="fas fa-user"></i>
+                        <!-- Icono de usuario -->
+                        <span class="menu-text">MI PERFIL</span>
+                    </a>
+                </div>
+            </template>
             <hr class="dropdown-divider" />
             <div class="contenidoSubtituloBarraLateral">
-                <router-link
-                    to="/rankings"
+                <!-- Cambiado de router-link a 'a' -->
+                <a
+                    href="#"
                     class="menu-item"
                     title="Compite y alcanza la cima"
-                    @click.prevent="emitNavigation"
-                    :class="{ 'disabled-menu-item': isMenuBlocked }"
+                    @click.prevent="handleRanking"
+                    :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                 >
                     <i class="fas fa-trophy"></i>
                     <span class="menu-text">RANKING</span>
-                </router-link>
+                </a>
             </div>
             <hr class="dropdown-divider" />
         </div>
@@ -101,6 +121,8 @@
 
 <script setup>
 /* -- IMPORTS -- */
+// Importaciones necesarias: Vue (ref, computed), Vue Router (useRouter, useRoute),
+// Stores (Pinia: useGameStore, authStore), Axios para llamadas API, y el componente del modal.
 import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useGameStore } from "../../store/game";
@@ -109,25 +131,33 @@ import axios from "axios";
 import JoinMatchModal from "../privateMatch/JoinMatchModal.vue";
 
 /* -- VARIABLES -- */
+// Instancias de router y route para navegación y acceso a la ruta actual.
 const router = useRouter();
 const route = useRoute();
+// Instancia del store del juego para manejar su estado.
 const gameStore = useGameStore();
+// Refs para manejar mensajes de error/información y la visibilidad del modal.
 const errorMessage = ref("");
 const infoMessage = ref("");
 const showJoinModal = ref(false);
 
-// Props para recibir el estado de bloqueo del menú desde el componente padre
+/* -- PROPS -- */
+// Define una propiedad 'isMenuBlocked' que el componente padre puede pasar
+// para forzar el bloqueo del menú externamente (ej: si otra acción está en curso).
 const props = defineProps({
     isMenuBlocked: {
         type: Boolean,
-        default: false,
+        default: false, // Por defecto, el menú no está bloqueado por el padre.
     },
 });
 
-// Rutas donde no se permite la navegación
-const blockedRoutes = ["/game", "/view-games"];
+/* -- COMPUTED PROPERTIES -- */
+// Rutas específicas donde la navegación desde el menú debe estar deshabilitada (ej: dentro de una partida activa).
+const blockedRoutes = ["/game"]; // Solo bloquea si la ruta empieza con /game
 
-// Comprobar si la ruta actual está bloqueada o si el menú está bloqueado explícitamente
+// Propiedad computada que determina si el menú debe estar bloqueado.
+// Devuelve true si la ruta actual empieza con alguna de las 'blockedRoutes'
+// O si la prop 'isMenuBlocked' es true. Se usa para deshabilitar los items del menú.
 const isCurrentRouteBlocked = computed(() => {
     return (
         blockedRoutes.some((blockedRoute) =>
@@ -137,142 +167,216 @@ const isCurrentRouteBlocked = computed(() => {
 });
 
 /* -- EMITS -- */
+// Define un evento 'navigation' que se emitirá cuando se haga clic en un ítem del menú
+// (y la navegación no esté bloqueada), usualmente para que el componente padre cierre el menú.
 const emit = defineEmits(["navigation"]);
 
 /* -- FUNCTIONS -- */
+
+/**
+ * Verifica si el menú está bloqueado. Si lo está, muestra un mensaje.
+ * Si no lo está, emite el evento 'navigation'.
+ * @returns {boolean} - True si la navegación puede proceder, false si está bloqueada.
+ */
 const emitNavigation = () => {
     if (isCurrentRouteBlocked.value) {
-        showNavigationBlockedMessage();
-        return;
+        showNavigationBlockedMessage(); // Muestra mensaje de bloqueo
+        return false; // Indica que la navegación NO debe proceder
     }
-    emit("navigation");
+    emit("navigation"); // Emite el evento para notificar al padre (ej: cerrar menú)
+    return true; // Indica que la navegación PUEDE proceder
 };
 
-// Mostrar mensaje cuando se intenta navegar desde una ruta bloqueada
+/**
+ * Muestra un mensaje temporal informando que la navegación está bloqueada.
+ */
 const showNavigationBlockedMessage = () => {
-    infoMessage.value =
-        "No puedes navegar mientras estás en una partida o vista de juego";
+    // Mensaje actualizado para ser más preciso
+    infoMessage.value = "No puedes navegar mientras estás en una partida";
     setTimeout(() => {
-        infoMessage.value = "";
+        infoMessage.value = ""; // Oculta el mensaje después de 3 segundos
     }, 3000);
 };
 
+/**
+ * Verifica los requisitos del usuario en el backend antes de navegar a una partida.
+ * Realiza la navegación usando router.push() si los requisitos se cumplen.
+ * @param {string} gameType - Tipo de juego ('public', 'private').
+ * @param {string|null} gameCode - Código de la partida (para unirse a privada, null para crear).
+ */
 const checkAndNavigate = async (gameType, gameCode = null) => {
+    // La comprobación de bloqueo (isCurrentRouteBlocked) se hace ANTES de llamar a esta función.
+    // Se añade una comprobación redundante por seguridad, aunque no debería ser necesaria si los handlers llaman a emitNavigation() primero.
     if (isCurrentRouteBlocked.value) {
         showNavigationBlockedMessage();
         return;
     }
 
     try {
+        // Llamada API para verificar si el usuario cumple requisitos para el juego.
         const response = await axios.post(
             "/api/games/check-user-requirements",
             {
                 gameType: gameType,
                 gameCode: gameCode,
-                user: authStore().user ?? null,
+                user: authStore().user ?? null, // Envía datos del usuario si está logueado.
             }
         );
 
+        // Si el backend responde con éxito...
         if (response.data.status === "success") {
             console.log("OK: User ready to play.");
-            emit("navigation"); // Emit navigation event
-            router.push(`/game/${gameType}/${gameCode || "null"}`);
+            // Navega a la ruta correspondiente según el tipo y código.
+            if (gameType === "public") {
+                router.push(`/game/public/null`); // Ruta para partida pública.
+            } else if (gameType === "private" && gameCode) {
+                router.push(`/game/private/${gameCode}`); // Ruta para unirse a privada con código.
+            } else if (gameType === "private" && !gameCode) {
+                router.push(`/game/private/null`); // Ruta para crear partida privada.
+            }
         } else {
+            // Si el backend indica un problema (ej: usuario saliendo de otra partida, error).
             if (
                 response.data.message ==
                 "Your user is leaving the game. Wait a few seconds."
             ) {
+                // Mensaje informativo específico.
                 console.log("Failed without error: ", response.data.message);
                 infoMessage.value = response.data.message;
             } else {
+                // Otro tipo de error devuelto por el backend.
                 console.log("Failed with error:", response.data.message);
                 errorMessage.value = response.data.message;
             }
         }
     } catch (error) {
+        // Error durante la llamada Axios (ej: problema de red).
         errorMessage.value = "Error al verificar requisitos del juego";
     }
 };
 
-// Handlers para cada tipo de juego
+// --- Handlers para navegación directa (usados en @click de los enlaces 'a') ---
+
+/**
+ * Maneja el clic en 'INICIO'. Navega a la ruta raíz '/' si el menú no está bloqueado.
+ */
+const handleInicio = () => {
+    if (emitNavigation()) {
+        // Primero verifica bloqueo y emite evento.
+        router.push("/"); // Si no está bloqueado, navega.
+    }
+};
+
+/**
+ * Maneja el clic en 'MI PERFIL'. Navega a '/profile' si el menú no está bloqueado.
+ */
+const handleProfile = () => {
+    if (emitNavigation()) {
+        // Verifica bloqueo y emite evento.
+        router.push("/profile"); // Navega a la ruta del perfil.
+    }
+};
+
+/**
+ * Maneja el clic en 'RANKING'. Navega a '/rankings' si el menú no está bloqueado.
+ */
+const handleRanking = () => {
+    if (emitNavigation()) {
+        // Verifica bloqueo y emite evento.
+        router.push("/rankings"); // Navega a la ruta de rankings.
+    }
+};
+
+// --- Handlers para acciones que pueden implicar navegación ---
+
+/**
+ * Maneja el clic en 'Partida pública'. Si no está bloqueado, resetea el store
+ * del juego y llama a checkAndNavigate para iniciar el proceso de partida pública.
+ */
 const handlePublicGame = async () => {
-    if (isCurrentRouteBlocked.value) {
-        showNavigationBlockedMessage();
-        return;
+    if (emitNavigation()) {
+        // Verifica bloqueo y emite evento.
+        gameStore.resetGame(); // Limpia datos de partida anterior en el store.
+        await checkAndNavigate("public"); // Inicia flujo para partida pública.
     }
-
-    gameStore.resetGame();
-    await checkAndNavigate("public");
 };
 
+/**
+ * Maneja el clic en 'Crear partida'. Si no está bloqueado, resetea el store
+ * y llama a checkAndNavigate para iniciar el proceso de creación de partida privada.
+ */
 const handleCreateGame = async () => {
-    if (isCurrentRouteBlocked.value) {
-        showNavigationBlockedMessage();
-        return;
+    if (emitNavigation()) {
+        // Verifica bloqueo y emite evento.
+        gameStore.resetGame(); // Limpia datos de partida anterior.
+        await checkAndNavigate("private", null); // Inicia flujo para crear privada (sin código).
     }
-
-    gameStore.resetGame();
-    await checkAndNavigate("private", null);
 };
 
-// Nueva función para verificar requisitos antes de mostrar el modal
+/**
+ * Maneja el clic en 'Unirse a partida'. Si no está bloqueado, verifica requisitos básicos
+ * y, si se cumplen, muestra el modal para que el usuario introduzca el código.
+ */
 const showJoinMatchModal = async () => {
-    if (isCurrentRouteBlocked.value) {
-        showNavigationBlockedMessage();
-        return;
-    }
+    if (emitNavigation()) {
+        // Verifica bloqueo y emite evento.
+        try {
+            // Verificación inicial en backend antes de mostrar el modal.
+            const response = await axios.post(
+                "/api/games/check-user-requirements",
+                {
+                    gameType: "private", // Tipo genérico para esta verificación.
+                    gameCode: null,
+                    user: authStore().user ?? null,
+                }
+            );
 
-    try {
-        const response = await axios.post(
-            "/api/games/check-user-requirements",
-            {
-                gameType: "private",
-                gameCode: null,
-                user: authStore().user ?? null,
-            }
-        );
-
-        if (response.data.status === "success") {
-            console.log("OK: User ready to play.");
-            showJoinModal.value = true;
-        } else {
-            if (
-                response.data.message ==
-                "Your user is leaving the game. Wait a few seconds."
-            ) {
-                console.log("Failed without error: ", response.data.message);
-                infoMessage.value = response.data.message;
+            if (response.data.status === "success") {
+                console.log("OK: User can potentially join a game.");
+                showJoinModal.value = true; // Muestra el modal si pasa la verificación.
             } else {
-                console.log("FAILED:", response.data.message);
-                errorMessage.value = response.data.message;
+                // Manejo de mensajes específicos o errores generales del backend.
+                if (
+                    response.data.message ==
+                    "Your user is leaving the game. Wait a few seconds."
+                ) {
+                    console.log(
+                        "Failed without error: ",
+                        response.data.message
+                    );
+                    infoMessage.value = response.data.message;
+                } else {
+                    console.log("FAILED:", response.data.message);
+                    errorMessage.value = response.data.message;
+                }
             }
+        } catch (error) {
+            errorMessage.value = "Error al verificar requisitos del juego";
         }
-    } catch (error) {
-        errorMessage.value = "Error al verificar requisitos del juego";
     }
 };
 
-// Manejar unirse a partida con código
+/**
+ * Se ejecuta cuando el modal 'JoinMatchModal' emite el evento 'join' (con el código).
+ * Oculta el modal, configura el store y llama a checkAndNavigate con el código para unirse.
+ * @param {string} code - El código de partida introducido por el usuario en el modal.
+ */
 const handleJoinMatch = async (code) => {
-    if (isCurrentRouteBlocked.value) {
-        showNavigationBlockedMessage();
-        return;
-    }
-
-    showJoinModal.value = false;
-    gameStore.setGameMode("join");
-    gameStore.setMatchCode(code);
-    await checkAndNavigate("private", code);
+    // No se necesita emitNavigation aquí porque ya se verificó al mostrar el modal.
+    showJoinModal.value = false; // Oculta el modal.
+    gameStore.setGameMode("join"); // Configura el modo 'unirse' en el store.
+    gameStore.setMatchCode(code); // Guarda el código en el store.
+    await checkAndNavigate("private", code); // Inicia flujo para unirse con el código.
 };
 
+/**
+ * Maneja el clic en 'Observar partida'. Navega a '/view-games' si el menú no está bloqueado.
+ */
 const handleViewGame = () => {
-    if (isCurrentRouteBlocked.value) {
-        showNavigationBlockedMessage();
-        return;
+    if (emitNavigation()) {
+        // Verifica bloqueo y emite evento.
+        router.push("/view-games"); // Navega a la ruta para observar partidas.
     }
-
-    emit("navigation"); // Emit navigation event
-    router.push("/view-games");
 };
 </script>
 
