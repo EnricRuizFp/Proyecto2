@@ -30,8 +30,11 @@ class GameController extends Controller
      */
     public function index(Request $request)
     {
-        $games = Game::with('creator')->paginate(10);
-        return response()->json($games);
+        // Example: Paginate games, loading the creator relationship
+        $games = Game::with('creator')->paginate(10); // Adjust pagination size if needed
+
+        // Return the paginator object directly. Laravel handles the JSON structure.
+        return $games;
     }
 
     /**
@@ -110,61 +113,44 @@ class GameController extends Controller
 
     /**
      * ACTUALIZAR PARTIDA
-     * 
+     *
      * Actualiza los datos de una partida existente.
-     * 
+     *
      * @param \Illuminate\Http\Request $request
-     * Datos esperados del request:
+     * Datos esperados del request (ejemplos):
      * {
-     *   "creation_date": date|nullable
-     *   "start_date": date|nullable
-     *   "is_public": required|boolean
+     *   "is_public": boolean|nullable
      *   "is_finished": boolean|nullable
-     *   "end_date": date|nullable
-     *   "winner": integer|nullable
-     *  "points": integer|nullable
-     *  "created_by": integer|nullable
+     *   "winner": integer|nullable|exists:users,id
+     *   "points": integer|nullable
      * }
-     * 
-     * @param mixed $id
-     * Datos esperados: ID de la partida a actualizar.
-     * 
-     * @return mixed|\Illuminate\Http\JsonResponse
-     * Respuesta: Mensaje de éxito y datos de la partida actualizada en formato JSON.
+     *
+     * @param \App\Models\Game $game // Use Route Model Binding
+     *
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Datos de la partida actualizada en formato JSON.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Game $game) // Use Route Model Binding
     {
-        // Validación de los datos recibidos
-        $request->validate([
-            'creation_date' => 'date|nullable',
-            'start_date' => 'date|nullable',
-            'is_public' => 'required|boolean',
-            'is_finished' => 'boolean|nullable',
-            'end_date' => 'date|nullable',
-            'winner' => 'integer|nullable',
-            'points' => 'integer|nullable',
-            'created_by' => 'integer|nullable',
+        // Validación de los datos recibidos (ajusta según los campos que permitas actualizar)
+        $validatedData = $request->validate([
+            'is_public' => 'sometimes|boolean', // 'sometimes' valida solo si está presente
+            'is_finished' => 'sometimes|boolean',
+            'start_date' => 'sometimes|nullable|date',
+            'end_date' => 'sometimes|nullable|date',
+            'winner' => 'sometimes|nullable|integer|exists:users,id', // Asegura que el winner_id existe
+            'points' => 'sometimes|nullable|integer',
+            // NO incluyas 'created_by' o 'creation_date' aquí
         ]);
 
-        // Obtener la partida por ID
-        $game = Game::findOrFail($id);
-
-        // Actualizar los datos
-        $game->update([
-            'creation_date' => $request->creation_date,
-            'start_date' => $request->start_date,
-            'is_public' => $request->is_public,
-            'is_finished' => $request->is_finished,
-            'end_date' => $request->end_date,
-            'winner' => $request->winner,
-            'points' => $request->points,
-            'created_by' => $request->created_by
-        ]);
+        // Actualizar solo los campos validados que están presentes en la request
+        $game->fill($validatedData); // fill() asigna solo los atributos en $validatedData
+        $game->save(); // Guarda los cambios
 
         // Devolver la respuesta en formato JSON
         return response()->json([
-            'message' => 'Game updated successfully',
-            'data'    => $game,
+            // 'message' => 'Game updated successfully', // Opcional: añadir mensaje
+            'data'    => $game->fresh(), // Devuelve el modelo actualizado desde la BD
         ]);
     }
 
@@ -561,9 +547,8 @@ class GameController extends Controller
      */
     public function createPrivateGame(Request $request)
     {
-
-        // Obtener el usuario del frontend
-        $user = $request->input('user');
+        // Get the authenticated user's ID
+        $userId = $request->user()->id; // Or auth()->id();
 
         // Crear juego privado
         $newPrivateGame = Game::create([
@@ -571,11 +556,11 @@ class GameController extends Controller
             'is_public'     => false,
             'is_finished'   => false,
             'end_date'      => null,
-            'created_by'    => $user['id']
+            'created_by'    => $userId // Use authenticated user ID
         ]);
 
         // Unirse a la partida privada
-        $newPrivateGame->players()->attach($user['id'], [
+        $newPrivateGame->players()->attach($userId, [ // Use authenticated user ID
             'joined' => now()
         ]);
 
@@ -613,67 +598,59 @@ class GameController extends Controller
     {
         // Validar los datos recibidos
         $request->validate([
-            'user' => 'required|array',
-            'user.id' => 'required|integer',
             'code' => 'required|string'
         ]);
 
-        // Obtener el usuario y el código de la request
-        $user = $request->input('user');
+        // Obtener el usuario autenticado y el código de la request
+        $userId = $request->user()->id;
         $code = $request->input('code');
 
-        // Buscar todos los juegos privados que no hay comenzado
-        $privateGame = Game::where('code', $code)
-            ->with(['players', 'observers']) // Cargar relaciones de jugadores y observadores
-            ->withCount('players') // Obtener el count de jugadores
+        // Buscar partida privada por código
+        $privateGame = Game::where('code', $request->input('code'))
+            ->where('is_public', false)
             ->first();
 
-        // Si encuentra el juego lo devuelve
-        if ($privateGame) {
-
-            // Obtener el tipo de partida
-            if ($privateGame->is_public) {
-
-                // Devolver mensaje partida pública
-                return response()->json([
-                    'status'  => 'failed',
-                    'message' => 'Game found, but is public.'
-                ]);
-            } else {
-
-                // Obtener cantidad de jugadores
-                $playersCount = $privateGame->players_count;
-
-                if ($playersCount > 1) {
-
-                    // Si hay más de 1 jugador la partida está llena
-                    return response()->json([
-                        'status'  => 'failed',
-                        'message' => 'Private game is full.'
-                    ]);
-                } else {
-
-                    // Unir al usuario a la partida
-                    $privateGame->players()->attach($user['id'], [
-                        'joined' => now()
-                    ]);
-
-                    // Devolver los datos de la partida
-                    return response()->json([
-                        'status'  => 'success',
-                        'message' => 'Private game found & connected.',
-                        'data'    => $privateGame
-                    ]);
-                }
-            }
-        } else {
-
-            // Partida no encontrada
+        // Verificar si la partida existe
+        if (!$privateGame) {
             return response()->json([
                 'status'  => 'failed',
-                'message' => 'Private game not found.'
-            ]);
+                'message' => 'Private game not found.',
+            ], 404); // Add the 404 status code
         }
+
+        // Verificar si el usuario ya está en la partida
+        if ($privateGame->players()->where('user_id', $userId)->exists()) {
+            return response()->json([
+                'status'  => 'failed',
+                'message' => 'User already in this game.',
+                'data'    => $privateGame
+            ], 409);
+        }
+
+        // Verificar si la partida está llena (asumiendo 2 jugadores máximo)
+        if ($privateGame->players()->count() >= 2) {
+            return response()->json([
+                'status'  => 'failed',
+                'message' => 'Private game is full.',
+            ], 400); // Add the 400 status code
+        }
+
+        // Unir al usuario a la partida
+        $privateGame->players()->attach($userId, [
+            'joined' => now()
+        ]);
+
+        // Marcar la partida como iniciada si ahora tiene 2 jugadores
+        if ($privateGame->players()->count() == 2 && is_null($privateGame->start_date)) {
+            $privateGame->update(['start_date' => now()]);
+        }
+
+        // Devolver la respuesta exitosa
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Successfully joined the private game.',
+            'data'    => $privateGame->fresh()
+        ]);
     }
 
     /**

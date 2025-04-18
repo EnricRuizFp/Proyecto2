@@ -18,8 +18,8 @@
                     lazy
                     :totalRecords="games.total"
                     @page="onPage($event)"
-                    v-model:sortField="sortField"
-                    v-model:sortOrder="sortOrder"
+                    :sortField="lazyParams.sortField"
+                    :sortOrder="lazyParams.sortOrder"
                     @sort="onSort($event)"
                     dataKey="id"
                     size="small"
@@ -163,12 +163,13 @@ const lazyParams = ref({
 const filters = ref(lazyParams.value.filters);
 
 const loadLazyData = () => {
-    getGames(lazyParams.value.page, lazyParams.value.rows);
+    getGames(lazyParams.value);
 };
 
 const onPage = (event) => {
     lazyParams.value.page = event.page + 1;
     lazyParams.value.rows = event.rows;
+    lazyParams.value.first = event.first;
     loadLazyData();
 };
 
