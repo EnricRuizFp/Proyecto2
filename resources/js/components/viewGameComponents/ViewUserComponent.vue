@@ -103,13 +103,12 @@ const loadUserData = async () => {
     display: flex;
     padding: 0.5rem;
     border-radius: 8px;
-    background-color: var(--background-secondary);
     border: 1px solid var(--primary-color);
     transition: all 0.2s ease;
 }
 
 .view-user-component:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--primary-color-secondary);
     transform: translateY(-2px);
 }
 

@@ -91,6 +91,7 @@
 // Importación de recursos
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
+import { authStore } from "@/store/auth"
 
 // Variables reactivas para los datos con funciones ASYNC
 const globalPosition = ref(null);
@@ -145,7 +146,10 @@ const getUserPoints = async () => {
 // Obtener el historial de partidas del usuario
 const getMatchHistory = async () => {
     try {
-        const response = await axios.get("/api/games/user-match-history");
+
+        console.log("Obteniendo match history.");
+
+        const response = await axios.get("/api/games/user-match-history", { user: authStore().user });
         console.log("Historial de partidas:", response.data.data);
         matchHistory.value = response.data.data;
     } catch (error) {

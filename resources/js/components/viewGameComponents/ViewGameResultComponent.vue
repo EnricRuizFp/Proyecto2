@@ -79,8 +79,7 @@ const goToHome = () => {
 };
 
 const watchAgain = () => {
-    emit('cleanup');
-    router.push("/view-games");
+    window.location.reload();
 };
 </script>
 

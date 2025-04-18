@@ -1721,13 +1721,6 @@ class GameController extends Controller
     public function getUserMatchHistory(Request $request)
     {
         try {
-
-            // Validar datos requeridos
-            $request->validate([
-                'user' => 'required|array',
-                'user.id' => 'required|integer'
-            ]);
-
             // Pasar los datos del request a variables
             $userId = $request->user()->id;
             $userController = new UserController();
