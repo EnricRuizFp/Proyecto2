@@ -13,11 +13,11 @@
                 <div class="usernameContainer">
                     <div class="username-wrapper">
                         <span class="username">
-                            {{ userData?.username || 'Cargando usuario...' }}
+                            {{ userData?.username || "Cargando usuario..." }}
                         </span>
                         <div class="pointsContainer">
                             <span class="points">
-                                {{ userPoints !== null ? userPoints : '---' }}
+                                {{ userPoints !== null ? userPoints : "---" }}
                                 <img
                                     src="/images/icons/trophy-icon-dark.svg"
                                     alt="Trophy icon"
@@ -32,69 +32,96 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, watch } from "vue";
 import useUsers from "@/composables/users";
 import useRankings from "@/composables/rankings";
 
 const props = defineProps({
     userId: {
         type: Number,
-        required: true
-    }
+        required: true,
+    },
 });
 
 const { getUser } = useUsers();
 const { getRanking } = useRankings();
 const userData = ref(null);
-const userPoints = ref(null); // Cambiado de 0 a null para distinguir el estado inicial
-const avatarUrl = ref('/images/icons/user-icon-dark.svg');
+const userPoints = ref(null);
+const avatarUrl = ref("/images/icons/user-icon-dark.svg");
 
 const handleAvatarError = (e) => {
-    e.target.src = '/images/icons/user-icon-dark.svg';
+    e.target.src = "/images/icons/user-icon-dark.svg";
 };
 
-// Watcher para userId
-watch(() => props.userId, (newUserId) => {
-    if (newUserId) {
-        loadUserData();
-    }
-}, { immediate: true });
-
-// Modificar loadUserData para usar la nueva función
-const loadUserData = async () => {
+async function loadUserData() {
     if (!props.userId) {
         console.log("No user ID available yet, waiting...");
+        userData.value = null;
+        userPoints.value = null;
+        avatarUrl.value = "/images/icons/user-icon-dark.svg";
         return;
     }
 
     userData.value = null;
     userPoints.value = null;
+    avatarUrl.value = "/images/icons/user-icon-dark.svg";
+
+    console.log(`Attempting to load data for user ID: ${props.userId}`);
 
     try {
-        // Obtener datos del usuario
         const user = await getUser(props.userId);
         console.log("User data received:", user);
-        
+
         if (!user) {
-            throw new Error('User not found');
-        }
-        
-        userData.value = user;
-        if (user?.avatar) {
-            avatarUrl.value = user.avatar;
+            console.warn(
+                `User with ID ${props.userId} not found by composable.`
+            );
+        } else {
+            userData.value = user;
+            if (user.avatar) {
+                console.log("Setting avatar URL to:", user.avatar);
+                avatarUrl.value = user.avatar;
+            } else {
+                console.log("User found but has no avatar, using default.");
+            }
         }
 
-        // Obtener puntos del usuario
-        const rankingData = await getRanking(props.userId);
-        console.log("Ranking data received:", rankingData);
-        userPoints.value = rankingData?.points ?? 0;
+        if (userData.value) {
+            const rankingData = await getRanking(props.userId);
+            console.log("Ranking data received:", rankingData);
+            userPoints.value = rankingData?.points ?? 0;
+        } else {
+            userPoints.value = null;
+            console.log("Skipping ranking fetch because user was not found.");
+        }
     } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error(`Error in loadUserData for ID ${props.userId}:`, error);
         userData.value = null;
         userPoints.value = null;
-        avatarUrl.value = '/images/icons/user-icon-dark.svg';
+        avatarUrl.value = "/images/icons/user-icon-dark.svg";
     }
-};
+}
+
+console.log("Defining watcher for userId...");
+
+watch(
+    () => props.userId,
+    (newUserId, oldUserId) => {
+        console.log(
+            `Watcher triggered: userId changed from ${oldUserId} to ${newUserId}`
+        );
+        if (newUserId) {
+            loadUserData();
+        } else {
+            userData.value = null;
+            userPoints.value = null;
+            avatarUrl.value = "/images/icons/user-icon-dark.svg";
+        }
+    },
+    { immediate: true }
+);
+
+console.log("ViewUserComponent setup finished.");
 </script>
 
 <style scoped>
@@ -193,7 +220,8 @@ const loadUserData = async () => {
     margin-left: 0.2rem;
 }
 
-.username:empty, .points:empty {
+.username:empty,
+.points:empty {
     opacity: 0.6;
 }
 
