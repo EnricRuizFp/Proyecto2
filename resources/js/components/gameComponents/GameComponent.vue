@@ -790,7 +790,7 @@ watch(lastMessageId, (newVal, oldVal) => {
 
 .boards-container {
     display: flex;
-    gap: 8rem; /* Espacio grande entre tableros para pantallas anchas */
+    gap: 8rem;
     justify-content: center;
     align-items: center;
     width: 100%;

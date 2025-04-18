@@ -30,6 +30,32 @@ class RankingController extends Controller
     }
 
     /**
+     * LISTAR TODOS LOS RANKINGS
+     * 
+     * Devuelve un listado de todos los rankings ordenados por puntos.
+     * 
+     * Sin parámetros de entrada.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Listado en formato JSON.
+     */
+    public function getAllRankings()
+    {
+        try {
+            $rankings = Ranking::with('user')
+                ->orderBy('points', 'desc')
+                ->get();
+
+            return response()->json($rankings);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error retrieving rankings',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * LISTAR RANKINGS ADMINISTRADOR
      * 
      * Retorna un listado paginado de rankings para el panel de admin.
