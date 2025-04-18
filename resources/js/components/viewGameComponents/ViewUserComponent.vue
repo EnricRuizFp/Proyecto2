@@ -55,7 +55,6 @@ const handleAvatarError = (e) => {
 
 async function loadUserData() {
     if (!props.userId) {
-        console.log("No user ID available yet, waiting...");
         userData.value = null;
         userPoints.value = null;
         avatarUrl.value = "/images/icons/user-icon-dark.svg";
@@ -66,11 +65,8 @@ async function loadUserData() {
     userPoints.value = null;
     avatarUrl.value = "/images/icons/user-icon-dark.svg";
 
-    console.log(`Attempting to load data for user ID: ${props.userId}`);
-
     try {
         const user = await getUser(props.userId);
-        console.log("User data received:", user);
 
         if (!user) {
             console.warn(
@@ -79,20 +75,15 @@ async function loadUserData() {
         } else {
             userData.value = user;
             if (user.avatar) {
-                console.log("Setting avatar URL to:", user.avatar);
                 avatarUrl.value = user.avatar;
-            } else {
-                console.log("User found but has no avatar, using default.");
             }
         }
 
         if (userData.value) {
             const rankingData = await getRanking(props.userId);
-            console.log("Ranking data received:", rankingData);
             userPoints.value = rankingData?.points ?? 0;
         } else {
             userPoints.value = null;
-            console.log("Skipping ranking fetch because user was not found.");
         }
     } catch (error) {
         console.error(`Error in loadUserData for ID ${props.userId}:`, error);
@@ -102,14 +93,11 @@ async function loadUserData() {
     }
 }
 
-console.log("Defining watcher for userId...");
+// console.log("Defining watcher for userId...");
 
 watch(
     () => props.userId,
     (newUserId, oldUserId) => {
-        console.log(
-            `Watcher triggered: userId changed from ${oldUserId} to ${newUserId}`
-        );
         if (newUserId) {
             loadUserData();
         } else {
@@ -121,7 +109,6 @@ watch(
     { immediate: true }
 );
 
-console.log("ViewUserComponent setup finished.");
 </script>
 
 <style scoped>

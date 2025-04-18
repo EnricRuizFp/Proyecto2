@@ -395,6 +395,13 @@ const checkMatchWinner = async () => {
 
 // Finaliza la partida y actualiza el estado en el servidor y localmente
 const endGame = async (status, subirDato) => {
+
+    if(subirDato){
+        console.log("ENDGAME COMO:", status, " subiendo dato.");
+    }else{
+        console.log("ENDGAME COMO:", status, " sin subir dato.");
+    }
+
     // status: 'winner', 'loser', 'draw'
     try {
         // Detiene el bucle principal y los turnos
@@ -404,6 +411,8 @@ const endGame = async (status, subirDato) => {
         // 'subirDato' indica si este cliente debe informar al servidor del resultado
         // (normalmente true si tú causas el fin, false si lo causa el oponente)
         if (subirDato) {
+
+            console.log("Finalizando partida:");
             // Informa al servidor del resultado final
             const response = await axios.post("/api/games/set-game-ending", {
                 gameCode: gameStore.matchCode,
@@ -429,11 +438,14 @@ const endGame = async (status, subirDato) => {
                 }
             }
         } else {
+
             // Si no subes el dato, solo consulta la información final (ya actualizada por el oponente)
             const response = await axios.post("/api/games/get-match-info", {
                 gameCode: gameStore.matchCode,
             });
-            // Aquí podrías verificar la respuesta si fuera necesario
+            gameStore.setPoints(response.data.data.game.points);
+            gameStore.setShowWin(true);
+            
         }
     } catch (error) {
         console.error("Error al finalizar la partida: ", error);
@@ -561,9 +573,7 @@ const waitTurn = async () => {
     // Si después de los intentos el oponente no movió...
     if (!opponentMoved && isGameActive.value) {
         // Añadido chequeo de isGameActive
-        console.log(
-            "El oponente no realizó ningún movimiento en el tiempo esperado."
-        );
+        console.log("El oponente no realizó ningún movimiento en el tiempo esperado.");
         isGameActive.value = false; // Detiene el juego
         await endGame("winner", true); // Ganas porque el oponente no jugó
     } else if (opponentMoved) {
@@ -810,8 +820,10 @@ watch(
 
 // Observa si llega un mensaje nuevo para reproducir sonido
 watch(lastMessageId, (newVal, oldVal) => {
+
     // Si el ID ha cambiado (y no es la carga inicial)
     if (oldVal !== 0 && newVal > oldVal) {
+
         // Reproduce sonido (asegúrate que el archivo existe en /public/sounds)
         const audio = new Audio("/sounds/notification.mp3");
         audio

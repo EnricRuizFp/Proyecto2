@@ -425,7 +425,7 @@ const confirmPlacement = async () => {
 
         // Comprueba si se colocaron *todos* los barcos necesarios
         if (!verifyAllShipsPlaced(shipsInfo)) {
-            backToHome(true, "Faltan barcos por colocar o hay un error.");
+            backToHome(true, "Faltan barcos por colocar.");
             return; // Detiene la ejecución
         }
 
