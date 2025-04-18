@@ -19,7 +19,7 @@ class UserController extends Controller
 {
 
     /**
-     * LISTAR USUARIOS
+     * LISTAR USUARIOS PAGINADO A 10
      * 
      * Devuelve un listado paginado y filtrable de los usuarios.
      * 
@@ -85,6 +85,41 @@ class UserController extends Controller
         $users->appends(request()->all());
 
         return UserResource::collection($users);
+    }
+
+    /**
+     * LISTAR USUARIOS
+     * 
+     * Devuelve un listado filtrable de los usuarios.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados: (opcionales)
+     * {
+     *   "order_column": "id"|"username"|"name"|"surname1"|"surname2"|"email"|"nationality"|"created_at",
+     *   "order_direction": "asc"|"desc",
+     *   "search_id": int,
+     *   "search_title": string,
+     *   "search_global": string
+     * }
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Colección completa de usuarios.
+     */
+    public function getAllUsers()
+    {
+        try {
+            // Obtener todos los usuarios
+            $users = User::all();
+            
+            // Devolver la colección de usuarios
+            return response()->json($users);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error retrieving users',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

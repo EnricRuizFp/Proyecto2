@@ -1,6 +1,7 @@
 import { ref, inject } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
+import axios from "axios";
 
 export default function useUsers() {
     const users = ref([]);
@@ -54,6 +55,18 @@ export default function useUsers() {
             .finally(() => {
                 isLoadingUsers.value = false;
             });
+    };
+
+    const getAllUsers = async () => {
+        isLoadingUsers.value = true;
+        try {
+            const response = await axios.get('/api/users/all');
+            users.value = response.data;
+        } catch (e) {
+            console.error('Error loading users:', e);
+        } finally {
+            isLoadingUsers.value = false;
+        }
     };
 
     const getUsersWithTasks = async () => {
@@ -285,6 +298,7 @@ export default function useUsers() {
         users,
         user,
         getUsers,
+        getAllUsers,
         getUsersWithTasks,
         getUser,
         createUserDB,

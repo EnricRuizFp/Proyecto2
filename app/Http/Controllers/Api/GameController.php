@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 class GameController extends Controller
 {
     /**
-     * LISTAR PARTIDAS
+     * LISTAR PARTIDAS PAGINADO A 10
      * 
      * Devuelve un listado paginado de las partidas existentes.
      * 
@@ -31,6 +31,22 @@ class GameController extends Controller
     public function index(Request $request)
     {
         $games = Game::with('creator')->paginate(10);
+        return response()->json($games);
+    }
+
+    /**
+     * LISTAR PARTIDAS
+     * 
+     * Devuelve un listado de las partidas existentes.
+     * 
+     * Sin parámetros de entrada
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta: Listado de partidas en formato JSON.
+     */
+    public function getAllGames()
+    {
+        $games = Game::with('creator')->get();
         return response()->json($games);
     }
 

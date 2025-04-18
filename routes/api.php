@@ -25,6 +25,8 @@ Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
 
+    // Obtener TODOS los usuarios (sin paginación)
+    Route::get('users/all', [UserController::class, 'getAllUsers']);
     Route::apiResource('users', UserController::class);
 
     Route::post('users/updateimg', [UserController::class, 'updateimg']); //Listar
@@ -76,9 +78,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     // Rankings - Admin specific route
     Route::get('rankings/admin', [RankingController::class, 'indexAdmin']);
-
-    // Rankings - Regular routes (must be after specific routes)
-    // Removed conflicting Route::apiResource('rankings', RankingController::class);
 
     // Ruta de obtención del historial de partidas (authenticated version)
     Route::get('/games/user-match-history', [GameController::class, 'getUserMatchHistory']);
@@ -138,6 +137,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/games/get-opponent-ship-placement-validation', [GameController::class, 'getOpponentShipPlacementValidation']);
     Route::post('/games/get-user-ship-placement', [GameController::class, 'getUserShipPlacement']);
 
+    // Nueva ruta para obtener todos los juegos
+    Route::get('/games/all', [GameController::class, 'getAllGames']);
+
     // Games (después de la personalizada)
     Route::apiResource('games', GameController::class);
 
@@ -158,6 +160,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/games/view-game', [GameController::class, 'viewGame']);
     // Get game moves and status for viewers
     Route::post('/games/view-game-moves', [GameController::class, 'viewGameMoves']);
+
+    // Nueva ruta para obtener todos los rankings
+    Route::get('/rankings/all', [RankingController::class, 'getAllRankings']);
 });
 
 // Rankings routes outside auth:sanctum

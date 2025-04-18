@@ -1,235 +1,429 @@
 <template>
     <div class="grid">
-        <!-- <div class="col-12 lg:col-6 xl:col-3">-->
-        <!--            <div class="card mb-0">-->
-        <!--                <div class="flex justify-content-between mb-3">-->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-transparent ps-0 pe-0">
+                    <h5 class="float-start mb-0">Battleship Dashboard</h5>
+                </div>
+                
+                <div class="grid mt-3">
+                    <!-- Sección de Juegos -->
+                    <div class="col-12">
+                        <div class="card mb-3">
+                            <div class="flex">
+                                <!-- Datos en la izquierda -->
+                                <div class="flex-none w-15rem">
+                                    <div class="flex justify-content-between mb-3">
+                                        <div>
+                                            <span class="block text-500 font-medium mb-3">Juegos</span>
+                                            <div class="text-900 font-medium text-xl">{{ totalGames }}</div>
+                                        </div>
+                                        <div class="flex align-items-center justify-content-center bg-blue-100 border-round" style="width: 2.5rem; height: 2.5rem">
+                                            <i class="pi pi-gamepad text-blue-500 text-xl"></i>
+                                        </div>
+                                    </div>
+                                    <span class="text-green-500 font-medium">{{ activeGames }} activos </span>
+                                    <span class="text-500">en este momento</span>
+                                </div>
+                                
+                                <!-- Gráfico en la derecha -->
+                                <div class="flex-grow-1">
+                                    <Chart type="line" :data="chartData" :options="chartOptions" class="w-full h-8rem" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <!--                    <div>-->
-        <!--                        <span class="block text-500 font-medium mb-3">Orders</span>-->
-        <!--                        <div class="text-900 font-medium text-xl">152</div>-->
-        <!--                    </div>-->
-        <!--                    <div class="flex align-items-center justify-content-center bg-blue-100 border-round" style="width: 2.5rem; height: 2.5rem">-->
-        <!--                        <i class="pi pi-shopping-cart text-blue-500 text-xl"></i>-->
-        <!--                    </div>-->
-        <!--                </div>-->
-        <!--                <span class="text-green-500 font-medium">24 new </span>-->
-        <!--                <span class="text-500">since last visit</span>-->
-        <!--            </div>-->
-        <!--        </div>-->
-        <!--        <div class="col-12 lg:col-6 xl:col-3">-->
-        <!--            <div class="card mb-0">-->
-        <!--                <div class="flex justify-content-between mb-3">-->
-        <!--                    <div>-->
-        <!--                        <span class="block text-500 font-medium mb-3">Revenue</span>-->
-        <!--                        <div class="text-900 font-medium text-xl">$2.100</div>-->
-        <!--                    </div>-->
-        <!--                    <div class="flex align-items-center justify-content-center bg-orange-100 border-round" style="width: 2.5rem; height: 2.5rem">-->
-        <!--                        <i class="pi pi-map-marker text-orange-500 text-xl"></i>-->
-        <!--                    </div>-->
-        <!--                </div>-->
-        <!--                <span class="text-green-500 font-medium">%52+ </span>-->
-        <!--                <span class="text-500">since last week</span>-->
-        <!--            </div>-->
-        <!--        </div>-->
-        <!--        <div class="col-12 lg:col-6 xl:col-3">-->
-        <!--            <div class="card mb-0">-->
-        <!--                <div class="flex justify-content-between mb-3">-->
-        <!--                    <div>-->
-        <!--                        <span class="block text-500 font-medium mb-3">Customers</span>-->
-        <!--                        <div class="text-900 font-medium text-xl">28441</div>-->
-        <!--                    </div>-->
-        <!--                    <div class="flex align-items-center justify-content-center bg-cyan-100 border-round" style="width: 2.5rem; height: 2.5rem">-->
-        <!--                        <i class="pi pi-inbox text-cyan-500 text-xl"></i>-->
-        <!--                    </div>-->
-        <!--                </div>-->
-        <!--                <span class="text-green-500 font-medium">520 </span>-->
-        <!--                <span class="text-500">newly registered</span>-->
-        <!--            </div>-->
-        <!--        </div>-->
-        <!--        <div class="col-12 lg:col-6 xl:col-3">-->
-        <!--            <div class="card mb-0">-->
-        <!--                <div class="flex justify-content-between mb-3">-->
-        <!--                    <div>-->
-        <!--                        <span class="block text-500 font-medium mb-3">Comments</span>-->
-        <!--                        <div class="text-900 font-medium text-xl">152 Unread</div>-->
-        <!--                    </div>-->
-        <!--                    <div class="flex align-items-center justify-content-center bg-purple-100 border-round" style="width: 2.5rem; height: 2.5rem">-->
-        <!--                        <i class="pi pi-comment text-purple-500 text-xl"></i>-->
-        <!--                    </div>-->
-        <!--                </div>-->
-        <!--                <span class="text-green-500 font-medium">85 </span>-->
-        <!--                <span class="text-500">responded</span>-->
-        <!--            </div>-->
-        <!--        </div>-->
+                    <!-- Sección de Usuarios -->
+                    <div class="col-12">
+                        <div class="card mb-3">
+                            <div class="flex relative">
+                                <!-- Icono en la esquina superior derecha -->
+                                <div class="absolute" style="right: 0; top: 0;">
+                                    <div class="flex align-items-center justify-content-center bg-orange-100 border-round" style="width: 2.5rem; height: 2.5rem">
+                                        <i class="pi pi-users text-orange-500 text-xl"></i>
+                                    </div>
+                                </div>
 
-        <!--        <div class="col-12 xl:col-6">-->
-        <!--            <div class="card">-->
-        <!--                <h5>Recent Sales</h5>-->
+                                <!-- Datos en la izquierda -->
+                                <div class="flex-none w-15rem">
+                                    <div class="mb-3">
+                                        <span class="block text-500 font-medium mb-3">Usuarios</span>
+                                        <div class="text-900 font-medium text-xl">{{ totalUsers }}</div>
+                                        <span class="text-500">usuarios registrados</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Gráfico circular en el centro -->
+                                <div class="flex-grow-1 px-3 relative" style="max-width: 400px;">
+                                    <div class="absolute" style="right: 0; top: -10px;">
+                                    </div>
+                                    <Chart type="pie" :data="usersChartData" :options="usersChartOptions" class="w-full h-12rem" />
+                                </div>
 
-        <!--                <DataTable :value="products" :rows="5" :paginator="true" responsiveLayout="scroll">-->
-        <!--                    <Column style="width: 15%">-->
-        <!--                        <template #header> Image </template>-->
-        <!--                        <template #body="slotProps">-->
-        <!--                            <img :src="'demo/images/product/' + slotProps.data.image" :alt="slotProps.data.image" width="50" class="shadow-2" />-->
-        <!--                        </template>-->
-        <!--                    </Column>-->
-        <!--                    <Column field="name" header="Name" :sortable="true" style="width: 35%"></Column>-->
-        <!--                    <Column field="price" header="Price" :sortable="true" style="width: 35%">-->
-        <!--                        <template #body="slotProps">-->
-        <!--                            {{ formatCurrency(slotProps.data.price) }}-->
-        <!--                        </template>-->
-        <!--                    </Column>-->
-        <!--                    <Column style="width: 15%">-->
-        <!--                        <template #header> View </template>-->
-        <!--                        <template #body>-->
-        <!--                            <Button icon="pi pi-search" type="button" class="p-button-text"></Button>-->
-        <!--                        </template>-->
-        <!--                    </Column>-->
-        <!--                </DataTable>-->
-        <!--            </div>-->
-        <!--            <div class="card">-->
-        <!--                <div class="flex justify-content-between align-items-center mb-5">-->
-        <!--                    <h5>Best Selling Products</h5>-->
-        <!--                    <div>-->
-        <!--                        <Button icon="pi pi-ellipsis-v" class="p-button-text p-button-plain p-button-rounded" @click="$refs.menu2.toggle($event)"></Button>-->
-        <!--                        <Menu ref="menu2" :popup="true" :model="items"></Menu>-->
-        <!--                    </div>-->
-        <!--                </div>-->
-        <!--                <ul class="list-none p-0 m-0">-->
-        <!--                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">-->
-        <!--                        <div>-->
-        <!--                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Space T-Shirt</span>-->
-        <!--                            <div class="mt-1 text-600">Clothing</div>-->
-        <!--                        </div>-->
-        <!--                        <div class="mt-2 md:mt-0 flex align-items-center">-->
-        <!--                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">-->
-        <!--                                <div class="bg-orange-500 h-full" style="width: 50%"></div>-->
-        <!--                            </div>-->
-        <!--                            <span class="text-orange-500 ml-3 font-medium">%50</span>-->
-        <!--                        </div>-->
-        <!--                    </li>-->
-        <!--                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">-->
-        <!--                        <div>-->
-        <!--                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Portal Sticker</span>-->
-        <!--                            <div class="mt-1 text-600">Accessories</div>-->
-        <!--                        </div>-->
-        <!--                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">-->
-        <!--                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">-->
-        <!--                                <div class="bg-cyan-500 h-full" style="width: 16%"></div>-->
-        <!--                            </div>-->
-        <!--                            <span class="text-cyan-500 ml-3 font-medium">%16</span>-->
-        <!--                        </div>-->
-        <!--                    </li>-->
-        <!--                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">-->
-        <!--                        <div>-->
-        <!--                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Supernova Sticker</span>-->
-        <!--                            <div class="mt-1 text-600">Accessories</div>-->
-        <!--                        </div>-->
-        <!--                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">-->
-        <!--                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">-->
-        <!--                                <div class="bg-pink-500 h-full" style="width: 67%"></div>-->
-        <!--                            </div>-->
-        <!--                            <span class="text-pink-500 ml-3 font-medium">%67</span>-->
-        <!--                        </div>-->
-        <!--                    </li>-->
-        <!--                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">-->
-        <!--                        <div>-->
-        <!--                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Wonders Notebook</span>-->
-        <!--                            <div class="mt-1 text-600">Office</div>-->
-        <!--                        </div>-->
-        <!--                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">-->
-        <!--                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">-->
-        <!--                                <div class="bg-green-500 h-full" style="width: 35%"></div>-->
-        <!--                            </div>-->
-        <!--                            <span class="text-green-500 ml-3 font-medium">%35</span>-->
-        <!--                        </div>-->
-        <!--                    </li>-->
-        <!--                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">-->
-        <!--                        <div>-->
-        <!--                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Mat Black Case</span>-->
-        <!--                            <div class="mt-1 text-600">Accessories</div>-->
-        <!--                        </div>-->
-        <!--                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">-->
-        <!--                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">-->
-        <!--                                <div class="bg-purple-500 h-full" style="width: 75%"></div>-->
-        <!--                            </div>-->
-        <!--                            <span class="text-purple-500 ml-3 font-medium">%75</span>-->
-        <!--                        </div>-->
-        <!--                    </li>-->
-        <!--                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">-->
-        <!--                        <div>-->
-        <!--                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Robots T-Shirt</span>-->
-        <!--                            <div class="mt-1 text-600">Clothing</div>-->
-        <!--                        </div>-->
-        <!--                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">-->
-        <!--                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">-->
-        <!--                                <div class="bg-teal-500 h-full" style="width: 40%"></div>-->
-        <!--                            </div>-->
-        <!--                            <span class="text-teal-500 ml-3 font-medium">%40</span>-->
-        <!--                        </div>-->
-        <!--                    </li>-->
-        <!--                </ul>-->
-        <!--            </div>-->
-        <!--        </div>-->
-        <!--        <div class="col-12 xl:col-6">-->
-        <!--            <div class="card">-->
-        <!--                <h5>Sales Overview</h5>-->
-        <!--            </div>-->
-        <!--            <div class="card">-->
-        <!--                <div class="flex align-items-center justify-content-between mb-4">-->
-        <!--                    <h5>Notifications</h5>-->
-        <!--                    <div>-->
-        <!--                        <Button icon="pi pi-ellipsis-v" class="p-button-text p-button-plain p-button-rounded" @click="$refs.menu1.toggle($event)"></Button>-->
-        <!--                        <Menu ref="menu1" :popup="true" :model="items"></Menu>-->
-        <!--                    </div>-->
-        <!--                </div>-->
+                                <!-- Datos por continente a la derecha -->
+                                <div class="flex-none w-15rem">
+                                    <span class="text-500 block mb-2">Por continente:</span>
+                                    <div class="mt-2">
+                                        <div v-for="(value, index) in usersChartData.datasets[0].data" :key="index" class="flex align-items-center mb-2">
+                                            <div class="w-1rem h-1rem mr-2" :style="{ backgroundColor: usersChartData.datasets[0].backgroundColor[index] }"></div>
+                                            <span class="text-500">{{ usersChartData.labels[index] }}: </span>
+                                            <span class="text-900 ml-1">{{ value }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                    </div>
 
-        <!--                <span class="block text-600 font-medium mb-3">TODAY</span>-->
-        <!--                <ul class="p-0 mx-0 mt-0 mb-4 list-none">-->
-        <!--                    <li class="flex align-items-center py-2 border-bottom-1 surface-border">-->
-        <!--                        <div class="w-3rem h-3rem flex align-items-center justify-content-center bg-blue-100 border-circle mr-3 flex-shrink-0">-->
-        <!--                            <i class="pi pi-dollar text-xl text-blue-500"></i>-->
-        <!--                        </div>-->
-        <!--                        <span class="text-900 line-height-3"-->
-        <!--                            >Richard Jones-->
-        <!--                            <span class="text-700">has purchased a blue t-shirt for <span class="text-blue-500">79$</span></span>-->
-        <!--                        </span>-->
-        <!--                    </li>-->
-        <!--                    <li class="flex align-items-center py-2">-->
-        <!--                        <div class="w-3rem h-3rem flex align-items-center justify-content-center bg-orange-100 border-circle mr-3 flex-shrink-0">-->
-        <!--                            <i class="pi pi-download text-xl text-orange-500"></i>-->
-        <!--                        </div>-->
-        <!--                        <span class="text-700 line-height-3">Your request for withdrawal of <span class="text-blue-500 font-medium">2500$</span> has been initiated.</span>-->
-        <!--                    </li>-->
-        <!--                </ul>-->
+                    <!-- Sección de Rankings -->
+                    <div class="col-12">
+                        <div class="card mb-3">
+                            <div class="flex">
+                                <!-- Columna izquierda con gráficos -->
+                                <div class="flex-grow-1 pr-3" style="max-width: 500px;">
+                                    <!-- Título y contador -->
+                                    <div class="mb-3">
+                                        <span class="block text-500 font-medium mb-3">Rankings</span>
+                                    </div>
 
-        <!--                <span class="block text-600 font-medium mb-3">YESTERDAY</span>-->
-        <!--                <ul class="p-0 m-0 list-none">-->
-        <!--                    <li class="flex align-items-center py-2 border-bottom-1 surface-border">-->
-        <!--                        <div class="w-3rem h-3rem flex align-items-center justify-content-center bg-blue-100 border-circle mr-3 flex-shrink-0">-->
-        <!--                            <i class="pi pi-dollar text-xl text-blue-500"></i>-->
-        <!--                        </div>-->
-        <!--                        <span class="text-900 line-height-3"-->
-        <!--                            >Keyser Wick-->
-        <!--                            <span class="text-700">has purchased a black jacket for <span class="text-blue-500">59$</span></span>-->
-        <!--                        </span>-->
-        <!--                    </li>-->
-        <!--                    <li class="flex align-items-center py-2 border-bottom-1 surface-border">-->
-        <!--                        <div class="w-3rem h-3rem flex align-items-center justify-content-center bg-pink-100 border-circle mr-3 flex-shrink-0">-->
-        <!--                            <i class="pi pi-question text-xl text-pink-500"></i>-->
-        <!--                        </div>-->
-        <!--                        <span class="text-900 line-height-3"-->
-        <!--                            >Jane Davis-->
-        <!--                            <span class="text-700">has posted a new questions about your product.</span>-->
-        <!--                        </span>-->
-        <!--                    </li>-->
-        <!--                </ul>-->
-        <!--            </div>-->
+                                    <!-- Gráfico de distribución de puntos -->
+                                    <div class="mb-4">
+                                        <span class="block text-600 mb-3 font-medium">Distribución de puntos de los jugadores</span>
+                                        <Chart type="bar" 
+                                            :data="{
+                                                labels: rankingStats.pointDistribution.labels,
+                                                datasets: [{
+                                                    data: rankingStats.pointDistribution.data,
+                                                    backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726', '#26C6DA']
+                                                }]
+                                            }" 
+                                            :options="rankingChartOptions" 
+                                            class="w-full h-12rem" 
+                                        />
+                                    </div>
 
-        <!--        </div> -->
+                                    <!-- Gráfico de ratio V/D/E -->
+                                    <div class="mt-4">
+                                        <div class="flex align-items-center mb-3">
+                                            <span class="text-600 font-medium">Ratio V/D/E Global</span>
+                                            <div class="ml-2 cursor-pointer" v-tooltip.top="'Victorias/Derrotas/Empates: Proporción global de resultados de todos los jugadores'">
+                                                <i class="pi pi-info-circle text-500"></i>
+                                            </div>
+                                        </div>
+                                        <Chart type="doughnut" 
+                                            :data="{
+                                                labels: rankingStats.winLossRatio.labels,
+                                                datasets: [{
+                                                    data: rankingStats.winLossRatio.data,
+                                                    backgroundColor: rankingStats.winLossRatio.colors
+                                                }]
+                                            }" 
+                                            :options="winLossChartOptions" 
+                                            class="w-full h-12rem" 
+                                        />
+                                    </div>
+                                </div>
+
+                                <!-- Columna derecha con Top 10 -->
+                                <div class="flex-none w-25rem pl-3">
+                                    <div class="surface-0 p-4 border-round">
+                                        <div class="text-xl text-900 font-medium mb-3">Top 10 Jugadores</div>
+                                        <ul class="list-none p-0 m-0">
+                                            <li v-for="(player, index) in rankingStats.topPlayers" 
+                                                :key="index" 
+                                                class="flex align-items-center py-2 border-bottom-1 surface-border"
+                                                :class="{'border-none': index === rankingStats.topPlayers.length - 1}">
+                                                <span class="text-900 font-medium w-2rem">{{ index + 1 }}</span>
+                                                <div class="flex flex-column ml-2 flex-grow-1">
+                                                    <span class="text-600">{{ player.user?.username || 'Unknown' }}</span>
+                                                    <span class="text-500 text-sm">{{ capitalizeFirstLetter(player.user?.nationality) }}</span>
+                                                </div>
+                                                <span class="text-primary font-medium">{{ player.points }} pts</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import Chart from 'primevue/chart';
 
-<style scoped></style>
+// Datos básicos del dashboard
+const totalGames = ref(0);
+const activeGames = ref(0);
+const totalUsers = ref(0);
+
+// Configuración del gráfico de usuarios por continente
+const usersChartData = ref({
+    labels: ['África', 'América', 'Asia', 'Europa', 'Oceanía'],
+    datasets: [{
+        data: [],
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+    }]
+});
+
+const usersChartOptions = ref({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            display: false
+        },
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    return `${context.label}: ${context.raw} usuarios (${Math.round(context.raw/totalUsers.value*100)}%)`;
+                }
+            }
+        }
+    }
+});
+
+const chartData = ref({
+    labels: [],
+    datasets: [{
+        label: '',
+        data: [],
+        fill: false,
+        borderColor: '#42A5F5',
+        tension: 0.4
+    }]
+});
+
+const chartOptions = ref({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            display: false
+        },
+        tooltip: {
+            mode: 'index',
+            intersect: false
+        }
+    },
+    scales: {
+        x: {
+            display: true,
+            ticks: {
+                color: '#495057'
+            },
+            grid: {
+                display: false
+            }
+        },
+        y: {
+            display: true,
+            beginAtZero: true,
+            suggestedMax: function(context) {
+                const max = Math.max(...context.chart.data.datasets[0].data);
+                return max + (max * 0.2);
+            },
+            ticks: {
+                color: '#495057',
+                stepSize: 1
+            },
+            grid: {
+                display: false
+            }
+        }
+    }
+});
+
+// Estructura de datos para las estadísticas de rankings
+const rankingStats = ref({
+    totalPlayers: 0,
+    topPlayers: [],
+    pointDistribution: {
+        labels: ['0-100', '101-500', '501-1000', '1000+'],
+        data: [0, 0, 0, 0]
+    },
+    winLossRatio: {
+        labels: ['Victorias', 'Derrotas', 'Empates'],
+        data: [0, 0, 0],
+        colors: ['#36A2EB', '#FF6384', '#FFCE56']
+    }
+});
+
+const rankingChartOptions = ref({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            display: false
+        },
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    return `${context.raw} jugadores`;
+                }
+            }
+        }
+    }
+});
+
+const winLossChartOptions = ref({
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '60%',
+    plugins: {
+        legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+                color: '#495057'
+            }
+        },
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    return `${context.label}: ${context.raw}`;
+                }
+            }
+        }
+    }
+});
+
+// Helper para capitalizar la primera letra de un string
+const capitalizeFirstLetter = (string) => {
+    if (!string) return '';
+    return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
+// Procesa los datos de juegos para mostrar la actividad por día
+const processGamesData = (games) => {
+    const gamesArray = Array.isArray(games) ? games : (games.data || []);
+    const gamesByDate = {};
+    
+    gamesArray.forEach(game => {
+        if (game.creation_date) {
+            const date = new Date(game.creation_date).toISOString().split('T')[0];
+            gamesByDate[date] = (gamesByDate[date] || 0) + 1;
+        }
+    });
+
+    const sortedDates = Object.keys(gamesByDate).sort();
+    
+    chartData.value = {
+        labels: sortedDates.map(date => {
+            const [_, month, day] = date.split('-');
+            return `${day}/${month}`;
+        }),
+        datasets: [{
+            label: '',
+            data: sortedDates.map(date => gamesByDate[date]),
+            fill: false,
+            borderColor: '#42A5F5',
+            tension: 0.4
+        }]
+    };
+};
+
+// Función principal que carga todos los datos del dashboard
+onMounted(async () => {
+    try {
+        // Cargar datos de juegos y usuarios activos
+        const response = await axios.get('/api/games/all');
+        if (response.data) {
+            totalGames.value = response.data.length;
+            activeGames.value = response.data.filter(game => !game.is_finished).length;
+            processGamesData(response.data);
+        }
+
+        // Cargar y procesar datos de usuarios por continente
+        const usersResponse = await axios.get('/api/users/all');
+        if (usersResponse.data) {
+            const users = usersResponse.data;
+            totalUsers.value = users.length;
+            
+            const usersByContinent = {
+                africa: users.filter(u => u.nationality === 'africa').length,
+                america: users.filter(u => u.nationality === 'america').length,
+                asia: users.filter(u => u.nationality === 'asia').length,
+                europe: users.filter(u => u.nationality === 'europe').length,
+                oceania: users.filter(u => u.nationality === 'oceania').length
+            };
+
+            usersChartData.value.datasets[0].data = [
+                usersByContinent.africa,
+                usersByContinent.america,
+                usersByContinent.asia,
+                usersByContinent.europe,
+                usersByContinent.oceania
+            ];
+        }
+
+        // Cargar y procesar estadísticas de rankings
+        const rankingsResponse = await axios.get('/api/rankings/all');
+        if (rankingsResponse.data) {
+            const rankings = rankingsResponse.data;
+            
+            // Obtener el top 10 de jugadores
+            rankingStats.value.topPlayers = rankings
+                .sort((a, b) => b.points - a.points)
+                .slice(0, 10);
+
+            // Calcular rangos equitativos basados en la puntuación máxima
+            const maxPoints = Math.max(...rankings.map(r => r.points));
+            const sectionRange = Math.ceil(maxPoints / 5);
+            
+            // Crear etiquetas para los rangos de puntuación
+            rankingStats.value.pointDistribution.labels = [
+                `0-${sectionRange}`,
+                `${sectionRange + 1}-${sectionRange * 2}`,
+                `${sectionRange * 2 + 1}-${sectionRange * 3}`,
+                `${sectionRange * 3 + 1}-${sectionRange * 4}`,
+                `${sectionRange * 4 + 1}-${maxPoints}`
+            ];
+
+            // Distribuir jugadores en los rangos correspondientes
+            rankingStats.value.pointDistribution.data = Array(5).fill(0);
+            rankings.forEach(ranking => {
+                const points = ranking.points;
+                if (points <= sectionRange) rankingStats.value.pointDistribution.data[0]++;
+                else if (points <= sectionRange * 2) rankingStats.value.pointDistribution.data[1]++;
+                else if (points <= sectionRange * 3) rankingStats.value.pointDistribution.data[2]++;
+                else if (points <= sectionRange * 4) rankingStats.value.pointDistribution.data[3]++;
+                else rankingStats.value.pointDistribution.data[4]++;
+            });
+
+            // Calcular estadísticas globales de V/D/E
+            const totalStats = rankings.reduce((acc, curr) => {
+                acc.wins += curr.wins;
+                acc.losses += curr.losses;
+                acc.draws += curr.draws;
+                return acc;
+            }, { wins: 0, losses: 0, draws: 0 });
+
+            rankingStats.value.winLossRatio.data = [
+                totalStats.wins,
+                totalStats.losses,
+                totalStats.draws
+            ];
+        }
+    } catch (error) {
+        console.error('Error al cargar los datos:', error);
+    }
+});
+</script>
+
+<style scoped>
+.h-30rem {
+    height: 30rem;
+}
+.h-10rem {
+    height: 10rem;
+}
+</style>
