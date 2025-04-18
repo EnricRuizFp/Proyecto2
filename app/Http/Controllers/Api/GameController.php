@@ -1217,12 +1217,35 @@ class GameController extends Controller
 
     /**
      * GET LAST MOVE
-     * Esta función obtiene el último movimiento realizado por el usuario en la partida.
+     * 
+     * Devuelve el último movimiento realizado por el usuario especificado en la partida especificada.
+     * Se puede utilizar para obtener el último movimiento del propio jugador o del oponente.
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos del último movimiento en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getLastMove(Request $request)
     {
         try {
+
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array',
+                'user.id' => 'required|integer'
+            ]);
+
+            // Pasar los datos del request a variables
             $gameCode = $request->input('gameCode');
             $user = $request->input('user');
 
@@ -1235,7 +1258,7 @@ class GameController extends Controller
                 ], 404);
             }
 
-            // Obtener el último movimiento del usuario actual
+            // Obtener el último movimiento del usuario
             $lastUserMove = Move::where('game_id', $game->id)
                 ->whereHas('gamePlayer', function ($query) use ($user) {
                     $query->where('user_id', $user['id']);
@@ -1268,7 +1291,6 @@ class GameController extends Controller
                 'timestamp' => now()->timestamp
             ]);
         } catch (\Exception $e) {
-            Log::error('Error getting last move: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error getting last move'
@@ -1278,8 +1300,15 @@ class GameController extends Controller
 
     /**
      * GET AVAILABLE GAME SHIPS
-     * Esta función obtiene todos los barcos disponibles para el juego.
+     * 
+     * Devuelve los barcos disponibles para el juego.
+     * -> Crea 2 cruceros iguales para mayor similitud con el juego original.
+     * 
+     * Sin parámetros de entrada.
+     * 
      * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Datos de los barcos en formato JSON.
+     * Respuesta error: No devuelve nada.
      */
     public function getAvailableGameShips()
     {
@@ -1290,9 +1319,10 @@ class GameController extends Controller
             // Crear el array de barcos para el juego
             $gameShips = [];
 
+            // Generar el array de barcos con nombre y tamaño
             foreach ($ships as $ship) {
                 if ($ship->name === 'Crucero') {
-                    // Agregar los dos destructores con nombres diferentes
+                    // Agregar los dos cruceros con nombres diferentes
                     $gameShips[] = [
                         'name' => 'Crucero_1',
                         'size' => $ship->size
@@ -1312,22 +1342,44 @@ class GameController extends Controller
 
             return response()->json($gameShips);
         } catch (\Exception $e) {
-            Log::error('Error getting available ships: ' . $e->getMessage());
             return response()->json([], 500);
         }
     }
 
     /**
      * GET USER MOVES
-     * Esta función obtiene todos los movimientos realizados por el usuario en una partida
+     * 
+     * Devuelve todos los movimientos del usuario especificado en la partida especificada.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de los movimientos en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getUserMoves(Request $request)
     {
         try {
+
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array',
+                'user.id' => 'required|integer'
+            ]);
+
+            // Pasar los datos del request a variables
             $gameCode = $request->input('gameCode');
             $user = $request->input('user');
 
-            // Buscar la partida
+            // Buscar la partida (a partir del código)
             $game = Game::where('code', $gameCode)->first();
             if (!$game) {
                 return response()->json([
@@ -1336,7 +1388,7 @@ class GameController extends Controller
                 ], 404);
             }
 
-            // Obtener el ID del game_player del usuario
+            // Obtener el player_id del game_player de la partida
             $gamePlayer = GamePlayer::where('game_id', $game->id)
                 ->where('user_id', $user['id'])
                 ->first();
@@ -1359,7 +1411,6 @@ class GameController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error getting user moves: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error retrieving moves'
@@ -1369,9 +1420,24 @@ class GameController extends Controller
 
     /**
      * GET OPPONENT SHIP PLACEMENT GAME
-     * Esta función obtiene el estado actual de la partida, incluyendo los barcos restantes
-     * y si el usuario ha ganado.
+     * 
+     * Devuelve el estado actual de la patida, incluyendo datos calculados de la partida.
+     * -> Cantidad de de barcos restantes, si alguien ha ganado y quién ha ganado.
+     * -> Cantidad de movimientos realizados en la partida.
+     * -> Como adición, el campo "data" devuelve las coordenadas de los barcos del oponente.
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida ampliados en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getOpponentShipPlacementGame(Request $request)
     {
@@ -1472,12 +1538,40 @@ class GameController extends Controller
 
     /**
      * SET GAME ENDING
-     * Esta función establece el final de la partida y actualiza el estado de los jugadores.
+     * 
+     * Gestiona el fin de una partida.
+     * -> Actualiza los ránkings y puntuaciones de los usuarios involucrados.
+     * -> Posibles estados: "draw", "winner", "loser".
+     * -> El valor de los puntos a ganar o perder se calcula respecto a los rankings de los usuarios.
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *   },
+     *   "status": "winner"|"loser"|"draw"|required
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida finalizada en formato JSON.
+     *                    -> Devuelve los puntos ganados / perdidos y quién ganó. 
+     * Respuesta error: Mensaje de error en formato JSON.
+     * 
      */
     public function setGameEnding(Request $request)
     {
         try {
+            // Validar datos requeridos
+            $request->validate([
+                'gameCode' => 'required|string',
+                'user' => 'required|array',
+                'user.id' => 'required|integer',
+                'status' => 'required|string|in:winner,loser,draw'
+            ]);
+
+            // Pasar los datos del request a variables
             $gameCode = $request->input('gameCode');
             $userId = $request->input('user')['id'];
             $status = $request->input('status');
@@ -1505,11 +1599,12 @@ class GameController extends Controller
 
             // Si es victoria, procesar los rankings y puntos
             if ($status === 'winner') {
+
                 // Encontrar al ganador y perdedor
                 $winner = $players->where('user_id', $userId)->first();
                 $loser = $players->where('user_id', '!=', $userId)->first();
 
-                // Obtener los rankings actuales usando Ranking model directamente
+                // Obtener los rankings actuales -> llamar directamente al modelo Ranking
                 $winnerRanking = Ranking::where('user_id', $winner->user_id)->first();
                 $loserRanking = Ranking::where('user_id', $loser->user_id)->first();
 
@@ -1546,6 +1641,7 @@ class GameController extends Controller
 
             // Si el jugador que hace la petición es el perdedor
             if ($status === 'loser') {
+
                 // Identificar al perdedor como el usuario que envía la petición
                 $loser = $players->where('user_id', $userId)->first();
                 $winner = $players->where('user_id', '!=', $userId)->first();
@@ -1589,7 +1685,6 @@ class GameController extends Controller
 
             return response()->json(['status' => 'failed', 'message' => 'Invalid status']);
         } catch (\Exception $e) {
-            Log::error('Error in setGameEnding: ' . $e->getMessage());
             return response()->json(['status' => 'failed', 'message' => 'Error processing game ending']);
         }
     }
@@ -1608,17 +1703,36 @@ class GameController extends Controller
      * GET MATCH HISTORY
      * 
      * Devuelve las últimas 100 partidas del usuario.
+     * -> Incluye su información y el ganador.
      * 
      * @param \Illuminate\Http\Request $request
-     * Datos
+     * Datos esperados del request:
+     * {
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
      * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos del historial de partidas en formato JSON.
+     *                    -> Incluye el ganador, la fecha y información de la partida.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getUserMatchHistory(Request $request)
     {
         try {
+
+            // Validar datos requeridos
+            $request->validate([
+                'user' => 'required|array',
+                'user.id' => 'required|integer'
+            ]);
+
+            // Pasar los datos del request a variables
             $userId = $request->user()->id;
             $userController = new UserController();
 
+            // Obtener el historial de partidas del usuario
             $games = Game::query()
                 ->whereHas('players', function ($query) use ($userId) {
                     $query->where('user_id', $userId);
@@ -1664,21 +1778,25 @@ class GameController extends Controller
      * GET AVAILABLE GAMES
      * 
      * Devuelve todas las partidas disponibles para observar.
+     * -> Partidas disponibles son: aquellas con 2 jugadores y empezadas.
      * 
-     * Esta función obtiene las partidas disponibles para observar.
+     * Sin parámetros de entrada.
+     * 
      * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de las partidas disponibles en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getAvailableGames()
     {
         try {
-            // Primero obtenemos las partidas que tienen 2 jugadores y están empezadas
+            // Obtener las partidas que tienen 2 jugadores
             $twoPlayerGames = DB::table('game_players')
                 ->select('game_id')
                 ->groupBy('game_id')
                 ->havingRaw('COUNT(*) = 2')
                 ->pluck('game_id');
 
-            // Luego obtenemos los detalles de esas partidas
+            // Luego obtenemos los detalles de esas partidas (sólo las públicas y empezadas [start_date hace más de 10s])
             $games = DB::table('games as g')
                 ->select([
                     'g.id',
@@ -1705,19 +1823,27 @@ class GameController extends Controller
                     ];
                 });
 
-            Log::info('Partidas disponibles encontradas: ' . $games->count());
             return response()->json($games);
         } catch (\Exception $e) {
-            Log::info('No hay partidas disponibles para observar');
             return response()->json([], 200);
         }
     }
     
     /**
      * GET CURRENT MATCH STATUS
+     * 
      * Obtiene la información de una partida que esta en curso.
      * Sólo se debe usar en caso de ser el especator de una partida (GAME VIEWER)
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getCurrentMatchStatus(Request $request){
         try {
@@ -1763,8 +1889,21 @@ class GameController extends Controller
 
     /**
      * VIEW GAME
-     * Une el jugador actual a la partida como espectador.
+     * 
+     * Une al jugador pasado por parámetro a la partida especificada como espectador.
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *    }
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function viewGame(Request $request)
     {
@@ -1821,21 +1960,43 @@ class GameController extends Controller
 
     /**
      * VIEW GAME MOVES
-     * Obtiene todos los movimientos y estado actual de la partida para el espectador
+     * 
+     * Develve todos los movimientos y el estado actual de la partida para los espectadores.
+     * Incluye la siguiente información:
+     * -> Información sobre la partida:
+     *    -> Datos de la partida.
+     *    -> Cantidad restante de movimientos permitidos.
+     *    -> El ganador actual en el momento (player_id o empate)
+     *    -> Cantidad de hits del ganador.
+     * -> Información sobre los jugadores:
+     *    -> Sus datos.
+     *    -> Las coordenadas de sus barcos
+     *    -> Los movimientos de ha realizado (con fechas, resultado y más detalles)
+     * 
      * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "gameCode": string|required,
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Datos detallados de la partida en el momento actual en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function viewGameMoves(Request $request)
     {
         try {
-            Log::info('Starting viewGameMoves function');
 
+            // Validar datos requeridos
             $request->validate([
                 'gameCode' => 'required|string',
                 'user' => 'required|array'
             ]);
 
-            Log::info('Validation passed, looking for game: ' . $request->gameCode);
-
+            // Obtener el juego especificado
             $game = Game::where('code', $request->gameCode)->first();
             
             if (!$game) {
@@ -1846,8 +2007,6 @@ class GameController extends Controller
                 ], 404);
             }
 
-            Log::info('Game found, fetching players data');
-
             // Obtener los jugadores y sus datos
             $players = DB::table('game_players as gp')
                 ->join('users as u', 'u.id', '=', 'gp.user_id')
@@ -1855,16 +2014,10 @@ class GameController extends Controller
                 ->select('u.id', 'u.username', 'gp.coordinates')
                 ->get();
 
-            Log::info('Players found: ' . $players->count());
-
-            // Para cada jugador, obtener sus movimientos y estado de barcos
+            // Para cada jugador, obtener sus movimientos, estado de los barcos y toda su información relacionada
             foreach ($players as $player) {
-                Log::info('Processing player: ' . $player->username);
 
-                // Debug de las coordenadas del jugador
-                Log::info('Player coordinates: ' . ($player->coordinates ?? 'null'));
-
-                // Obtener todos los movimientos con detalles
+                // Obtener todos los movimientos ordenados por fecha
                 $moves = Move::where('game_id', $game->id)
                     ->whereHas('gamePlayer', function($q) use ($player) {
                         $q->where('user_id', $player->id);
@@ -1873,13 +2026,14 @@ class GameController extends Controller
                     ->orderBy('updated_at', 'desc')
                     ->get();
 
-                Log::info('Moves found for player: ' . $moves->count());
-
                 // Mapear los movimientos con manejo seguro de fecha
                 $player->moves = $moves->map(function($move) {
                     $timestamp = null;
+
+                    // Convertir el timestamp de la fecha de la DB a datos usables en este formato: Y-m-d H:i:s
                     try {
-                        // Intentar convertir el timestamp a formato Carbon si es un string
+                        // Para ello vamos a usar Carbon.
+                        // -> ¿Qué es carbon? Biblioteca útil para manejar fechas en caso de no ser de tipo fecha
                         if (is_string($move->updated_at)) {
                             $timestamp = \Carbon\Carbon::parse($move->updated_at)->format('Y-m-d H:i:s');
                         } else {
@@ -1888,9 +2042,8 @@ class GameController extends Controller
                     } catch (\Exception $e) {
                         Log::error('Error formatting timestamp: ' . $e->getMessage());
                     }
-
-                    Log::info('Processing move with timestamp: ' . $timestamp);
-                    
+                  
+                    // Devolver los datos del movimiento
                     return [
                         'coordinate' => $move->coordinate,
                         'result' => $move->result,
@@ -1900,7 +2053,7 @@ class GameController extends Controller
                     ];
                 });
 
-                // Contar hits y calcular barcos restantes con logging
+                // Contar hits y calcular barcos restantes
                 $player->hits = Move::where('game_id', $game->id)
                     ->whereHas('gamePlayer', function($q) use ($player) {
                         $q->where('user_id', $player->id);
@@ -1908,14 +2061,13 @@ class GameController extends Controller
                     ->where('result', 'hit')
                     ->count();
 
-                Log::info('Player hits: ' . $player->hits);
-
-                // Calcular barcos restantes con logging adicional
+                // Calcular barcos restantes
                 if ($player->coordinates) {
                     try {
+                        // Decodificar las coordenadas de los barcos de JSON a Obj
                         $ships = json_decode($player->coordinates, true);
-                        Log::info('Decoded ships: ' . json_encode($ships));
 
+                        // Obtener los baros que se han undido (cantidad)
                         $sunkShips = Move::where('game_id', $game->id)
                             ->where('result', 'hit')
                             ->where('sunk', true)
@@ -1924,10 +2076,9 @@ class GameController extends Controller
                             })
                             ->count();
 
-                        Log::info('Sunk ships count: ' . $sunkShips);
+                        // Calcular barcos restantes con el total y hundidos
                         $player->remaining_ships = count($ships) - $sunkShips;
                     } catch (\Exception $e) {
-                        Log::error('Error processing ships: ' . $e->getMessage());
                         $player->remaining_ships = 0;
                     }
                 } else {
@@ -1935,13 +2086,11 @@ class GameController extends Controller
                 }
             }
 
-            // Resto del procesamiento con logging
+            // Obtener la cantida de movimientos realizada en la partida y los movimientos restantes
             $totalMoves = Move::where('game_id', $game->id)->count();
             $remainingMoves = 200 - $totalMoves;
 
-            Log::info('Total moves: ' . $totalMoves . ', Remaining moves: ' . $remainingMoves);
-
-            // Preparar respuesta final
+            // Generar respuesta final
             $response = [
                 'status' => 'success',
                 'data' => [
@@ -1969,12 +2118,9 @@ class GameController extends Controller
                 ]
             ];
 
-            Log::info('Sending response: ' . json_encode($response));
             return response()->json($response);
 
         } catch (\Exception $e) {
-            Log::error('Error in viewGameMoves: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error getting game moves: ' . $e->getMessage()

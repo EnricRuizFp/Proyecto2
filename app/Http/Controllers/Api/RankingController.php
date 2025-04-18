@@ -12,7 +12,14 @@ use Illuminate\Support\Facades\DB; // Import DB facade
 class RankingController extends Controller
 {
     /**
-     * Retorna un listado paginado de rankings.
+     * LISTAR RANKINGS
+     * 
+     * Devuelve un listado paginado de todos los rankings ordenados por puntos.
+     * 
+     * Sin parámetros de entrada.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Listado paginado en formato JSON.
      */
     public function index(Request $request)
     {
@@ -23,7 +30,21 @@ class RankingController extends Controller
     }
 
     /**
-     * Retorna un listado paginado de rankings para el panel administrativo.
+     * LISTAR RANKINGS ADMINISTRADOR
+     * 
+     * Retorna un listado paginado de rankings para el panel de admin.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request: (opcionales todos)
+     * {
+     *   "search_global": string,
+     *   "order_column": string (ranking_id|points|wins|losses|draws|updated_at),
+     *   "order_direction": "asc"|"desc",
+     *   "per_page": int
+     * }
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Lista paginada y filtrada de rankings en formato JSON.
      */
     public function indexAdmin(Request $request)
     {
@@ -66,13 +87,28 @@ class RankingController extends Controller
     }
 
     /**
-     * Almacena un nuevo ranking.
+     * CREAR RANKING
+     * 
+     * Crea un nuevo registro de ranking.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "user_id": int|required|unique,
+     *   "wins": int|required|min:0,
+     *   "losses": int|required|min:0,
+     *   "draws": int|required|min:0,
+     *   "points": numeric|required
+     * }
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function store(Request $request)
     {
-        Log::info('[RankingController@store] Received request data:', $request->all()); // Log incoming data
-
         try {
+            // Validar los datos
             $validatedData = $request->validate([
                 'user_id' => 'required|exists:users,id|unique:rankings,user_id', // Añadido unique si cada usuario solo debe tener un ranking
                 'wins'    => 'required|integer|min:0',
@@ -81,37 +117,36 @@ class RankingController extends Controller
                 'points'  => 'required|numeric',
             ]);
 
-            Log::info('[RankingController@store] Validation passed. Data:', $validatedData); // Log validated data
-
+            // Crear el ranking
             $ranking = Ranking::create([
                 'user_id'    => $validatedData['user_id'],
                 'wins'       => $validatedData['wins'],
                 'losses'     => $validatedData['losses'],
                 'draws'      => $validatedData['draws'],
                 'points'     => $validatedData['points'],
-                // 'updated_at' => now(), // 'created_at' y 'updated_at' suelen ser manejados automáticamente por Eloquent
             ]);
-
-            Log::info('[RankingController@store] Ranking created successfully. ID:', ['ranking_id' => $ranking->ranking_id ?? null, 'user_id' => $ranking->user_id]); // Log success
 
             return response()->json([
                 'message' => 'Ranking created successfully',
                 'data'    => $ranking,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('[RankingController@store] Validation failed:', ['errors' => $e->errors()]); // Log validation errors
             return response()->json(['message' => 'Validation failed', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            Log::error('[RankingController@store] Exception during creation:', [ // Log any other exceptions
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString() // Optional: for detailed debugging
-            ]);
             return response()->json(['message' => 'Failed to create ranking', 'error' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Muestra un ranking en particular basado en el user_id.
+     * MOSTRAR RANKING
+     * 
+     * Devuelve los datos del ranking pasado por parámetro.
+     * 
+     * @param mixed $id
+     * Datos esperados: ID del ranking a mostrar.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Datos del ránking en formato JSON.
      */
     public function show($id)
     {
@@ -120,7 +155,25 @@ class RankingController extends Controller
     }
 
     /**
-     * Actualiza un ranking existente.
+     * ACTUALIZAR RANKING
+     * 
+     * Actualiza los datos del ranking especificado por parámetro.
+     * 
+     * @param mixed $id
+     * Datos esperados: ID del ranking a actualizar.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "user_id": int|required|unique,
+     *   "wins": int|required|min:0,
+     *   "losses": int|required|min:0,
+     *   "draws": int|required|min:0,
+     *   "points": numeric|required
+     * }
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Datos del ránking actualizado en formato JSON.
      */
     public function update(Request $request, $id)
     {
@@ -153,7 +206,15 @@ class RankingController extends Controller
     }
 
     /**
-     * Elimina un ranking.
+     * ELIMINAR RANKING
+     * 
+     * Elimina el ranking especificado por parámetro.
+     * 
+     * @param mixed $id
+     * Datos esperados: ID del ranking a eliminar.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Mensaje en formato JSON.
      */
     public function destroy($id)
     {
@@ -165,8 +226,29 @@ class RankingController extends Controller
         ]);
     }
 
+    /*
+     
+      /////   PETICIONES COMPLEJAS /////
+
+    */
+
+
     /**
-     * Obtiene los puntos del usuario autenticado
+     * GET USER POINTS
+     * 
+     * Devuelve los puntos del usuario especificado.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y puntos en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getUserPoints(Request $request)
     {
@@ -187,7 +269,21 @@ class RankingController extends Controller
     }
 
     /**
-     * Obtiene la posición global del usuario autenticado.
+     * GET GLOBAL POSITION
+     * 
+     * Devuelve la posición global del usuario especificado.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y posición gobal en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getGlobalPosition(Request $request)
     {
@@ -204,13 +300,27 @@ class RankingController extends Controller
 
             return response()->json(['status' => 'success', 'position' => $position]);
         } catch (\Exception $e) {
-            Log::error('[RankingController@getGlobalPosition] Error:', ['message' => $e->getMessage()]);
             return response()->json(['status' => 'failed', 'message' => 'Error getting global position'], 500);
         }
     }
 
     /**
-     * Obtiene la posición nacional del usuario autenticado.
+     * GET NATIONAL POSITION
+     * 
+     * Devuelve la posición nacional del usuario especificado.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "user": {
+     *     "id": int|required
+     *     "nationality": string|required
+     *   }
+     * }
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y posición nacional en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getNationalPosition(Request $request)
     {
@@ -240,13 +350,26 @@ class RankingController extends Controller
 
             return response()->json(['status' => 'success', 'position' => $position]);
         } catch (\Exception $e) {
-            Log::error('[RankingController@getNationalPosition] Error:', ['message' => $e->getMessage()]);
             return response()->json(['status' => 'failed', 'message' => 'Error getting national position'], 500);
         }
     }
 
     /**
-     * Obtiene el listado del ranking nacional paginado.
+     * GET NATIONAL RANKING
+     * 
+     * Devuelve el ránking nacional a partir de la nacionalidad del usuario
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "user": {
+     *     "nationality": string|required
+     *   }
+     * }
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito, nacionalidad y ránking nacional en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function getNationalRanking(Request $request)
     {
@@ -254,40 +377,29 @@ class RankingController extends Controller
             $user = $request->user();
             $nationality = $user->nationality;
 
+            // Devolver error si el usuario no tiene nacionalidad
             if (!$nationality) {
-                // If the user must have a nationality to view national rankings
                 return response()->json(['status' => 'failed', 'message' => 'User nationality not set to view national rankings.'], 400);
-                // Alternatively, allow viewing even without nationality, but the concept might be odd.
             }
 
-            $limit = $request->query('limit', 10); // Default limit to 10 if not provided
+            // Límite por defecto de 10 ránkings
+            $limit = $request->query('limit', 10);
 
-            $rankings = Ranking::with('user:id,username,nationality') // Eager load user data, select only needed fields
+            // Obtener rankings
+            $rankings = Ranking::with('user:id,username,nationality')
                 ->whereHas('user', function ($query) use ($nationality) {
                     $query->where('nationality', $nationality);
                 })
                 ->orderBy('points', 'desc')
-                ->take($limit) // Use take() instead of paginate() if you only need the top N
+                ->take($limit)
                 ->get();
-
-            // If you need pagination instead of just top N:
-            // $rankings = Ranking::with('user:id,username,nationality')
-            //     ->whereHas('user', function ($query) use ($nationality) {
-            //         $query->where('nationality', $nationality);
-            //     })
-            //     ->orderBy('points', 'desc')
-            //     ->paginate($limit); // Use paginate()
 
             return response()->json([
                 'status' => 'success',
                 'data' => $rankings,
-                'user_nationality' => $nationality // Send back the nationality used for the filter
+                'user_nationality' => $nationality
             ]);
         } catch (\Exception $e) {
-            Log::error('[RankingController@getNationalRankingList] Error:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString() // Include trace for debugging
-            ]);
             return response()->json(['status' => 'failed', 'message' => 'Error getting national ranking list'], 500);
         }
     }

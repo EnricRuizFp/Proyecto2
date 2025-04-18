@@ -11,9 +11,22 @@ use App\Models\Ship;
 class ShipController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
+     * LISTAR BARCOS
+     * 
+     * Devuelve un listado paginado y filtrable de todos los barcos.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados: (opcionales)
+     * {
+     *   "order_column": "id"|"name"|"size",
+     *   "order_direction": "asc"|"desc",
+     *   "search_id": int,
+     *   "search_title": string,
+     *   "search_global": string
+     * }
+     * 
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * Respuesta: Colección paginada de barcos.
      */
     public function index()
     {
@@ -44,10 +57,21 @@ class ShipController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * CREAR BARCO
+     * 
+     * Crea un nuevo barco con los datos proporcionados.
+     * Se necesita el permiso de: 'ship-create'
      *
      * @param  \Illuminate\Http\Request  $request
+     * Datos esperados del request:
+     * {
+     *   "name": string|required,
+     *   "size": int|required
+     * }
+     * 
      * @return shipResource
+     * Respuesta exitosa: Datos del barco creado.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function store(StoreShipRequest $request)
     {
@@ -65,25 +89,42 @@ class ShipController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * MOSTRAR BARCO
+     * 
+     * Devuelve los datos del barco especificado.
+     * Se necesita el permiso de: 'ship-list'
      *
      * @param  int  $id
+     * Datos esperados: ID del barco a mostrar.
+     * 
      * @return ShipResource
+     * Respuesta: Datos del barco especificado.
      */
     public function show(Ship $ship)
     {
-        $this->authorize('ship-edit');
+        $this->authorize('ship-list');
 
         return new ShipResource($ship);
     }
 
     /**
-     * Update the specified resource in storage.
+     * ACTUALIZAR BARCO
+     * 
+     * Actualiza los datos del barco especificado.
+     * Se necesita el permiso de: 'ship-edit'
      *
      * @param Ship $ship
+     * Datos esperados: El barco a editar.
+     * 
      * @param StoreShipRequest $request
+     * Datos esperados del request:
+     * {
+     *   "name": string|required
+     * }
+     * 
      * @return ShipResource
-     * @throws AuthorizationException
+     * Respuesta exitosa: Datos del barco.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function update(Ship $ship, StoreShipRequest $request)
     {
@@ -99,10 +140,16 @@ class ShipController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * ELIMINAR BARCO
+     * 
+     * Elimina el barco especificado.
+     * Se necesita el permiso de: 'ship-delete'
      *
      * @param  int  $id
+     * Datos esperados: ID del barco a eliminar.
+     * 
      * @return \Illuminate\Http\Response
+     * Respuesta: No devuelve nada.
      */
     public function destroy(Ship $ship)
     {
@@ -112,31 +159,42 @@ class ShipController extends Controller
         return response()->noContent();
     }
 
+
+    /*
+
+        ///// FUNCIONES COMPLEJAS /////
+
+    */
+
+    /**
+     * GET SHIP LIST
+     * 
+     * Devuelve el listado de los barcos
+     * 
+     * Sin parámetros de entrada.
+     * 
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * Respuesta: Listado de los barcos de la DB.
+     */
     public function getList()
     {
         return ShipResource::collection(Ship::all());
     }
 
     /**
-     * Get a simple list of all ships for game placement
+     * GET GAME SHIPS
+     * 
+     * Devuelve los barcos del juego.
+     * 
+     * Sin parámetros de entrada.
+     * 
      * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Barcos para la partida en formato JSON.
      */
     public function getGameShips()
     {
         $ships = Ship::select('id', 'name', 'size')->get();
         $gameShips = $ships->toArray();
-
-        // // Buscar y duplicar el crucero
-        // foreach ($ships as $ship) {
-        //     if ($ship->name === 'Crucero') {
-        //         $gameShips[] = [
-        //             'id' => $ship->id . '_2', // Añadir sufijo para ID único
-        //             'name' => $ship->name,
-        //             'size' => $ship->size
-        //         ];
-        //         break;
-        //     }
-        // }
 
         return response()->json($gameShips);
     }

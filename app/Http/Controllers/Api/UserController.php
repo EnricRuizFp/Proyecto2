@@ -13,11 +13,29 @@ use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use App\Models\Avatar;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
+
+    /**
+     * LISTAR USUARIOS
+     * 
+     * Devuelve un listado paginado y filtrable de los usuarios.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados: (opcionales)
+     * {
+     *   "order_column": "id"|"username"|"name"|"surname1"|"surname2"|"email"|"nationality"|"created_at",
+     *   "order_direction": "asc"|"desc",
+     *   "search_id": int,
+     *   "search_title": string,
+     *   "search_global": string
+     * }
+     * 
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * Respuesta: Colección paginada de usuarios.
+     */
     public function index()
     {
         $orderColumn = request('order_column', 'created_at');
@@ -57,14 +75,6 @@ class UserController extends Controller
             });
         }
 
-        // Añadir dentro del método index() para depuración:
-        Log::debug('Filtros de búsqueda aplicados', [
-            'search_global' => request('search_global'),
-            'search_id' => request('search_id'),
-            'search_title' => request('search_title'),
-            'count_after_filter' => $query->count(), // Número de registros tras el filtro
-        ]);
-
         // Aplicar ordenamiento
         $query->orderBy($orderColumn, $orderDirection);
 
@@ -77,11 +87,33 @@ class UserController extends Controller
         return UserResource::collection($users);
     }
 
+    /**
+     * CREAR USUARIO
+     * 
+     * Crea un nuevo usuario con los datos proporcionados.
+     * -> No permite insertar si están duplicados y crea el ranking inicial a 0.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "username": string|required|unique,
+     *   "name": string|required,
+     *   "email": string|required|email|unique,
+     *   "password": string|required|min:8,
+     *   "role_id": array|required,
+     *   "surname1": string|required,
+     *   "surname2": string|nullable,
+     *   "avatar_id": int|nullable|exists:avatars,id,
+     *   "nationality": string|required|in:africa,america,asia,europe,oceania
+     * }
+     * 
+     * @return mixed|\Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos del usuario creado en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
+     */
     public function store(Request $request)
     {
         try {
-            Log::info('Request data:', $request->all());  // Log para debug
-
             // Validación personalizada para verificar duplicados
             $existingUser = User::where('username', $request->username)
                 ->orWhere('email', $request->email)
@@ -102,6 +134,7 @@ class UserController extends Controller
                 ], 422);
             }
 
+            // Validar los datos introducidos por request
             $validatedData = $request->validate([
                 'username' => 'required|unique:users',
                 'name' => 'required',
@@ -114,11 +147,11 @@ class UserController extends Controller
                 'nationality' => 'required|string|in:africa,america,asia,europe,oceania',
             ]);
 
-            Log::info('Validated data:', $validatedData);
-
             DB::beginTransaction();
 
             try {
+
+                // Crear el usuario
                 $user = User::create([
                     'username' => $validatedData['username'],
                     'name' => $validatedData['name'],
@@ -160,20 +193,15 @@ class UserController extends Controller
                 ], 201);
             } catch (\Exception $e) {
                 DB::rollBack();
-                Log::error('Database error: ' . $e->getMessage());
-                Log::error('Stack trace: ' . $e->getTraceAsString());
                 throw $e;
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Validation error: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Error de validación',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Unexpected error: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
 
             return response()->json([
                 'status' => 'error',
@@ -184,34 +212,53 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * MOSTRAR USUARIO
+     * 
+     * Devuelve los datos del usuario especificado.
+     * -> Además devuelve los roles que tiene el usuario.
      *
-     * @param  int  $id
-     * @return UserResource
+     * @param \App\Models\User $user
+     * Datos esperados: El usuario a mostrar.
+     * 
+     * @return \App\Http\Resources\UserResource
+     * Respuesta: Datos del usuario en formato JSON.
      */
     public function show(User $user)
     {
         $user->load('roles');
         $userData = new UserResource($user);
 
-        // Log para debug
-        Log::info('User nationality:', ['nationality' => $user->nationality]);
-
         return $userData;
     }
 
     /**
-     * Update the specified resource in storage.
+     * ACTUALIZAR USUARIO
+     * 
+     * Actualiza los datos del usuario especificado.
      *
      * @param UpdateUserRequest $request
+     * Datos esperados del request:
+     * {
+     *   "username": string|required,
+     *   "name": string|required,
+     *   "email": string|required|email,
+     *   "password": string|nullable,
+     *   "role_id": array|nullable,
+     *   "surname1": string|required,
+     *   "surname2": string|nullable,
+     *   "nationality": string|required|in:africa,america,asia,europe,oceania
+     * }
+     * 
      * @param User $user
-     * @return UserResource
+     * Datos esperados: El usuario a actualizar.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos actualizados en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
      */
     public function update(UpdateUserRequest $request, User $user)
     {
         try {
-            Log::info('Update request data:', $request->all());
-
             DB::beginTransaction();
 
             try {
@@ -262,17 +309,9 @@ class UserController extends Controller
                 ]);
             } catch (\Exception $e) {
                 DB::rollBack();
-                Log::error('Error en la transacción:', [
-                    'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ]);
                 throw $e;
             }
         } catch (\Exception $e) {
-            Log::error('Error actualizando usuario:', [
-                'user_id' => $user->id,
-                'message' => $e->getMessage()
-            ]);
 
             $statusCode = $e instanceof \InvalidArgumentException ? 422 : 500;
 
@@ -286,9 +325,26 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * ACTUALIZAR IMAGEN DE PERFIL
+     * 
+     * Crea o actualiza el avatar personalizado del usuario.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "id": int|required,
+     *   "picture": file|required|image
+     * }
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos del usuario y avatar en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
+     */
     public function updateimg(Request $request)
     {
         try {
+            // Verificar si se le ha pasado una imagen
             if (!$request->hasFile('picture')) {
                 return response()->json([
                     'error' => 'No image file provided'
@@ -346,13 +402,24 @@ class UserController extends Controller
                 'media_url' => $media->getUrl()
             ]);
         } catch (\Exception $e) {
-            Log::error('Error updating user avatar: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Error updating avatar: ' . $e->getMessage()
             ], 500);
         }
     }
 
+    /**
+     * ELIMINAR USUARIO
+     * 
+     * Eliminar el usuario especificado.
+     * Requere el permiso: 'user-delete'
+     * 
+     * @param \App\Models\User $user
+     * Datos esperados: El usuario a eliminar.
+     * 
+     * @return \Illuminate\Http\Response
+     * Respuesta: No devuelve nada.
+     */
     public function destroy(User $user)
     {
         $this->authorize('user-delete');
@@ -361,6 +428,24 @@ class UserController extends Controller
         return response()->noContent();
     }
 
+    /**
+     * ASIGNAR AVATAR
+     * 
+     * Asigna un avatar específico a un usuario.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "avatar_id": int|required|exists:avatars,id
+     * }
+     * 
+     * @param int $id
+     * Datos esperados: ID del usuario a actualizar.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta exitosa: Mensaje de éxito y datos actualizados del usuario y avatar en formato JSON.
+     * Respuesta error: Mensaje de error en formato JSON.
+     */
     public function assignAvatar(Request $request, $id)
     {
         try {
@@ -392,14 +477,28 @@ class UserController extends Controller
                 'avatar' => new AvatarResource($avatar)
             ], 200);
         } catch (\Exception $e) {
-            Log::error('Error asignando avatar: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Error al asignar el avatar: ' . $e->getMessage()
             ], 500);
         }
     }
 
-    // Modificar el método que obtiene los avatares disponibles
+    /**
+     * OBTENER AVATARES DISPONIBLES
+     * 
+     * Devuelve los avatares disponibles para el usuario.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * Datos esperados del request:
+     * {
+     *   "user": {
+     *     "id": int|required
+     *   }
+     * }
+     * 
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * Respuesta: Colección de avatares disponibles en formato JSON.
+     */
     public function getAvailableAvatars(Request $request)
     {
         $userId = $request->user()->id;
@@ -408,7 +507,14 @@ class UserController extends Controller
     }
 
     /**
-     * Obtiene todos los avatares asignados a usuarios
+     * LISTAR AVATARES DE USUARIOS
+     * 
+     * Devuelve un listado paginado de usuarios con sus avatares asignados.
+     * 
+     * Sin parámetros de entrada.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Listado paginado de usuarios con sus avatares en formato JSON.
      */
     public function getUserAvatars()
     {
@@ -417,7 +523,15 @@ class UserController extends Controller
     }
 
     /**
-     * Obtiene los avatares asignados a un usuario específico
+     * OBTENER AVATAR DE USUARIO
+     * 
+     * Devuelve los avatares asignados a un usuario específico.
+     * 
+     * @param int $userId
+     * Datos esperados: ID del usuario.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Avatares del usuario en formato JSON.
      */
     public function getUserAvatar($userId)
     {
@@ -426,7 +540,18 @@ class UserController extends Controller
     }
 
     /**
-     * Elimina la asignación de un avatar a un usuario
+     * ELIMINAR AVATAR DE USUARIO
+     * 
+     * Elimina la asignación de un avatar específico a un usuario.
+     * 
+     * @param int $userId
+     * Datos esperados: ID del usuario.
+     * 
+     * @param int $avatarId
+     * Datos esperados: ID del avatar a desvincular.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     * Respuesta: Mensaje de éxito en formato JSON.
      */
     public function removeAvatar($userId, $avatarId)
     {
@@ -439,7 +564,16 @@ class UserController extends Controller
     }
 
     /**
-     * Obtiene el username de un usuario por su ID
+     * OBTENER NOMBRE DE USUARIO
+     * 
+     * Devuelve el nombre de usuario (username) correspondiente a un ID.
+     * 
+     * @param int $userId
+     * Datos esperados: ID del usuario.
+     * 
+     * @return string
+     * Respuesta exitosa: Username del usuario.
+     * Respuesta error: Mensaje de que no se ha encontrado el usuario.
      */
     public function getUsernameById($userId)
     {
