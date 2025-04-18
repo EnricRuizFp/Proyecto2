@@ -30,10 +30,10 @@ class GameController extends Controller
      */
     public function index(Request $request)
     {
-        // Example: Paginate games, loading the creator relationship
-        $games = Game::with('creator')->paginate(10); // Adjust pagination size if needed
+        // Ejemplo: Paginar partidas, cargando la relación del creador
+        $games = Game::with('creator')->paginate(10); // Ajustar el tamaño de la paginación si es necesario
 
-        // Return the paginator object directly. Laravel handles the JSON structure.
+        // Devolver el objeto paginador directamente. Laravel maneja la estructura JSON.
         return $games;
     }
 

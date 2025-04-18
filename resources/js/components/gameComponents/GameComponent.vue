@@ -395,10 +395,9 @@ const checkMatchWinner = async () => {
 
 // Finaliza la partida y actualiza el estado en el servidor y localmente
 const endGame = async (status, subirDato) => {
-
-    if(subirDato){
+    if (subirDato) {
         console.log("ENDGAME COMO:", status, " subiendo dato.");
-    }else{
+    } else {
         console.log("ENDGAME COMO:", status, " sin subir dato.");
     }
 
@@ -411,7 +410,6 @@ const endGame = async (status, subirDato) => {
         // 'subirDato' indica si este cliente debe informar al servidor del resultado
         // (normalmente true si tú causas el fin, false si lo causa el oponente)
         if (subirDato) {
-
             console.log("Finalizando partida:");
             // Informa al servidor del resultado final
             const response = await axios.post("/api/games/set-game-ending", {
@@ -438,14 +436,12 @@ const endGame = async (status, subirDato) => {
                 }
             }
         } else {
-
             // Si no subes el dato, solo consulta la información final (ya actualizada por el oponente)
             const response = await axios.post("/api/games/get-match-info", {
                 gameCode: gameStore.matchCode,
             });
             gameStore.setPoints(response.data.data.game.points);
             gameStore.setShowWin(true);
-            
         }
     } catch (error) {
         console.error("Error al finalizar la partida: ", error);
@@ -456,22 +452,81 @@ const endGame = async (status, subirDato) => {
 const playTurn = async () => {
     if (!isGameActive.value) return; // Sal si el juego ya terminó
 
+    try {
+        // --- INICIO: Comprobación inicial del estado de la partida ---
+        const initialMatchResponse = await axios.post(
+            "/api/games/get-match-info",
+            {
+                gameCode: gameStore.matchCode,
+            }
+        );
+        const initialGameData = initialMatchResponse.data.data.game;
+
+        // ¿La partida ha terminado y el ganador NO eres tú? (Perdiste)
+        if (
+            initialGameData.is_finished &&
+            initialGameData.winner &&
+            initialGameData.winner !== authStore().user.id
+        ) {
+            isGameActive.value = false;
+            yourTurn.value = false;
+            console.log("Perdedor (detectado al inicio de playTurn).");
+            gameStore.setPoints(initialGameData.points); // Asumiendo que 'points' son los perdidos
+            gameStore.setShowGameOver(true);
+            return; // Salimos de la función playTurn
+        }
+        // ¿La partida ha terminado SIN ganador? (Empate)
+        else if (initialGameData.is_finished && !initialGameData.winner) {
+            isGameActive.value = false;
+            yourTurn.value = false;
+            console.log("Empate (detectado al inicio de playTurn).");
+            gameStore.setPoints(0);
+            gameStore.setShowDraw(true);
+            return; // Salimos de la función playTurn
+        }
+        // ¿La partida ha terminado y el ganador ERES tú? (Oponente abandonó antes de tu turno)
+        else if (
+            initialGameData.is_finished &&
+            initialGameData.winner === authStore().user.id
+        ) {
+            console.log(
+                "Oponente ha abandonado la partida (detectado al inicio de playTurn)."
+            );
+            showNotification("El oponente ha abandonado la partida", "error");
+            await sleep(3000); // Pausa para ver la notificación
+            isGameActive.value = false;
+            yourTurn.value = false;
+            await endGame("winner", false); // Finaliza como ganador (sin subir dato)
+            return; // Salimos de la función playTurn
+        }
+        // --- FIN: Comprobación inicial del estado de la partida ---
+    } catch (error) {
+        console.error(
+            "Error en la comprobación inicial del estado de la partida (playTurn):",
+            error
+        );
+        // Considerar si se debe detener el juego o reintentar
+    }
+
     timeLeft.value = 25; // Reinicia el temporizador
 
     // Bucle que espera a que ataques o se acabe el tiempo
-    while (timeLeft.value > 0 && yourTurn.value) {
-        await sleep(1000); // Espera 1 segundo
+    while (timeLeft.value > 0 && yourTurn.value && isGameActive.value) {
+        // Añadido isGameActive.value
+        await sleep(1000);
         timeLeft.value--;
     }
 
-    // Si se acabó el tiempo y no has atacado (yourTurn sigue true)
-    if (timeLeft.value === 0 && yourTurn.value) {
-        console.log("Tiempo agotado.");
-        showNotification("Tiempo agotado.", "error");
-        await endGame("loser", true); // Pierdes por tiempo
-        isGameActive.value = false; // Detiene el juego
+    // Si se acabó el tiempo y no has atacado (yourTurn sigue true) y el juego sigue activo
+    if (timeLeft.value === 0 && yourTurn.value && isGameActive.value) {
+        console.log("Tiempo agotado. Has perdido el turno.");
+        showNotification("¡Tiempo agotado! Has perdido el turno.", "error");
+        yourTurn.value = false; // Pierdes el turno, pasa al oponente
+        // No se llama a endGame aquí, solo se pierde el turno.
+        // El oponente podría ganar si tú no juegas repetidamente.
     }
     // Si atacaste, handleAttack ya puso yourTurn a false y el bucle termina
+    // Si el juego terminó por la comprobación inicial, isGameActive será false y no entra aquí.
 };
 
 // Gestiona la lógica cuando estás esperando al oponente
@@ -573,7 +628,9 @@ const waitTurn = async () => {
     // Si después de los intentos el oponente no movió...
     if (!opponentMoved && isGameActive.value) {
         // Añadido chequeo de isGameActive
-        console.log("El oponente no realizó ningún movimiento en el tiempo esperado.");
+        console.log(
+            "El oponente no realizó ningún movimiento en el tiempo esperado."
+        );
         isGameActive.value = false; // Detiene el juego
         await endGame("winner", true); // Ganas porque el oponente no jugó
     } else if (opponentMoved) {
@@ -820,10 +877,8 @@ watch(
 
 // Observa si llega un mensaje nuevo para reproducir sonido
 watch(lastMessageId, (newVal, oldVal) => {
-
     // Si el ID ha cambiado (y no es la carga inicial)
     if (oldVal !== 0 && newVal > oldVal) {
-
         // Reproduce sonido (asegúrate que el archivo existe en /public/sounds)
         const audio = new Audio("/sounds/notification.mp3");
         audio
