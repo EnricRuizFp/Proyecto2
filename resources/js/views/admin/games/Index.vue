@@ -9,11 +9,21 @@
                 <DataTable
                     ref="dt"
                     v-model:filters="filters"
-                    v-model:sortField="sortField"
-                    v-model:sortOrder="sortOrder"
                     :value="games.data"
                     paginator
                     :rows="10"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+                    currentPageReportTemplate="&nbsp;"
+                    :rowsPerPageOptions="[10, 20, 50]"
+                    lazy
+                    :totalRecords="games.total"
+                    @page="onPage($event)"
+                    v-model:sortField="sortField"
+                    v-model:sortOrder="sortOrder"
+                    @sort="onSort($event)"
+                    dataKey="id"
+                    size="small"
+                    stripedRows
                     :globalFilterFields="[
                         'id',
                         'code',
@@ -23,9 +33,6 @@
                         'end_date',
                         'created_by',
                     ]"
-                    stripedRows
-                    dataKey="id"
-                    size="small"
                 >
                     <template #header>
                         <Toolbar pt:root:class="toolbar-table">
@@ -35,6 +42,7 @@
                                     <InputText
                                         v-model="filters['global'].value"
                                         placeholder="Buscar"
+                                        @keydown.enter="onFilter"
                                     />
                                 </IconField>
                                 <Button
@@ -72,7 +80,6 @@
                         header="Creation Date"
                         sortable
                     />
-                    <!-- Columna Public: muestra PUBLIC si true y PRIVATE si false -->
                     <Column field="is_public" header="Type" sortable>
                         <template #body="slotProps">
                             <span v-if="slotProps.data.is_public">PUBLIC</span>
@@ -89,7 +96,6 @@
                     </Column>
 
                     <Column field="end_date" header="End Date" sortable />
-                    <!-- Columna Created By: muestra el alias del creador -->
                     <Column
                         field="creator.username"
                         header="Created By"
@@ -106,7 +112,6 @@
                             </span>
                         </template>
                     </Column>
-                    <!-- Columna de acciones -->
                     <Column header="Actions">
                         <template #body="slotProps">
                             <router-link
@@ -125,12 +130,7 @@
                             <Button
                                 icon="pi pi-trash"
                                 class="p-button-danger"
-                                @click="
-                                    deleteGame(
-                                        slotProps.data.id,
-                                        slotProps.index
-                                    )
-                                "
+                                @click="deleteGame(slotProps.data.id)"
                                 size="small"
                             />
                         </template>
@@ -142,59 +142,66 @@
     </div>
 </template>
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted } from "vue";
 import useGames from "@/composables/games.js";
 import { FilterMatchMode } from "@primevue/core/api";
 
-const { games, getGames, deleteGame } = useGames();
-const dt = ref(null); // Reference to DataTable component
-const sortField = ref(null);
-const sortOrder = ref(null);
+const { games, getGames, deleteGame, isLoading } = useGames();
+const dt = ref(null);
 
-const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+const lazyParams = ref({
+    first: 0,
+    rows: 10,
+    page: 1,
+    sortField: null,
+    sortOrder: null,
+    filters: {
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    },
 });
 
-// Función para limpiar los filtros y ordenamiento
-const initFilters = () => {
-    // Reset filters
-    filters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    };
+const filters = ref(lazyParams.value.filters);
 
-    // Reset sorting manually
-    sortField.value = null;
-    sortOrder.value = null;
-
-    // Reset pagination if DataTable reference exists
-    if (dt.value) {
-        dt.value.resetPage();
-    }
-
-    // Reload data to ensure everything is reset
-    getGames();
+const loadLazyData = () => {
+    getGames(lazyParams.value.page, lazyParams.value.rows);
 };
 
-// Función para refrescar la tabla
-const refreshGames = () => {
-    // Reiniciamos la paginación si es necesario
-    getGames();
+const onPage = (event) => {
+    lazyParams.value.page = event.page + 1;
+    lazyParams.value.rows = event.rows;
+    loadLazyData();
 };
 
-// Observar cambios en los filtros para aplicarlos automáticamente
-watch(
-    () => filters.value.global.value,
-    () => {
-        // Podríamos implementar filtrado en el servidor si es necesario
-        // Por ahora el filtrado es local con PrimeVue
-    }
-);
+const onSort = (event) => {
+    lazyParams.value.sortField = event.sortField;
+    lazyParams.value.sortOrder = event.sortOrder;
+    loadLazyData();
+};
+
+const onFilter = () => {
+    lazyParams.value.page = 1;
+    lazyParams.value.first = 0;
+    loadLazyData();
+};
 
 onMounted(() => {
-    getGames();
+    loadLazyData();
 });
-</script>
 
-<style scoped>
-/* Agrega estilos personalizados si es necesario */
-</style>
+const initFilters = () => {
+    lazyParams.value.filters.global.value = null;
+    lazyParams.value.sortField = null;
+    lazyParams.value.sortOrder = null;
+    lazyParams.value.page = 1;
+    lazyParams.value.first = 0;
+    if (dt.value) {
+        dt.value.state.first = 0;
+        dt.value.state.page = 0;
+    }
+    loadLazyData();
+};
+
+const refreshGames = () => {
+    loadLazyData();
+};
+</script>

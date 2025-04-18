@@ -2,8 +2,8 @@ import { ref, inject } from "vue";
 import { useRouter } from "vue-router";
 
 export default function useGames() {
-    const games = ref([]);
-    // game: para trabajar con un solo registro en update/show
+    // Store the whole pagination response object
+    const games = ref({ data: [], total: 0, current_page: 1, per_page: 10 });
     const game = ref({});
     const router = useRouter();
     const validationErrors = ref({});
@@ -11,13 +11,25 @@ export default function useGames() {
     const swal = inject("$swal");
 
     // Obtener listado paginado
-    const getGames = async (page = 1) => {
+    const getGames = async (page = 1, rows = 10) => {
+        // Accept rows per page
         isLoading.value = true;
         try {
-            const response = await axios.get(`/api/games?page=${page}`);
-            games.value = response.data;
+            // Pass page and potentially rows/limit to API if needed
+            const response = await axios.get(
+                `/api/games?page=${page}&limit=${rows}`
+            );
+            games.value = response.data; // Assign the whole pagination object
+            console.log("API Response in composable:", response.data); // Debug log
         } catch (error) {
             console.error("Error at getting games:", error);
+            // Reset on error maybe?
+            games.value = {
+                data: [],
+                total: 0,
+                current_page: 1,
+                per_page: rows,
+            };
         } finally {
             isLoading.value = false;
         }
@@ -86,7 +98,8 @@ export default function useGames() {
     };
 
     // Eliminar un game
-    const deleteGame = async (id, index) => {
+    const deleteGame = async (id) => {
+        // Remove index parameter, it's unreliable with pagination
         console.log("Intentando borrar game con id:", id);
         swal.fire({
             title: "Are you sure?",
@@ -106,9 +119,13 @@ export default function useGames() {
                     .then((response) => {
                         swal({
                             icon: "success",
-                            title: "Avatar successfully deleted.",
+                            title: "Game successfully deleted.",
                         });
-                        getGames();
+                        // Refresh the current page after delete
+                        getGames(
+                            games.value.current_page,
+                            games.value.per_page
+                        );
                     })
                     .catch((error) => {
                         console.error("Error deleting game:", error);
@@ -121,7 +138,7 @@ export default function useGames() {
     };
 
     return {
-        games,
+        games, // Return the whole object
         game,
         getGames,
         getGame,
