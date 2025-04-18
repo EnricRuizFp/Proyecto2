@@ -116,21 +116,23 @@ class ShipController extends Controller
      * @param Ship $ship
      * Datos esperados: El barco a editar.
      * 
-     * @param StoreShipRequest $request
+     * @param StoreShipRequest $request // Consider creating an UpdateShipRequest if validation rules differ
      * Datos esperados del request:
      * {
-     *   "name": string|required
+     *   "name": string|required,
+     *   "size": int|required // Added size to expected request for clarity
      * }
      * 
      * @return ShipResource
      * Respuesta exitosa: Datos del barco.
      * Respuesta error: Mensaje de error en formato JSON.
      */
-    public function update(Ship $ship, StoreShipRequest $request)
+    public function update(Ship $ship, StoreShipRequest $request) // Consider using a dedicated UpdateShipRequest
     {
         $this->authorize('ship-edit');
 
         $ship->name = $request->name;
+        $ship->size = $request->size; // Add this line to update the size
 
         if ($ship->save()) {
             return new ShipResource($ship);

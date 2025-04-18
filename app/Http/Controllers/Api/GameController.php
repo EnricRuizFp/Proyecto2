@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Game;
 use App\Models\GamePlayer;
+use App\Models\GameViewer;
 use App\Models\Move; // Añadir este import al inicio del archivo
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RankingController; // Añadir este import al inicio del archivo
@@ -149,7 +150,7 @@ class GameController extends Controller
         $game = Game::findOrFail($id);
 
         // Actualizar los datos
-        $game->update([            
+        $game->update([
             'creation_date' => $request->creation_date,
             'start_date' => $request->start_date,
             'is_public' => $request->is_public,
@@ -169,25 +170,55 @@ class GameController extends Controller
 
     /**
      * ELIMINAR PARTIDA
-     * 
-     * Elimina la partida especificada.
-     * 
-     * @param mixed $id
-     * Datos esperados: ID de la partida a eliminar.
-     * 
-     * @return mixed|\Illuminate\Http\JsonResponse
-     * Respuesta: Mensaje de éxito en formato JSON.
+     *
+     * Elimina la partida especificada y todos sus datos relacionados
+     * (jugadores, espectadores, movimientos).
+     *
+     * @param  \App\Models\Game  $game // Usando Route Model Binding
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Game $game) // Cambiado a Route Model Binding
     {
-        // Buscar la partida por ID y eliminarla
-        $game = Game::findOrFail($id);
-        $game->delete();
+        // Opcional: Añadir autorización si es necesario
+        // Gate::authorize('delete', $game);
 
-        // Devolver la respuesta en formato JSON
-        return response()->json([
-            'message' => 'Game deleted successfully'
-        ]);
+        try {
+            // Iniciar una transacción de base de datos
+            DB::transaction(function () use ($game) {
+
+                // 1. Eliminar movimientos asociados (si existe la relación/modelo)
+                // Asumiendo que el modelo Move tiene 'game_id'
+                Move::where('game_id', $game->id)->delete();
+
+                // 2. Eliminar espectadores asociados (usando el modelo GameViewer)
+                GameViewer::where('game_id', $game->id)->delete();
+
+                // 3. Eliminar jugadores asociados (usando el modelo GamePlayer)
+                GamePlayer::where('game_id', $game->id)->delete();
+
+                // 4. Eliminar chats asociados (si existe la relación/modelo)
+                // Asumiendo que el modelo Chat tiene 'game_id'
+                // Chat::where('game_id', $game->id)->delete(); // Descomentar si existe el modelo Chat
+
+                // 5. Finalmente, eliminar el juego mismo
+                $game->delete();
+
+                Log::info("Game ID {$game->id} and associated data deleted successfully."); // Log opcional
+
+            });
+
+            // Devolver respuesta exitosa (204 No Content)
+            return response()->noContent();
+        } catch (\Exception $e) {
+            // Registrar el error para depuración
+            Log::error("Error deleting game ID {$game->id}: " . $e->getMessage());
+
+            // Devolver una respuesta de error
+            return response()->json([
+                'message' => 'Error deleting game due to a server error.',
+                // 'error' => $e->getMessage() // Opcionalmente incluir mensaje de error en desarrollo
+            ], 500); // 500 Internal Server Error
+        }
     }
 
 
@@ -459,7 +490,8 @@ class GameController extends Controller
      * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
      * Respuesta error: Mensaje de error en formato JSON.
      */
-    public function playPublicGame($user){
+    public function playPublicGame($user)
+    {
 
         // Buscar todos los juegos públicos que no han comenzado
         $publicUnstartedGames = Game::where('is_public', true)
@@ -1157,7 +1189,7 @@ class GameController extends Controller
                 ->where('game_id', $game->id)
                 ->where('user_id', '!=', $request->user['id'])
                 ->first();
-            
+
             if (!$opponentData || empty($opponentData->coordinates)) {
                 return response()->json([
                     'status' => 'failed',
@@ -1176,7 +1208,7 @@ class GameController extends Controller
             foreach ($opponentShips as $shipName => $positions) {
                 if (in_array($attackCoordinate, $positions)) {
                     $hitShip = $shipName;
-                    
+
                     // Verificar si todas las posiciones del barco han sido golpeadas
                     $allHits = true;
                     foreach ($positions as $position) {
@@ -1187,7 +1219,7 @@ class GameController extends Controller
                                 ->where('coordinate', $position)
                                 ->where('result', 'hit')
                                 ->exists();
-                            
+
                             if (!$existingHit) {
                                 $allHits = false;
                                 break;
@@ -1221,7 +1253,6 @@ class GameController extends Controller
                 'ship' => $hitShip,
                 'is_sunk' => $isSunk
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',
@@ -1425,7 +1456,6 @@ class GameController extends Controller
                 'status' => 'success',
                 'moves' => $moves
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',
@@ -1523,7 +1553,7 @@ class GameController extends Controller
                         $hits++;
                     }
                 }
-                
+
                 // Si no todos los puntos del barco han sido golpeados, aumentar contador
                 if ($hits < count($positions)) {
                     $shipsLeft++;
@@ -1540,7 +1570,6 @@ class GameController extends Controller
                 'move_count' => $moveCount,
                 'data' => $opponentData->coordinates
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',
@@ -1634,7 +1663,7 @@ class GameController extends Controller
 
                 // Verificar que los puntos a restar no dejen al perdedor con puntos negativos
                 $pointsToDecrease = min($points, $loserRanking->points);
-                
+
                 // Actualizar el ranking del perdedor
                 DB::table('rankings')
                     ->where('user_id', $loser->user_id)
@@ -1837,7 +1866,7 @@ class GameController extends Controller
             return response()->json([], 200);
         }
     }
-    
+
     /**
      * GET CURRENT MATCH STATUS
      * 
@@ -1854,7 +1883,8 @@ class GameController extends Controller
      * Respuesta exitosa: Mensaje de éxito y datos de la partida en formato JSON.
      * Respuesta error: Mensaje de error en formato JSON.
      */
-    public function getCurrentMatchStatus(Request $request){
+    public function getCurrentMatchStatus(Request $request)
+    {
         try {
             // Validar datos requeridos
             $request->validate([
@@ -1958,7 +1988,6 @@ class GameController extends Controller
                 'status' => 'success',
                 'message' => 'Successfully joined as viewer'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',
@@ -2007,7 +2036,7 @@ class GameController extends Controller
 
             // Obtener el juego especificado
             $game = Game::where('code', $request->gameCode)->first();
-            
+
             if (!$game) {
                 Log::warning('Game not found: ' . $request->gameCode);
                 return response()->json([
@@ -2028,7 +2057,7 @@ class GameController extends Controller
 
                 // Obtener todos los movimientos ordenados por fecha
                 $moves = Move::where('game_id', $game->id)
-                    ->whereHas('gamePlayer', function($q) use ($player) {
+                    ->whereHas('gamePlayer', function ($q) use ($player) {
                         $q->where('user_id', $player->id);
                     })
                     ->select('coordinate', 'result', 'ship', 'sunk', 'updated_at')
@@ -2036,7 +2065,7 @@ class GameController extends Controller
                     ->get();
 
                 // Mapear los movimientos con manejo seguro de fecha
-                $player->moves = $moves->map(function($move) {
+                $player->moves = $moves->map(function ($move) {
                     $timestamp = null;
 
                     // Convertir el timestamp de la fecha de la DB a datos usables en este formato: Y-m-d H:i:s
@@ -2051,7 +2080,7 @@ class GameController extends Controller
                     } catch (\Exception $e) {
                         Log::error('Error formatting timestamp: ' . $e->getMessage());
                     }
-                  
+
                     // Devolver los datos del movimiento
                     return [
                         'coordinate' => $move->coordinate,
@@ -2064,7 +2093,7 @@ class GameController extends Controller
 
                 // Contar hits y calcular barcos restantes
                 $player->hits = Move::where('game_id', $game->id)
-                    ->whereHas('gamePlayer', function($q) use ($player) {
+                    ->whereHas('gamePlayer', function ($q) use ($player) {
                         $q->where('user_id', $player->id);
                     })
                     ->where('result', 'hit')
@@ -2080,7 +2109,7 @@ class GameController extends Controller
                         $sunkShips = Move::where('game_id', $game->id)
                             ->where('result', 'hit')
                             ->where('sunk', true)
-                            ->whereHas('gamePlayer', function($q) use ($player) {
+                            ->whereHas('gamePlayer', function ($q) use ($player) {
                                 $q->where('user_id', '!=', $player->id);
                             })
                             ->count();
@@ -2103,7 +2132,7 @@ class GameController extends Controller
             $response = [
                 'status' => 'success',
                 'data' => [
-                    'players' => $players->map(function($player) {
+                    'players' => $players->map(function ($player) {
                         return [
                             'id' => $player->id,
                             'username' => $player->username,
@@ -2115,20 +2144,17 @@ class GameController extends Controller
                     }),
                     'game_status' => [
                         'remaining_moves' => $remainingMoves,
-                        'current_leader' => $players[0]->hits > $players[1]->hits ? 
-                            $players[0]->username : 
-                            ($players[1]->hits > $players[0]->hits ? $players[1]->username : "Empate"),
+                        'current_leader' => $players[0]->hits > $players[1]->hits ?
+                            $players[0]->username : ($players[1]->hits > $players[0]->hits ? $players[1]->username : "Empate"),
                         'leader_hits' => max($players[0]->hits, $players[1]->hits),
                         'is_finished' => $game->is_finished,
-                        'winner' => $game->winner ? 
-                            $players->firstWhere('id', $game->winner)->username : 
-                            ($game->is_finished && !$game->winner ? 'draw' : null)
+                        'winner' => $game->winner ?
+                            $players->firstWhere('id', $game->winner)->username : ($game->is_finished && !$game->winner ? 'draw' : null)
                     ]
                 ]
             ];
 
             return response()->json($response);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'failed',
