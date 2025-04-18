@@ -1,9 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\AuthorController;
-use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\PermissionController;
-use App\Http\Controllers\Api\PostControllerAdvance;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserController;
@@ -11,7 +8,6 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Api\AvatarController;
 use App\Http\Controllers\Api\ShipController;
 use App\Http\Controllers\Api\GameController;
@@ -31,7 +27,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::post('users/updateimg', [UserController::class, 'updateimg']); //Listar
 
-    Route::apiResource('posts', PostControllerAdvance::class);
     Route::apiResource('roles', RoleController::class);
 
     Route::get('role-list', [RoleController::class, 'getList']);
@@ -171,19 +166,3 @@ Route::get('/rankings/{id}', [RankingController::class, 'show'])->name('rankings
 Route::get('/rankings', [RankingController::class, 'index'])->name('rankings.index');
 Route::put('/rankings/{id}', [RankingController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('/rankings/{id}', [RankingController::class, 'destroy'])->middleware('auth:sanctum');
-
-Route::get('get-posts', [PostControllerAdvance::class, 'getPosts']);
-Route::get('get-category-posts/{id}', [PostControllerAdvance::class, 'getCategoryByPosts']);
-Route::get('get-post/{id}', [PostControllerAdvance::class, 'getPost']);
-
-Route::get('notes', [NoteController::class, 'index'])->name('notes.index');
-Route::post('notes', [NoteController::class, 'store'])->name('notes.store');
-Route::get('notes/{id}', [NoteController::class, 'show'])->name(name: 'notes.show');
-Route::put('notes/{id}', [NoteController::class, 'update'])->name(name: 'notes.update');
-Route::delete('notes/{id}', [NoteController::class, 'destroy'])->name('notes.destroy');
-
-Route::get('authors', [AuthorController::class, 'index'])->name('authors.index');
-Route::post('authors', [AuthorController::class, 'store'])->name('authors.store');
-Route::delete('authors/{author}', [AuthorController::class, 'destroy'])->name('authors.destroy');
-Route::get('authors/{author}', [AuthorController::class, 'show'])->name('authors.show');
-Route::put('authors/{author}', [AuthorController::class, 'update'])->name('authors.update');
