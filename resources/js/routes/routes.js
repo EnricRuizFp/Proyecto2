@@ -65,21 +65,7 @@ export default [
                 name: "home",
                 component: () => import("../views/home/index.vue"),
             },
-            {
-                path: "posts",
-                name: "public-posts.index",
-                component: () => import("../views/posts/index.vue"),
-            },
-            {
-                path: "posts/:id",
-                name: "public-posts.details",
-                component: () => import("../views/posts/details.vue"),
-            },
-            {
-                path: "category/:id",
-                name: "category-posts.index",
-                component: () => import("../views/category/posts.vue"),
-            },
+
             {
                 path: "login",
                 name: "auth.login",
@@ -169,24 +155,6 @@ export default [
                 meta: { breadCrumb: "Profile" },
             },
             {
-                name: "posts.index",
-                path: "posts",
-                component: PostsIndex,
-                meta: { breadCrumb: "Posts" },
-            },
-            {
-                name: "posts.create",
-                path: "posts/create",
-                component: PostsCreate,
-                meta: { breadCrumb: "Add new post" },
-            },
-            {
-                name: "posts.edit",
-                path: "posts/edit/:id",
-                component: PostsEdit,
-                meta: { breadCrumb: "Edit post" },
-            },
-            {
                 name: "permissions",
                 path: "permissions",
                 meta: { breadCrumb: "Permisos" },
@@ -249,30 +217,6 @@ export default [
                             import("../views/admin/users/Edit.vue"),
                         meta: {
                             breadCrumb: "Editar Usuario",
-                            linked: false,
-                        },
-                    },
-                ],
-            },
-            {
-                name: "authors",
-                path: "authors",
-                meta: { breadCrumb: "Autores" },
-                children: [
-                    {
-                        name: "authors.index",
-                        path: "",
-                        component: () =>
-                            import("../views/admin/authors/Index.vue"),
-                        meta: { breadCrumb: "Listado Autores" },
-                    },
-                    {
-                        name: "authors.edit",
-                        path: "edit/:id",
-                        component: () =>
-                            import("../views/admin/authors/edit.vue"),
-                        meta: {
-                            breadCrumb: "Autor Edit",
                             linked: false,
                         },
                     },
