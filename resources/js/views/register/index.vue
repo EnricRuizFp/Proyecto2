@@ -291,7 +291,6 @@ const handleRegister = async () => {
     color: var(--white-color);
 }
 
-/* Added responsive styles for register form */
 #registerContainer {
     display: flex;
     justify-content: center;

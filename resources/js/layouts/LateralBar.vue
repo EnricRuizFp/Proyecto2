@@ -7,7 +7,7 @@
             @click="toggleDropdown"
             :class="{ 'menu-opened': dropdownOpen }"
         >
-            <!-- Reemplazamos la imagen por un icono de Font Awesome -->
+            <!-- Icono de Font Awesome en lugar de imagen -->
             <i
                 :class="dropdownOpen ? 'fas fa-times' : 'fas fa-bars'"
                 style="font-size: 24px; color: var(--white-color)"
@@ -37,18 +37,18 @@
                     <img
                         v-if="dropdownOpen"
                         src="/images/icons/arrow-left-dark.svg"
-                        alt="Open menu arrow"
+                        alt="Flecha para abrir menú"
                     />
                     <img
                         v-else
                         src="/images/icons/arrow-right-dark.svg"
-                        alt="Close menu arrow"
+                        alt="Flecha para cerrar menú"
                     />
                 </span>
             </div>
         </nav>
 
-        <!-- Info Message -->
+        <!-- Mensaje de Información -->
         <div v-if="infoMessage" class="info-alert">
             {{ infoMessage }}
             <button class="close-button" @click="infoMessage = ''">×</button>
@@ -66,83 +66,86 @@ const dropdownOpen = ref(false);
 const isMobile = ref(window.innerWidth < 768);
 const router = useRouter();
 const route = useRoute();
-const menuBlocked = ref(false);
-const infoMessage = ref("");
+const menuBlocked = ref(false); // Estado para bloquear interacción con el menú (ej: durante partida)
+const infoMessage = ref(""); // Mensaje para intentos de navegación bloqueados
 
-// Escuchar eventos de bloqueo del menú
+// Escucha eventos personalizados para bloquear/desbloquear el menú
 const handleMenuBlock = (event) => {
     menuBlocked.value = event.detail;
 };
 
-// Escuchar mensajes de bloqueo del menú
+// Escucha eventos personalizados para mostrar mensaje de navegación bloqueada
 const handleMenuBlockedMessage = (event) => {
     infoMessage.value = event.detail;
     setTimeout(() => {
-        infoMessage.value = "";
+        infoMessage.value = ""; // Limpia el mensaje después de 3 segundos
     }, 3000);
 };
 
-// Close menu when route changes
+// Cierra el menú al cambiar de ruta, especialmente en móvil
 watch(
     () => route.fullPath,
     () => {
-        // Only close if on mobile or if explicitly requested
         if (isMobile.value) {
             closeMenu();
         }
     }
 );
 
+// Alterna el estado abierto/cerrado de la barra lateral
 const toggleDropdown = () => {
     dropdownOpen.value = !dropdownOpen.value;
-    // Controlar el scroll del body
+    // Evita el scroll del body cuando el menú está abierto en móvil
     if (isMobile.value) {
         document.body.style.overflow = dropdownOpen.value ? "hidden" : "auto";
     }
 };
 
+// Cierra la barra lateral si está abierta
 const closeMenu = () => {
     if (dropdownOpen.value) {
         dropdownOpen.value = false;
-
-        // If on mobile, restore body scroll
+        // Restaura el scroll del body si es móvil
         if (isMobile.value) {
             document.body.style.overflow = "auto";
         }
     }
 };
 
+// Configura listeners al montar el componente
 onMounted(() => {
-    // Agregar listener para eventos de bloqueo del menú
+    // Escucha eventos personalizados relacionados con el bloqueo del menú
     document.addEventListener("block-menu", handleMenuBlock);
     document.addEventListener(
         "show-menu-blocked-message",
         handleMenuBlockedMessage
     );
 
+    // Actualiza el estado móvil al redimensionar la ventana
     const handleResize = () => {
         isMobile.value = window.innerWidth < 768;
     };
-
     window.addEventListener("resize", handleResize);
 });
 
-// Limpiar el estilo al desmontar el componente
+// Limpieza al desmontar el componente
 onUnmounted(() => {
-    document.body.style.overflow = "auto";
+    document.body.style.overflow = "auto"; // Asegura que el scroll del body se restaure
+    // Elimina los listeners de eventos
     document.removeEventListener("block-menu", handleMenuBlock);
     document.removeEventListener(
         "show-menu-blocked-message",
         handleMenuBlockedMessage
     );
-
     window.removeEventListener("resize", () => {
         isMobile.value = window.innerWidth < 768;
     });
 });
 
+// Provee el estado menuBlocked a los componentes hijos (como MenuComponent)
 provide("menuBlocked", menuBlocked);
 
+// Expone métodos si son necesarios para componentes padres (aunque probablemente no se usen aquí)
 defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
 </script>
 
@@ -150,15 +153,13 @@ defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
 #lateralBar {
     width: 280px;
     height: 100vh;
-    background-color: var(
-        --background-secondary
-    ); /* Cambiado de background-primary a background-secondary */
+    background-color: var(--background-secondary);
     transition: width 0.3s ease;
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 9999; /* Aseguramos que esté por encima de todo */
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Opcional: añade sombra para mejor separación visual */
+    z-index: 9999;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
 #lateralBar.closed {
@@ -184,25 +185,25 @@ defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .lateral-content::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
+    display: none;
 }
 
 #menuItems {
     flex: 1;
     overflow-y: auto;
     padding-top: 4rem;
-    padding-left: 2rem; /* Reducido de 2rem */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+    padding-left: 2rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 #menuItems::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
+    display: none;
 }
 
 #closeButton {
@@ -210,9 +211,7 @@ defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
     top: 50%;
     right: -50px;
     transform: translateY(-50%);
-    background-color: var(
-        --background-secondary
-    ); /* Cambiado de neutral-color */
+    background-color: var(--background-secondary);
     border: 1px solid var(--white-color);
     border-radius: 50%;
     width: 40px;
@@ -224,21 +223,16 @@ defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
     transition: background-color 0.3s ease, right 0.3s ease-in-out;
 }
 
-/* Cambiar color al pasar el cursor */
 #closeButton:hover {
-    background-color: var(
-        --background-primary
-    ); /* Cambiado para mejor contraste */
+    background-color: var(--background-primary);
 }
 
-/* Ocultar closeButton en móvil */
 @media (max-width: 768px) {
     #closeButton {
         display: none !important;
     }
 }
 
-/* Estilos del botón móvil completamente reescritos */
 #mobileMenuButton {
     all: unset;
     position: fixed;
@@ -264,7 +258,6 @@ defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
     background-color: var(--background-primary);
 }
 
-/* Media queries */
 @media (max-width: 768px) {
     #mobileMenuButton {
         display: flex !important;
@@ -291,7 +284,7 @@ defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
         display: flex;
         align-items: center;
         padding: 0;
-        overflow-y: auto; /* Permitir scroll en el menú */
+        overflow-y: auto;
         background-color: var(--background-secondary);
         transition: transform 0.3s ease;
         will-change: transform;
@@ -310,8 +303,8 @@ defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
 
     .lateral-content {
         width: 100%;
-        height: 100vh; /* Altura completa */
-        overflow-y: auto; /* Permitir scroll */
+        height: 100vh;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
         transition: opacity 0.3s ease;
@@ -321,11 +314,11 @@ defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
     #menuItems {
         width: 100%;
         height: auto;
-        min-height: 100vh; /* Asegurar altura mínima */
+        min-height: 100vh;
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 6rem 0 2rem 0; /* Aumentado el padding-top a 6rem */
+        padding: 6rem 0 2rem 0;
         overflow-y: auto;
         transition: none;
     }
@@ -361,7 +354,6 @@ defineExpose({ dropdownOpen, toggleDropdown, closeMenu });
     }
 }
 
-/* Estilos para el mensaje informativo */
 .info-alert {
     position: fixed;
     top: 20px;

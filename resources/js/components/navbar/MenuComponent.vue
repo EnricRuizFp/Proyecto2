@@ -1,9 +1,9 @@
 <template>
-    <!-- Menu List -->
+    <!-- Lista del Menú -->
     <div id="lateralMenu">
         <hr class="dropdown-divider" />
         <div class="tituloBarraLateral">
-            <!-- Cambiado de router-link a 'a' -->
+            <!-- Enlace a inicio -->
             <a
                 href="#"
                 class="bolder menu-item"
@@ -67,7 +67,7 @@
             <template v-if="authStore().user?.id">
                 <hr class="dropdown-divider" />
                 <div class="contenidoSubtituloBarraLateral">
-                    <!-- Cambiado de router-link a 'a' -->
+                    <!-- Enlace a perfil -->
                     <a
                         href="#"
                         class="menu-item"
@@ -76,14 +76,13 @@
                         :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                     >
                         <i class="fas fa-user"></i>
-                        <!-- Icono de usuario -->
                         <span class="menu-text">MI PERFIL</span>
                     </a>
                 </div>
             </template>
             <hr class="dropdown-divider" />
             <div class="contenidoSubtituloBarraLateral">
-                <!-- Cambiado de router-link a 'a' -->
+                <!-- Enlace a ranking -->
                 <a
                     href="#"
                     class="menu-item"
@@ -99,13 +98,13 @@
         </div>
     </div>
 
-    <!-- Error Message -->
+    <!-- Mensaje de Error -->
     <div v-if="errorMessage" class="error-alert">
         {{ errorMessage }}
         <button class="close-button" @click="errorMessage = ''">×</button>
     </div>
 
-    <!-- Info Message -->
+    <!-- Mensaje de Información -->
     <div v-if="infoMessage" class="info-alert">
         {{ infoMessage }}
         <button class="close-button" @click="infoMessage = ''">×</button>
@@ -120,9 +119,7 @@
 </template>
 
 <script setup>
-/* -- IMPORTS -- */
-// Importaciones necesarias: Vue (ref, computed), Vue Router (useRouter, useRoute),
-// Stores (Pinia: useGameStore, authStore), Axios para llamadas API, y el componente del modal.
+/* -- IMPORTACIONES -- */
 import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useGameStore } from "../../store/game";
@@ -131,32 +128,28 @@ import axios from "axios";
 import JoinMatchModal from "../privateMatch/JoinMatchModal.vue";
 
 /* -- VARIABLES -- */
-// Instancias de router y route para navegación y acceso a la ruta actual.
 const router = useRouter();
 const route = useRoute();
-// Instancia del store del juego para manejar su estado.
-const gameStore = useGameStore();
-// Refs para manejar mensajes de error/información y la visibilidad del modal.
+const gameStore = useGameStore(); // Manejo del estado del juego
 const errorMessage = ref("");
 const infoMessage = ref("");
 const showJoinModal = ref(false);
 
 /* -- PROPS -- */
-// Define una propiedad 'isMenuBlocked' que el componente padre puede pasar
-// para forzar el bloqueo del menú externamente (ej: si otra acción está en curso).
+// Permite al componente padre bloquear el menú externamente
 const props = defineProps({
     isMenuBlocked: {
         type: Boolean,
-        default: false, // Por defecto, el menú no está bloqueado por el padre.
+        default: false, // El menú no está bloqueado por el padre por defecto
     },
 });
 
-/* -- COMPUTED PROPERTIES -- */
-// Rutas específicas donde la navegación desde el menú debe estar deshabilitada (ej: dentro de una partida activa).
-const blockedRoutes = ["/game"]; // Solo bloquea si la ruta empieza con /game
+/* -- PROPIEDADES COMPUTADAS -- */
+// Rutas donde la navegación del menú debe estar deshabilitada (ej: durante una partida activa)
+const blockedRoutes = ["/game"]; // Bloquea si la ruta empieza con /game
 
-// Propiedad computada que determina si el menú debe estar bloqueado.
-// Devuelve true si la ruta actual empieza con alguna de las 'blockedRoutes'
+// Determina si el menú debe estar bloqueado.
+// Devuelve true si la ruta actual empieza con alguna 'blockedRoutes'
 // O si la prop 'isMenuBlocked' es true. Se usa para deshabilitar los items del menú.
 const isCurrentRouteBlocked = computed(() => {
     return (
@@ -167,15 +160,15 @@ const isCurrentRouteBlocked = computed(() => {
 });
 
 /* -- EMITS -- */
-// Define un evento 'navigation' que se emitirá cuando se haga clic en un ítem del menú
-// (y la navegación no esté bloqueada), usualmente para que el componente padre cierre el menú.
+// Define un evento 'navigation' que se emite al hacer clic en un ítem del menú
+// (si la navegación no está bloqueada), típicamente para que el padre cierre el menú.
 const emit = defineEmits(["navigation"]);
 
-/* -- FUNCTIONS -- */
+/* -- FUNCIONES -- */
 
 /**
- * Verifica si el menú está bloqueado. Si lo está, muestra un mensaje.
- * Si no lo está, emite el evento 'navigation'.
+ * Comprueba si el menú está bloqueado. Muestra un mensaje si lo está.
+ * Emite el evento 'navigation' si no está bloqueado.
  * @returns {boolean} - True si la navegación puede proceder, false si está bloqueada.
  */
 const emitNavigation = () => {
@@ -183,15 +176,14 @@ const emitNavigation = () => {
         showNavigationBlockedMessage(); // Muestra mensaje de bloqueo
         return false; // Indica que la navegación NO debe proceder
     }
-    emit("navigation"); // Emite el evento para notificar al padre (ej: cerrar menú)
+    emit("navigation"); // Notifica al padre (ej: cerrar menú)
     return true; // Indica que la navegación PUEDE proceder
 };
 
 /**
- * Muestra un mensaje temporal informando que la navegación está bloqueada.
+ * Muestra un mensaje temporal indicando que la navegación está bloqueada.
  */
 const showNavigationBlockedMessage = () => {
-    // Mensaje actualizado para ser más preciso
     infoMessage.value = "No puedes navegar mientras estás en una partida";
     setTimeout(() => {
         infoMessage.value = ""; // Oculta el mensaje después de 3 segundos
@@ -200,7 +192,7 @@ const showNavigationBlockedMessage = () => {
 
 /**
  * Verifica los requisitos del usuario en el backend antes de navegar a una partida.
- * Realiza la navegación usando router.push() si los requisitos se cumplen.
+ * Navega usando router.push() si los requisitos se cumplen.
  * @param {string} gameType - Tipo de juego ('public', 'private').
  * @param {string|null} gameCode - Código de la partida (para unirse a privada, null para crear).
  */
@@ -225,7 +217,7 @@ const checkAndNavigate = async (gameType, gameCode = null) => {
 
         // Si el backend responde con éxito...
         if (response.data.status === "success") {
-            console.log("OK: User ready to play.");
+            console.log("OK: Usuario listo para jugar.");
             // Navega a la ruta correspondiente según el tipo y código.
             if (gameType === "public") {
                 router.push(`/game/public/null`); // Ruta para partida pública.
@@ -241,11 +233,11 @@ const checkAndNavigate = async (gameType, gameCode = null) => {
                 "Your user is leaving the game. Wait a few seconds."
             ) {
                 // Mensaje informativo específico.
-                console.log("Failed without error: ", response.data.message);
+                console.log("Fallo sin error: ", response.data.message);
                 infoMessage.value = response.data.message;
             } else {
                 // Otro tipo de error devuelto por el backend.
-                console.log("Failed with error:", response.data.message);
+                console.log("Fallo con error:", response.data.message);
                 errorMessage.value = response.data.message;
             }
         }
@@ -332,7 +324,9 @@ const showJoinMatchModal = async () => {
             );
 
             if (response.data.status === "success") {
-                console.log("OK: User can potentially join a game.");
+                console.log(
+                    "OK: Usuario puede potencialmente unirse a una partida."
+                );
                 showJoinModal.value = true; // Muestra el modal si pasa la verificación.
             } else {
                 // Manejo de mensajes específicos o errores generales del backend.
@@ -340,13 +334,10 @@ const showJoinMatchModal = async () => {
                     response.data.message ==
                     "Your user is leaving the game. Wait a few seconds."
                 ) {
-                    console.log(
-                        "Failed without error: ",
-                        response.data.message
-                    );
+                    console.log("Fallo sin error: ", response.data.message);
                     infoMessage.value = response.data.message;
                 } else {
-                    console.log("FAILED:", response.data.message);
+                    console.log("FALLO:", response.data.message);
                     errorMessage.value = response.data.message;
                 }
             }
@@ -392,12 +383,12 @@ const handleViewGame = () => {
 }
 
 .contenidoSubtituloBarraLateral {
-    padding: 0.25rem 0; /* Aumentado para más espacio entre items */
+    padding: 0.25rem 0;
 }
 
 .dropdown-divider {
-    opacity: 0.25; /* Más delgado */
-    margin: 0.4rem 1rem; /* Aumentado margen */
+    opacity: 0.25;
+    margin: 0.4rem 1rem;
 }
 
 #lateralMenu > .dropdown-divider:first-child {
@@ -410,31 +401,29 @@ const handleViewGame = () => {
     gap: 1rem;
     color: var(--white-color);
     text-decoration: none;
-    font-size: 1.4rem; /* Aumentado de 1.25rem a 1.4rem */
+    font-size: 1.4rem;
     white-space: nowrap;
     transition: all 0.3s ease;
     padding: 0.5rem;
-    cursor: pointer; /* Explicitly add pointer cursor */
+    cursor: pointer;
 }
 
 .menu-item i {
-    font-size: 1.5rem; /* Aumentado de 1.3rem a 1.5rem */
+    font-size: 1.5rem;
     min-width: 24px;
     text-align: center;
     transition: all 0.3s ease;
 }
 
-/* Estilo específico para los títulos */
 h2.menu-item {
     margin: 0;
-    font-size: 1.8rem; /* Tamaño más grande para los títulos */
+    font-size: 1.8rem;
 }
 
 .menu-item:hover {
     color: var(--primary-color);
 }
 
-/* Estilos para el menú cerrado */
 :deep(#lateralBar.closed) .menu-item {
     justify-content: center;
     padding: 0.5rem 0;
@@ -471,7 +460,6 @@ h2.menu-item {
     text-align: center;
 }
 
-/* Estilos mejorados para tooltips */
 :deep(#lateralBar.closed) .menu-item {
     position: relative;
 }
@@ -526,7 +514,6 @@ h2.menu-item {
     }
 }
 
-/* Añadir estilos para la alerta de error */
 .error-alert {
     position: fixed;
     top: 20px;
@@ -572,14 +559,12 @@ h2.menu-item {
     border: 1px solid var(--white-color);
 }
 
-/* Estilos para los enlaces deshabilitados */
 .disabled-link {
     opacity: 0.5;
     cursor: not-allowed !important;
     pointer-events: none;
 }
 
-/* Nuevo estilo para ítems deshabilitados */
 .disabled-menu-item {
     opacity: 0.5;
     cursor: not-allowed !important;
@@ -592,12 +577,10 @@ h2.menu-item {
     color: var(--neutral-color-3) !important;
 }
 
-/* Eliminar el estilo de oscurecimiento para el contenedor completo */
 .menu-blocked {
     position: relative;
 }
 
-/* Eliminar el pseudo-elemento que oscurece todo el contenedor */
 .menu-blocked::after {
     content: none;
 }

@@ -1,19 +1,19 @@
 <template>
     <div id="topBar" class="app-background-primary">
         <div id="topBarContent">
-            <!-- When in game routes, display logo without link -->
+            <!-- Si no estamos en rutas de juego, muestra el logo con enlace a inicio -->
             <a v-if="!isInGameRoute" href="/">
                 <img
                     src="../../../public/images/logo-darkTheme.svg"
-                    alt="Game logo"
+                    alt="Logo del juego"
                     height="50"
                 />
             </a>
-            <!-- When in game routes, display logo without link functionality -->
+            <!-- Si estamos en rutas de juego, muestra el logo pero sin enlace -->
             <div v-else class="logo-container">
                 <img
                     src="../../../public/images/logo-darkTheme.svg"
-                    alt="Game logo"
+                    alt="Logo del juego"
                     height="50"
                 />
             </div>
@@ -27,7 +27,7 @@ import { useRoute } from "vue-router";
 
 const route = useRoute();
 
-// Check if current route is a game route
+// Comprueba si la ruta actual corresponde a una pantalla de juego
 const isInGameRoute = computed(() => {
     return route.path.startsWith("/game");
 });

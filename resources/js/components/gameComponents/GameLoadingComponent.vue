@@ -20,17 +20,17 @@
 
             <template v-else>
                 <div class="players-container">
-                    <!-- Contenedor izquierdo con UserComponent -->
+                    <!-- Lado izquierdo: tu perfil -->
                     <div class="player-side">
                         <UserComponent variant="profile" />
                     </div>
 
-                    <!-- VS separator -->
+                    <!-- Separador VS -->
                     <div class="vs-separator">
                         <span class="h2-dark">VS</span>
                     </div>
 
-                    <!-- Contenedor derecho (esperando oponente) -->
+                    <!-- Lado derecho: esperando oponente -->
                     <div class="player-side">
                         <div class="player-card guest-player waiting">
                             <div class="player-content">
@@ -66,7 +66,7 @@
                     </div>
                 </div>
 
-                <!-- Código de la partida - Solo visible en partidas privadas -->
+                <!-- Código de la partida (solo si es privada) -->
                 <div v-if="isPrivateGame" class="match-code">
                     <p class="p3-dark">CÓDIGO DE LA PARTIDA</p>
                     <div class="code-display">
@@ -97,18 +97,18 @@ import UserComponent from "../navbar/UserComponent.vue";
 import { useGameStore } from "../../store/game";
 
 /* -- VARIABLES -- */
-const matchCode = ref(null);
-const isLoading = ref(true);
-const isPrivateGame = ref(null);
-const error = ref(null);
-const auth = authStore();
-const route = useRoute();
-const router = useRouter();
-const gameStore = useGameStore(); // Utilizado para settear las fases del juego
-const opponentUsername = ref("Esperando oponente...");
-let matchStatus = ref(null);
+const matchCode = ref(null); // Código de la partida actual
+const isLoading = ref(true); // ¿Estamos cargando algo?
+const isPrivateGame = ref(null); // ¿Es una partida privada?
+const error = ref(null); // Mensaje de error, si lo hay
+const auth = authStore(); // Acceso al estado de autenticación
+const route = useRoute(); // Información de la ruta actual
+const router = useRouter(); // Para navegar entre páginas
+const gameStore = useGameStore(); // Estado global del juego (fases, etc.)
+const opponentUsername = ref("Esperando oponente..."); // Nombre del rival
+let matchStatus = ref(null); // Estado actual de la partida ('waiting', 'ready', etc.)
 
-// Settear el CHAT a 0 siempre que se entre a una partida
+// Variables del chat (inicializadas a 0 o vacío)
 const isChatOpen = ref(false);
 const messages = ref([]);
 const newMessage = ref("");
@@ -117,13 +117,13 @@ const unreadMessages = ref(0);
 const lastMessageId = ref(0);
 const pollingInterval = ref(null);
 
-// Nueva variable para controlar el tiempo mínimo de carga
-const minLoadingTime = 2500; // Tiempo mínimo de carga en milisegundos (2.5 segundos)
-const loadingStartTime = ref(Date.now());
-const forceLoading = ref(true);
+// Control para el tiempo mínimo de carga
+const minLoadingTime = 2500; // 2.5 segundos para que se vea la animación
+const loadingStartTime = ref(Date.now()); // Momento en que empezó la carga
+const forceLoading = ref(true); // Forzar estado de carga al inicio
 
+// Título dinámico de la página
 const loadingTitle = computed(() => {
-    // Devuelve el título de la página dependiendo del tipo de juego y el código
     if (route.params.gameType === "public") {
         return "Uniéndote a una partida pública...";
     } else if (
@@ -137,15 +137,15 @@ const loadingTitle = computed(() => {
 });
 
 /* -- FUNCIONES -- */
-// Función para volver a inicio
+// Te manda de vuelta a la página principal
 const backToHome = (type, message = "Ha ocurrido un error desconocido.") => {
     if (type) {
-        alert(message);
+        alert(message); // Muestra un mensaje si es necesario
     }
-    router.push("/");
+    router.push("/"); // Redirige a la raíz
 };
 
-// Función para copiar el código de la partida
+// Copia el código de la partida al portapapeles
 const copyMatchCode = () => {
     navigator.clipboard
         .writeText(matchCode.value)
@@ -158,11 +158,11 @@ const copyMatchCode = () => {
         });
 };
 
-// Sistema de notificaciones
+// Para mostrar notificaciones flotantes
 const notification = ref({
     show: false,
     message: "",
-    type: "info",
+    type: "info", // Puede ser 'success', 'error', etc.
 });
 const showNotification = (message, type = "info") => {
     notification.value = {
@@ -170,26 +170,29 @@ const showNotification = (message, type = "info") => {
         message,
         type,
     };
+    // La notificación desaparece sola después de 3 segundos
     setTimeout(() => {
         notification.value.show = false;
     }, 3000);
 };
 
-// Función sleep que devuelve una promesa
+// Una pausa simple usando promesas
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Función para asegurar un tiempo mínimo de carga
+// Asegura que la pantalla de carga dure al menos 'minLoadingTime'
 const ensureMinimumLoadingTime = async () => {
     const elapsedTime = Date.now() - loadingStartTime.value;
     if (elapsedTime < minLoadingTime) {
-        // Si no ha pasado suficiente tiempo, esperar la diferencia
-        console.log(`Esperando ${minLoadingTime - elapsedTime} ms adicionales para mejor experiencia de carga...`);
+        // Si ha pasado menos tiempo del mínimo, esperamos lo que falte
+        console.log(
+            `Esperando ${minLoadingTime - elapsedTime} ms adicionales...`
+        );
         await sleep(minLoadingTime - elapsedTime);
     }
-    forceLoading.value = false;
+    forceLoading.value = false; // Ya podemos quitar la pantalla de carga forzada
 };
 
-// Función esperar al timestamp
+// Espera hasta que llegue una fecha/hora específica (timestamp)
 const waitForTimestamp = async (timestamp) => {
     const targetDate = new Date(timestamp);
     const now = new Date();
@@ -200,85 +203,77 @@ const waitForTimestamp = async (timestamp) => {
     }
 };
 
-// Función onMounted
+// Se ejecuta cuando el componente se monta en la página
 onMounted(() => {
-    // console.log("GameLoadingComponent cargado.");
-    // console.log("User: ", authStore().user);
-    // console.log("Game type: ", route.params.gameType);
-    // console.log("Game code: ", route.params.gameCode);
-
-    // Verificación de usuario autenticado, modo de juego y código
+    // Verificaciones iniciales
     if (!authStore().user || !route.params.gameType) {
-        backToHome(true, "No tienes permiso para acceder a esta página");
+        backToHome(true, "No tienes permiso para acceder aquí.");
+        return; // Salimos si no cumple los requisitos
     }
 
-    // Esconder finales de partida (en caso de estar abiertos)
+    // Ocultamos pantallas de fin de partida por si acaso
     gameStore.setShowWin(false);
     gameStore.setShowGameOver(false);
     gameStore.setShowDraw(false);
 
-    // Encontrar partida
+    // Empezamos a buscar o crear la partida
     findMatch();
 });
 
-// Añadir onUnmounted para limpiar estilos
+// Se ejecuta cuando el componente se destruye (sales de la página)
 onUnmounted(() => {
-    // No necesitamos restaurar estilos que no hemos modificado
+    // Aquí podríamos limpiar intervalos o listeners si los hubiera
 });
 
-// Función para cuando se sale de la página terminar la partida
+// Intenta finalizar la partida si el usuario cierra la pestaña/navegador
 window.addEventListener("beforeunload", () => {
-    // Generar los datos a subir
+    // Preparamos los datos para enviar al servidor
     const url = "/api/games/finish-match";
     const datos = {
         gameCode: matchCode.value,
         user: authStore().user,
     };
 
-    // Convertir los datos a formato JSON
+    // Usamos sendBeacon para enviar los datos de forma fiable sin esperar respuesta
     const blob = new Blob([JSON.stringify(datos)], {
         type: "application/json",
     });
-
-    // Enviar la petición al servidor sin esperar respuesta
     navigator.sendBeacon(url, blob);
 
-    console.log("Cerrando partida");
+    console.log("Intentando cerrar partida al salir...");
 });
 
-// Función FindMatch
+// Función principal para buscar/crear partida
 const findMatch = async () => {
-    // console.log("Finding match...");
     isLoading.value = true;
-    loadingStartTime.value = Date.now(); // Registrar el tiempo de inicio de carga
+    loadingStartTime.value = Date.now(); // Guardamos cuándo empezamos a cargar
 
     try {
-        // Llamar a la API para encontrar partida
+        // Petición a la API para encontrar/crear
         const response = await axios.post("/api/games/find-match", {
             gameType: route.params.gameType,
             gameCode: route.params.gameCode,
             user: authStore().user,
         });
-        // console.log("Match found:", response.data);
-        console.log("Match code: ",response.data.game.code);
+        console.log("Código de partida:", response.data.game.code);
 
-        // Si se ha encontrado partida, entrar
+        // Si la API dice que todo OK...
         if (response.data.status == "success") {
-            // Asegurarnos de que la pantalla de carga se muestre por un tiempo mínimo
+            // Esperamos el tiempo mínimo de carga antes de quitar el spinner
             await ensureMinimumLoadingTime();
             isLoading.value = false;
 
-            // Obtener el creador de la partida
+            // ¿Eres el creador de la partida?
             if (response.data.game.created_by == authStore().user.id) {
-                //Si eres el creador de la partida
-                console.log("Creador.");
+                console.log("Eres el creador.");
                 matchCode.value = response.data.game.code;
 
+                // Si no es pública, marcamos que es privada (para mostrar el código)
                 if (!response.data.game.is_public) {
                     isPrivateGame.value = true;
                 }
 
-                // Obtener el username del oponente si existe
+                // Buscamos si ya hay un oponente conectado
                 if (
                     response.data.game.players &&
                     response.data.game.players.length > 1
@@ -291,24 +286,29 @@ const findMatch = async () => {
                         : "Esperando oponente...";
                 }
 
+                // Empezamos a esperar a que se una el oponente y creamos el timestamp
                 setTimestampMatchCreator();
             } else {
-                // Si eres el invitado de la partida
-                console.log("Invitado.");
+                // Eres el invitado
+                console.log("Eres el invitado.");
+                // Asignamos el código de partida (viene de la ruta si es privada, o de la respuesta si es pública)
                 if (route.params.gameType === "private") {
                     matchCode.value = route.params.gameCode;
                 } else {
                     matchCode.value = response.data.game.code;
                 }
 
+                // Empezamos a preguntar si el creador ya puso el timestamp
                 pollMatchStatusGuest();
             }
         } else {
+            // Si la API devuelve error al buscar/crear
             await ensureMinimumLoadingTime();
             backToHome(true, "No se ha podido unir a la partida.");
         }
     } catch (err) {
-        console.error("Error finding match:", err);
+        // Si hay un error de conexión o en el servidor
+        console.error("Error buscando partida:", err);
         error.value =
             "Error al encontrar partida. Inténtalo de nuevo más tarde.";
         await ensureMinimumLoadingTime();
@@ -316,56 +316,56 @@ const findMatch = async () => {
     }
 };
 
-// Función de polling para creador de la partida
+// Función para el creador: espera al oponente y crea el timestamp de inicio
 const setTimestampMatchCreator = async () => {
-    let contador = 0;
+    let contador = 0; // Para no esperar indefinidamente
 
-    // Esperar a que se una un usuario
+    // Preguntamos al servidor cada 2 segundos si ya se unió alguien
     do {
-        // Esperar 2 segundos entre pollings
         await sleep(2000);
 
         const response = await axios.post("/api/games/check-match-status", {
             gameCode: matchCode.value,
             user: auth.user,
         });
-        matchStatus = response.data.message;
+        matchStatus = response.data.message; // 'waiting' o 'ready'
         contador++;
 
-        // Mostrar por consola contador
-        if (contador % 10 === 0) {
-            // console.log("Quedan ", 40 - contador, " trys.");
-        }
+        // Límite de intentos (aprox. 80 segundos)
     } while (matchStatus == "waiting" && contador <= 40);
 
-    // Definir si se ha unido algún usuario
+    // Si después de los intentos sigue en 'waiting', cancelamos
     if (matchStatus == "waiting") {
-        await ensureMinimumLoadingTime();
-        backToHome(true, "No se ha unido ningún jugador.");
+        await ensureMinimumLoadingTime(); // Aseguramos tiempo de carga visual
+        backToHome(true, "Nadie se ha unido a la partida.");
     } else {
+        // Si alguien se unió ('ready'), creamos el timestamp para empezar
         const response = await axios.post("/api/games/create-timestamp", {
             gameCode: matchCode.value,
-            data: "start_date",
+            data: "start_date", // Le decimos que cree el timestamp 'start_date'
         });
 
         if (response.data.status == "success") {
-            // console.log("Timestamp uploaded: ", response.data.game.start_date);
-
+            // Esperamos hasta la hora exacta del timestamp
             await waitForTimestamp(response.data.game.start_date);
+            // Guardamos el código de partida en el store global
             gameStore.setMatchCode(matchCode.value);
+            // Cambiamos la fase del juego a 'placement' (colocar barcos)
             gameStore.setGamePhase("placement");
         } else {
+            // Si falla la creación del timestamp
             await ensureMinimumLoadingTime();
             backToHome(true, "Error al iniciar la partida.");
         }
     }
 };
 
-// Función de polling para invitado de la partida
+// Función para el invitado: espera a que el creador ponga el timestamp
 const pollMatchStatusGuest = async () => {
     let contador = 0;
     let response = null;
 
+    // Preguntamos cada 2 segundos si ya existe el timestamp 'start_date'
     do {
         await sleep(2000);
 
@@ -374,23 +374,24 @@ const pollMatchStatusGuest = async () => {
             data: "start_date",
         });
 
-        matchStatus = response.data.status;
+        matchStatus = response.data.status; // 'success' si ya existe
         contador++;
 
-        if (contador % 10 === 0) {
-            // console.log("Quedan ", 40 - contador, " polls.");
-        }
+        // Límite de intentos
     } while (matchStatus != "success" && contador <= 40);
 
+    // Si encontramos el timestamp...
     if (matchStatus == "success") {
-        console.log("Partida encontrada y unido");
-
+        console.log("Partida encontrada y unido.");
+        // Esperamos hasta la hora exacta
         await waitForTimestamp(response.data.game.start_date);
+        // Guardamos código y cambiamos fase
         gameStore.setMatchCode(matchCode.value);
         gameStore.setGamePhase("placement");
     } else {
+        // Si no encontramos el timestamp después de los intentos
         await ensureMinimumLoadingTime();
-        backToHome(true, "Error al unirse a la partida.");
+        backToHome(true, "Error al unirse a la partida (timeout).");
     }
 };
 </script>
@@ -405,10 +406,10 @@ const pollMatchStatusGuest = async () => {
     gap: 2rem;
     min-height: 100vh;
     height: 100vh;
-    position: relative; /* Changed from fixed to relative to avoid overlay issues */
+    position: relative;
     width: 100%;
     overflow: hidden;
-    z-index: 50; /* Reduced z-index to avoid covering everything */
+    z-index: 50;
 }
 
 .match-setup {
@@ -425,19 +426,19 @@ const pollMatchStatusGuest = async () => {
 }
 
 .loading-state {
-    position: relative; /* Changed from fixed to relative */
+    position: relative;
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 50; /* Reduced z-index */
+    z-index: 50;
     background-color: var(--background-primary);
 }
 
 .players-container {
     display: grid;
-    grid-template-columns: 1fr auto 1fr; /* Mantener fracciones flexibles */
+    grid-template-columns: 1fr auto 1fr;
     gap: 1.5rem;
     padding: 1rem;
     width: 100%;
@@ -449,15 +450,13 @@ const pollMatchStatusGuest = async () => {
     display: flex;
     justify-content: center;
     width: 100%;
-    /* Eliminar max-width para permitir adaptación */
 }
 
-/* Contenedor player-card y UserComponent compartiendo mismas dimensiones */
 .player-card,
 .player-side :deep(.profile) {
     width: 100% !important;
     min-width: 0 !important;
-    max-width: 300px !important; /* Establecer un max-width común para ambos */
+    max-width: 300px !important;
     min-height: 100px !important;
     height: auto !important;
     display: flex !important;
@@ -471,10 +470,9 @@ const pollMatchStatusGuest = async () => {
     overflow: hidden !important;
 }
 
-/* Arreglar el icono de carga del oponente */
 .player-avatar {
     flex-shrink: 0;
-    width: 55px; /* Ajustar para que coincida con el tamaño del avatar del usuario */
+    width: 55px;
     height: 55px;
     border-radius: 50%;
     background: var(--neutral-color);
@@ -483,14 +481,13 @@ const pollMatchStatusGuest = async () => {
     justify-content: center;
     font-size: 2rem;
     color: var(--primary-color);
-    overflow: hidden; /* Para evitar desbordamientos del icono */
+    overflow: hidden;
 }
 
 .guest-player {
     border-color: var(--secondary-color) !important;
 }
 
-/* Ajustes para el contenido dentro de UserComponent */
 .player-side :deep(.profile-content) {
     padding: 0 !important;
     height: auto !important;
@@ -627,7 +624,7 @@ const pollMatchStatusGuest = async () => {
     text-align: center;
     width: 90%;
     max-width: 800px;
-    font-size: 2.2rem; /* Tamaño base para pantallas grandes */
+    font-size: 2.2rem;
 }
 
 @media (max-width: 1200px) {
@@ -666,12 +663,11 @@ const pollMatchStatusGuest = async () => {
     }
 }
 
-/* Estilos específicos para hacer que UserComponent coincida con player-card */
 .player-side :deep(.profile) {
     min-height: 100px !important;
     height: 100% !important;
     width: 100% !important;
-    max-width: none !important; /* Eliminado max-width para ocupar todo el espacio */
+    max-width: none !important;
     background-color: var(--neutral-color-1) !important;
     border: 2px solid var(--primary-color) !important;
     border-radius: 8px !important;
@@ -690,7 +686,7 @@ const pollMatchStatusGuest = async () => {
     width: 100% !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important; /* Cambiado a center desde flex-start */
+    justify-content: center !important;
 }
 
 .player-side :deep(.left-side) {
@@ -699,11 +695,10 @@ const pollMatchStatusGuest = async () => {
     gap: 1rem !important;
     width: 100% !important;
     overflow: hidden !important;
-    justify-content: flex-start !important; /* Explícitamente alineado a la izquierda */
-    padding-left: 0.5rem !important; /* Añadido padding izquierdo para mover el contenido */
+    justify-content: flex-start !important;
+    padding-left: 0.5rem !important;
 }
 
-/* Ajustes específicos para pantallas grandes (mayores a 800px) */
 @media (min-width: 801px) {
     .players-container {
         grid-template-columns: minmax(250px, 300px) auto minmax(250px, 300px);
@@ -730,7 +725,6 @@ const pollMatchStatusGuest = async () => {
         min-width: 50px;
     }
 
-    /* Ajustar el contenido de UserComponent específicamente para pantallas grandes */
     .player-side :deep(.userImageContainer) {
         width: 55px !important;
         height: 55px !important;
@@ -739,7 +733,7 @@ const pollMatchStatusGuest = async () => {
 
     .player-side :deep(.username) {
         font-size: 1.1rem !important;
-        max-width: 200px !important; /* Dar más espacio en pantallas grandes */
+        max-width: 200px !important;
     }
 
     .player-side :deep(.points) {
@@ -747,7 +741,6 @@ const pollMatchStatusGuest = async () => {
     }
 }
 
-/* Ajustes específicos para resoluciones medianas */
 @media (max-width: 800px) and (min-width: 601px) {
     .players-container {
         grid-template-columns: 1fr auto 1fr;
@@ -756,7 +749,7 @@ const pollMatchStatusGuest = async () => {
 
     .vs-separator {
         padding: 0 0.5rem !important;
-        min-width: 30px; /* Reducir el ancho mínimo */
+        min-width: 30px;
     }
 
     .player-card,
@@ -780,7 +773,7 @@ const pollMatchStatusGuest = async () => {
     }
 
     .player-avatar {
-        width: 45px !important; /* Reducir tamaño del avatar del oponente */
+        width: 45px !important;
         height: 45px !important;
     }
 
@@ -794,7 +787,6 @@ const pollMatchStatusGuest = async () => {
     }
 }
 
-/* Corrección específica para el rango de 760px a 600px donde ocurre el comportamiento irregular */
 @media (max-width: 760px) and (min-width: 601px) {
     .players-container {
         grid-template-columns: 1fr auto 1fr;
@@ -813,7 +805,7 @@ const pollMatchStatusGuest = async () => {
 
     .player-card,
     .player-side :deep(.profile) {
-        max-width: 200px !important; /* Reducir aún más para este rango específico */
+        max-width: 200px !important;
         min-height: 80px !important;
         padding: 0.5rem !important;
     }
@@ -848,12 +840,10 @@ const pollMatchStatusGuest = async () => {
     }
 }
 
-/* Pulse animation */
 .pulse {
     animation: pulse 2s infinite;
 }
 
-/* Animación del barco */
 .ship-loading-animation {
     position: relative;
     width: 80px;
@@ -910,21 +900,21 @@ const pollMatchStatusGuest = async () => {
 
     .player-card,
     .player-side :deep(.profile) {
-        max-width: 90% !important; /* Ajustado para móviles */
+        max-width: 90% !important;
         width: 100% !important;
     }
 
     .player-side :deep(.profile-content) {
-        flex-direction: row !important; /* Mantener horizontal en móviles */
+        flex-direction: row !important;
         align-items: center !important;
-        text-align: left !important; /* Alineación de texto a la izquierda */
+        text-align: left !important;
         gap: 0.5rem !important;
-        justify-content: flex-start !important; /* Alineado a la izquierda */
-        padding-left: 0.25rem !important; /* Padding más pequeño en móviles */
+        justify-content: flex-start !important;
+        padding-left: 0.25rem !important;
     }
 
     .player-side :deep(.left-side) {
-        flex-direction: row !important; /* Mantener horizontal en móviles */
+        flex-direction: row !important;
         text-align: left !important;
         gap: 0.75rem !important;
         align-items: center !important;
@@ -932,15 +922,15 @@ const pollMatchStatusGuest = async () => {
     }
 
     .player-side :deep(.userImageContainer) {
-        margin-right: 0.5rem !important; /* Espacio entre avatar y texto en móvil */
+        margin-right: 0.5rem !important;
     }
 
     .player-side :deep(.username-wrapper) {
-        align-items: flex-start !important; /* Alinear a la izquierda */
+        align-items: flex-start !important;
     }
 
     .player-avatar {
-        width: 40px !important; /* Reducir aún más para móviles */
+        width: 40px !important;
         height: 40px !important;
     }
 

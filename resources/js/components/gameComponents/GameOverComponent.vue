@@ -4,7 +4,9 @@
             <div class="game-over-modal neutral-background">
                 <h2 class="white-color h2">DERROTA</h2>
                 <div class="points-container">
-                    <span class="points white-color h3">-{{ gameStore.points }}</span>
+                    <span class="points white-color h3"
+                        >-{{ gameStore.points }}</span
+                    >
                     <svg
                         width="40"
                         height="40"
@@ -100,7 +102,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
 import { authStore } from "../../store/auth";
@@ -113,42 +115,47 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['restart', 'cleanup']);
+const emit = defineEmits(["restart", "cleanup"]);
 
 const router = useRouter();
 const gameStore = useGameStore();
-const isGameActive = ref(true);
+const isGameActive = ref(true); // Controla si el juego está activo
 
 const goToHome = () => {
-    // Detener el juego
+    // Marca el juego como inactivo
     isGameActive.value = false;
-    
-    // Navegar al inicio
+    // Redirige al inicio
     router.push("/");
 };
 
 const handlePlayAgain = async () => {
-    
     try {
-        const response = await axios.post('/api/games/check-user-requirements', {
-            gameType: gameStore.gameMode,
-            gameCode: 'null',
-            user: authStore().user ?? null
-        });
+        // Verifica si el usuario puede iniciar una nueva partida
+        const response = await axios.post(
+            "/api/games/check-user-requirements",
+            {
+                gameType: gameStore.gameMode, // Usa el modo de juego actual
+                gameCode: "null", // No aplica código para jugar de nuevo
+                user: authStore().user ?? null, // Envía datos del usuario si está logueado
+            }
+        );
 
-        // Limpiar el estado actual y resetear el juego
+        // Limpia el estado del juego actual y resetea el store
         console.log("Reseteando el juego.");
-        emit('cleanup');
-        await gameStore.resetGame();
+        emit("cleanup"); // Emite evento para que el componente padre limpie
+        await gameStore.resetGame(); // Resetea el store del juego
 
-        if (response.data.status === 'success') {
+        // Si la verificación es exitosa, redirige a una nueva partida pública
+        if (response.data.status === "success") {
             router.push(`/game/public/null`);
         } else {
-            console.error("Failed:", response.data.message);
+            // Si falla, muestra error y redirige a inicio
+            console.error("Fallo:", response.data.message);
             goToHome();
         }
     } catch (error) {
-        console.error("Error checking requirements:", error);
+        // Si hay un error en la llamada, muestra error y redirige a inicio
+        console.error("Error al verificar requisitos:", error);
         goToHome();
     }
 };
@@ -251,7 +258,6 @@ svg {
     transform: translateY(-2px);
 }
 
-/* Animaciones de popup */
 .modal-enter-active,
 .modal-leave-active {
     transition: all 0.3s ease;

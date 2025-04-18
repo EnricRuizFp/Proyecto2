@@ -1,5 +1,5 @@
 <template>
-    <!-- No session -->
+    <!-- Sin sesión iniciada -->
     <div
         v-if="!authStore().user?.username"
         class="nav-item dropdown"
@@ -22,13 +22,13 @@
                         <div class="userImageContainer">
                             <img
                                 src="../../../../public/images/icons/user-icon-dark.svg"
-                                alt="Default avatar"
+                                alt="Avatar por defecto"
                                 class="user-avatar"
                             />
                         </div>
                         <div class="usernameContainer">
                             <div class="username-wrapper">
-                                <span class="username">Login now</span>
+                                <span class="username">Inicia sesión</span>
                             </div>
                         </div>
                     </div>
@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    <!-- Session already started -->
+    <!-- Sesión ya iniciada -->
     <div v-if="authStore().user?.username" id="userComponent" :class="variant">
         <div id="userContent">
             <a
@@ -97,7 +97,7 @@
                                         {{ userPoints }}
                                         <img
                                             src="../../../../public/images/icons/trophy-icon-dark.svg"
-                                            alt="Trophy icon"
+                                            alt="Icono de trofeo"
                                         />
                                     </span>
                                 </div>
@@ -110,7 +110,7 @@
                 id="userProfileMenu"
                 class="dropdown-menu dropdown-menu-start neutral-background white-border"
             >
-                <!-- Solo mostrar el enlace Admin si el usuario tiene rol de admin -->
+                <!-- Mostrar enlace de Admin solo si el usuario tiene rol de admin -->
                 <div v-if="isAdmin">
                     <router-link
                         class="dropdown-item white-color neutral-hover"
@@ -145,7 +145,7 @@
 </template>
 
 <script setup>
-/* -- IMPORTS -- */
+/* -- IMPORTACIONES -- */
 import { onMounted, ref, computed, watch, inject } from "vue";
 import { useRouter } from "vue-router";
 import useAuth from "@/composables/auth";
@@ -160,6 +160,7 @@ const { getRanking } = useRankings();
 const { getUser } = useUsers();
 const userPoints = ref(0);
 const userAvatar = ref(null);
+// Propiedad inyectada para saber si la interacción con el menú está bloqueada (ej: durante una partida)
 const isMenuBlocked = inject("menuBlocked", ref(false));
 
 const props = defineProps({
@@ -173,21 +174,24 @@ const props = defineProps({
     },
 });
 
-// Función para comprobar si el usuario es admin
+// Comprueba si el usuario actual tiene rol de administrador
 const isAdmin = computed(() => {
     const user = authStore().user;
     if (!user || !user.roles) return false;
     return user.roles.some((role) => role.name.toLowerCase().includes("admin"));
 });
 
-// Computed para controlar cuándo se puede abrir el menú
+// Determina si el menú desplegable se puede abrir según la variante y el estado
 const canOpenMenu = computed(() => {
+    // En la variante 'sidebar', el menú se abre solo si la barra no está cerrada
+    // En la variante 'profile', siempre se puede abrir (a menos que esté bloqueado)
     return props.variant === "sidebar" ? !props.isLateralBarClosed : true;
 });
 
-/* -- FUNCTIONS -- */
+/* -- FUNCIONES -- */
+// Obtiene y actualiza la URL del avatar del usuario
 const updateUserData = async () => {
-    userAvatar.value = null; // Resetear el avatar antes de actualizar
+    userAvatar.value = null; // Resetea el avatar antes de buscarlo
     if (authStore().user?.id) {
         try {
             const userData = await getUser(authStore().user.id);
@@ -195,29 +199,31 @@ const updateUserData = async () => {
                 userAvatar.value = userData.avatar;
             }
         } catch (error) {
-            console.error("Error fetching user data:", error);
-            userAvatar.value = null;
+            console.error("Error al obtener datos del usuario:", error);
+            userAvatar.value = null; // Usa null como fallback si hay error
         }
     }
 };
 
+// Obtiene la URL del avatar del usuario, proporcionando una por defecto si no hay
 const getAvatarUrl = () => {
     if (!authStore().user?.id) return "/images/icons/user-icon-dark.svg";
+    // Usa el avatar obtenido o el por defecto si la obtención falló o no hay avatar
     return userAvatar.value || "/images/icons/user-icon-dark.svg";
 };
 
-// Función para manejar la navegación cuando el menú está bloqueado
+// Maneja la navegación, previniéndola si el menú está bloqueado
 const handleNavigation = (route) => {
     if (isMenuBlocked.value) {
-        showNavigationBlockedMessage();
+        showNavigationBlockedMessage(); // Muestra un mensaje en lugar de navegar
         return;
     }
-    router.push(route);
+    router.push(route); // Procede con la navegación
 };
 
-// Mostrar mensaje cuando se intenta navegar y el menú está bloqueado
+// Muestra un mensaje indicando que la navegación está bloqueada
 const showNavigationBlockedMessage = () => {
-    // Crear y lanzar un evento personalizado para mostrar un mensaje
+    // Despacha un evento personalizado que un listener (ej: en App.vue) puede capturar para mostrar una notificación
     document.dispatchEvent(
         new CustomEvent("show-menu-blocked-message", {
             detail: "No puedes navegar mientras estás en una partida o vista de juego",
@@ -225,47 +231,47 @@ const showNavigationBlockedMessage = () => {
     );
 };
 
-// Manejar el logout con verificación de bloqueo
+// Maneja el cierre de sesión, previniéndolo si el menú está bloqueado
 const handleLogout = () => {
     if (isMenuBlocked.value) {
-        showNavigationBlockedMessage();
+        showNavigationBlockedMessage(); // Muestra mensaje en lugar de cerrar sesión
         return;
     }
-    logout();
+    logout(); // Procede con el cierre de sesión
 };
 
-// Observador para detectar cambios en el usuario
+// Observa cambios en el ID del usuario logueado
 watch(
     () => authStore().user?.id,
     async (newUserId) => {
         if (newUserId) {
+            // Si un usuario inicia sesión, actualiza sus datos y puntos
             await updateUserData();
-            // Actualizar también los puntos
             const rankingData = await getRanking(newUserId);
-            userPoints.value = rankingData?.points ?? 0; // Use nullish coalescing
+            userPoints.value = rankingData?.points ?? 0; // Usa 0 si los puntos son null/undefined
         } else {
-            // Resetear datos cuando no hay usuario
+            // Si el usuario cierra sesión, resetea avatar y puntos
             userAvatar.value = null;
-            userPoints.value = 0; // Reset to 0 instead of null
+            userPoints.value = 0;
         }
     },
-    { immediate: true }
+    { immediate: true } // Ejecuta el watcher inmediatamente al montar el componente
 );
 
+// Al montar el componente, obtiene datos iniciales si ya hay un usuario logueado
 onMounted(async () => {
     if (authStore().user?.id) {
-        // Obtener puntos
+        // Obtiene puntos
         const rankingData = await getRanking(authStore().user?.id);
-        userPoints.value = rankingData?.points ?? 0; // Use nullish coalescing
+        userPoints.value = rankingData?.points ?? 0;
 
-        // Actualizar datos del usuario
+        // Obtiene datos del usuario (como el avatar)
         await updateUserData();
     }
 });
 </script>
 
 <style scoped>
-/* Estilos base compartidos */
 #userComponent {
     width: 100%;
     display: flex;
@@ -283,13 +289,13 @@ onMounted(async () => {
 
 #userContent {
     width: 100%;
-    max-width: 800px; /* Limitar el ancho máximo */
-    margin: 0 auto; /* Centrar horizontalmente */
+    max-width: 800px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center; /* Centrar contenido interno */
-    position: relative; /* Añadido para establecer contexto de posicionamiento */
+    align-items: center;
+    position: relative;
 }
 
 #userProfile {
@@ -302,17 +308,16 @@ onMounted(async () => {
     min-width: 300px;
 }
 
-/* Variante sidebar */
 .sidebar {
-    height: 90px; /* Aumentado de 80px */
-    min-height: unset; /* Eliminar altura mínima */
-    flex-shrink: 0; /* Evitar que se encoja */
+    height: 90px;
+    min-height: unset;
+    flex-shrink: 0;
     border: none;
     border-radius: 0;
     margin-bottom: 0.5rem;
     padding: 0 1rem;
-    transform: none !important; /* Prevenir cualquier transformación */
-    position: relative; /* Añadido para posicionamiento del menú */
+    transform: none !important;
+    position: relative;
 }
 
 .sidebar:hover {
@@ -321,79 +326,72 @@ onMounted(async () => {
 }
 
 .sidebar #userContent {
-    min-width: unset; /* Eliminar el ancho mínimo */
+    min-width: unset;
 }
 
 .sidebar .profile-content {
     padding: 0;
     max-width: unset;
-    justify-content: flex-start; /* Alinear contenido a la izquierda */
+    justify-content: flex-start;
 }
 
 .sidebar .userImageContainer {
     width: 65px;
     height: 65px;
-    margin: 0 0.75rem 0 0; /* Eliminado margen izquierdo */
+    margin: 0 0.75rem 0 0;
 }
 
 .sidebar .username {
-    font-size: 1.2rem; /* Aumentado de 1.1rem */
+    font-size: 1.2rem;
 }
 
 .sidebar .points {
-    font-size: 1.1rem; /* Aumentado de 1rem */
+    font-size: 1.1rem;
 }
 
 .sidebar .points img {
-    width: 24px; /* Aumentado de 20px */
-    height: 24px; /* Aumentado de 20px */
-    margin-left: 0.3rem; /* Ajustado el margen */
+    width: 24px;
+    height: 24px;
+    margin-left: 0.3rem;
 }
 
 .sidebar .left-side {
-    justify-content: flex-start; /* Alinear a la izquierda */
+    justify-content: flex-start;
 }
 
-/* Estilos para el menú desplegable - versión sidebar */
 .sidebar #userProfileMenu {
     position: absolute;
     top: 85px;
-    left: 40px; /* Alineado con el padding del contenedor padre */
+    left: 40px;
     transform: none;
-    min-width: 160px; /* Reducido de 200px */
+    min-width: 160px;
     width: auto;
     background-color: var(--background-secondary) !important;
     border: 1px solid var(--white-color);
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 99999;
-    padding: 0.25rem 0; /* Reducido de 0.5rem */
+    padding: 0.25rem 0;
 }
 
 .sidebar #userProfileMenu .dropdown-item {
-    padding: 0.5rem 1rem; /* Reducido de 0.75rem 1.5rem */
-    font-size: 0.9rem; /* Reducido de 1rem */
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
     white-space: nowrap;
 }
 
 .sidebar #userProfileMenu .dropdown-divider {
-    margin: 0.25rem 0; /* Reducido de 0.5rem */
+    margin: 0.25rem 0;
     opacity: 0.2;
     border-top: 1px solid var(--white-color);
 }
 
-/* Variante profile */
 .profile {
     min-height: 150px;
     border: none;
     border-radius: 10px;
     padding: 1rem 1rem 0 1rem;
-    background-color: rgba(
-        255,
-        255,
-        255,
-        0.05
-    ); /* Añadido para coincidir con rankingContainer */
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .profile:hover {
@@ -443,7 +441,7 @@ onMounted(async () => {
     flex: 1;
     padding: 0 1rem;
     display: flex;
-    align-items: flex-start; /* Alinear al inicio del contenedor */
+    align-items: flex-start;
 }
 
 .pointsContainer {
@@ -467,19 +465,16 @@ onMounted(async () => {
     width: 24px;
 }
 
-/* Estilos base para user-avatar */
 .user-avatar {
     object-fit: cover;
     border-radius: 50%;
 }
 
-/* Estilos específicos para la versión profile */
 .profile .user-avatar {
     width: 100%;
     height: 100%;
 }
 
-/* Estilos específicos para la versión sidebar */
 .sidebar .user-avatar {
     width: 50px;
     height: 50px;
@@ -488,7 +483,7 @@ onMounted(async () => {
 .username-wrapper {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* Alinear al inicio */
+    align-items: flex-start;
     gap: 0.5rem;
     width: 100%;
 }
@@ -499,13 +494,13 @@ onMounted(async () => {
     }
 
     .profile .profile-content {
-        flex-direction: row; /* Cambiado de column a row */
+        flex-direction: row;
         gap: 0;
     }
 
     .profile .left-side {
         flex-direction: row;
-        justify-content: flex-start; /* Cambiado de center a flex-start */
+        justify-content: flex-start;
     }
 
     .profile .usernameContainer {
@@ -525,7 +520,6 @@ onMounted(async () => {
     }
 }
 
-/* Limpiar estilos anteriores y usar solo estos para el menú cerrado */
 :deep(#lateralBar.closed) .sidebar {
     height: auto;
     padding: 0;
@@ -570,11 +564,8 @@ onMounted(async () => {
     display: none !important;
 }
 
-/* Eliminar todos los demás estilos relacionados con #lateralBar.closed */
-
-/* Estilos específicos para el menú cerrado */
 :deep(#lateralBar.closed) .sidebar {
-    height: 80px; /* Altura fija para mantener simetría */
+    height: 80px;
     width: 100%;
     padding: 0;
     display: flex;
@@ -590,8 +581,8 @@ onMounted(async () => {
 }
 
 :deep(#lateralBar.closed) .sidebar .profile-content {
-    width: 50px; /* Reducido para mantener proporción */
-    height: 50px; /* Igual que el width */
+    width: 50px;
+    height: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -600,8 +591,8 @@ onMounted(async () => {
 }
 
 :deep(#lateralBar.closed) .sidebar .left-side {
-    width: 50px; /* Igual que el contenedor padre */
-    height: 50px; /* Igual que el width */
+    width: 50px;
+    height: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -610,8 +601,8 @@ onMounted(async () => {
 }
 
 :deep(#lateralBar.closed) .sidebar .userImageContainer {
-    width: 50px; /* Mismo tamaño que los contenedores */
-    height: 50px; /* Mismo tamaño que el width */
+    width: 50px;
+    height: 50px;
     margin: 0;
     padding: 0;
     border: 2px solid var(--white-color);
@@ -623,13 +614,12 @@ onMounted(async () => {
 }
 
 :deep(#lateralBar.closed) .sidebar .user-avatar {
-    width: 46px; /* 50px - 4px (border) */
-    height: 46px; /* Igual que el width */
+    width: 46px;
+    height: 46px;
     object-fit: cover;
     border-radius: 50%;
 }
 
-/* Aplicar los mismos estilos para usuario no logueado */
 :deep(#lateralBar.closed) .sidebar:not(.logged-in) .userImageContainer {
     width: 50px;
     height: 50px;
@@ -654,16 +644,15 @@ onMounted(async () => {
     display: none !important;
 }
 
-/* Estilos para el menú desplegable */
 #userProfileMenu {
     background-color: var(--background-secondary) !important;
-    z-index: 99999; /* Aumentado para asegurar que esté por encima */
+    z-index: 99999;
     position: absolute;
     top: 100%;
     left: 0;
-    width: auto; /* Cambiado de 100% a auto */
-    min-width: 180px; /* Reducido de 200px */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Añadido sombra */
+    width: auto;
+    min-width: 180px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .dropdown-menu {
@@ -671,28 +660,25 @@ onMounted(async () => {
     border-radius: 8px;
     position: relative;
     margin-top: 0.5rem;
-    padding: 0.5rem 0; /* Añadido padding vertical */
+    padding: 0.5rem 0;
 }
 
 .dropdown-item {
-    padding: 0.5rem 1rem; /* Ajustado el padding */
-    font-size: 0.9rem; /* Reducido el tamaño de fuente */
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
 }
 
-/* Estilo para el separador del menú */
 .dropdown-divider {
     width: 100% !important;
     margin: 0.5rem 0;
     opacity: 0.2;
 }
 
-/* Estilos específicos para el menú cerrado */
 :deep(#lateralBar.closed) .sidebar #userProfileMenu {
-    left: 80px; /* Ancho del menú lateral cerrado */
+    left: 80px;
     transform: none;
 }
 
-/* Estilo para ítems de menú deshabilitados */
 .disabled-menu-item {
     opacity: 0.5;
     cursor: not-allowed !important;
@@ -705,7 +691,6 @@ onMounted(async () => {
     color: var(--neutral-color-3) !important;
 }
 
-/* Mejoras de responsividad para UserComponent dentro de GameLoadingComponent */
 .player-side :deep(.profile) {
     min-height: auto !important;
     width: 100% !important;
@@ -739,7 +724,6 @@ onMounted(async () => {
     text-overflow: ellipsis !important;
 }
 
-/* Media query para pantallas medianas (donde ocurre el problema) */
 @media (max-width: 800px) and (min-width: 601px) {
     .player-side :deep(.profile) {
         padding: 0.5rem !important;

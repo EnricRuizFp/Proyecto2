@@ -1,6 +1,6 @@
 <template>
     <div class="ship-placement app-background-primary">
-        <!-- Añadir el sistema de notificaciones -->
+        <!-- Sistema de notificaciones -->
         <div
             v-if="notification.show"
             class="notification"
@@ -9,7 +9,7 @@
             <span>{{ notification.message }}</span>
         </div>
 
-        <!-- Agregar la pantalla de carga -->
+        <!-- Pantalla de carga -->
         <div v-if="isLoading" class="loading-state">
             <div class="loading-overlay">
                 <i class="fas fa-spinner fa-spin"></i>
@@ -18,7 +18,7 @@
         </div>
 
         <div class="game-layout">
-            <!-- Temporizador solo visible en desktop -->
+            <!-- Temporizador (solo escritorio) -->
             <div class="timer-container desktop-only">
                 <div class="timer" :class="{ 'timer-warning': timeLeft <= 10 }">
                     <i class="fas fa-clock"></i>
@@ -61,7 +61,7 @@
 
             <!-- Controles -->
             <div class="controls">
-                <!-- Temporizador para móvil -->
+                <!-- Temporizador (móvil) -->
                 <div
                     class="timer mobile-only"
                     :class="{ 'timer-warning': timeLeft <= 10 }"
@@ -99,7 +99,7 @@
                 </button>
             </div>
 
-            <!-- Grid del tablero -->
+            <!-- Tablero -->
             <div class="board-container">
                 <div class="board-grid">
                     <div
@@ -141,48 +141,50 @@ import { useGameStore } from "../../store/game";
 /* -- VARIABLES -- */
 const route = useRoute();
 const router = useRouter();
-const gameStore = useGameStore(); // Utilizado para settear las fases del juego
+const gameStore = useGameStore(); // Para manejar las fases del juego
 
 /* -- FUNCIONES -- */
 
-// Estado del tablero
+// Estado del tablero (matriz 10x10)
 const board = ref(
     Array(10)
         .fill(null)
         .map(() => Array(10).fill(null))
 );
-const selectedShip = ref(null);
-const isVertical = ref(false);
+const selectedShip = ref(null); // Barco seleccionado actualmente
+const isVertical = ref(false); // Orientación del barco seleccionado
 
-// Definición de barcos disponibles
+// Barcos disponibles para colocar
 const availableShips = ref([]);
 
-// Cargar barcos desde la API
+// Carga los tipos de barcos desde la API
 const loadShips = async () => {
     try {
         const response = await fetch("/api/game-ships");
         const ships = await response.json();
+        // Añade la propiedad 'placed' a cada barco
         availableShips.value = ships.map((ship) => ({
             ...ship,
             placed: false,
         }));
     } catch (error) {
-        console.error("Error loading ships:", error);
+        console.error("Error cargando los barcos:", error);
     }
 };
 
-// Temporizador
-const timeLeft = ref(25);
+// Configuración del temporizador
+const timeLeft = ref(25); // Tiempo inicial en segundos
 const timerInterval = ref(null);
-const isLoading = ref(false);
+const isLoading = ref(false); // Para mostrar la pantalla de carga
 const notification = ref({
+    // Para mostrar mensajes al usuario
     show: false,
     message: "",
-    type: "info",
-    position: "derecha",
+    type: "info", // 'info', 'success', 'error', 'water'
+    position: "derecha", // 'derecha', 'izquierda'
 });
 
-// Función para mostrar notificaciones
+// Muestra una notificación temporal
 const showNotification = (message, type = "info") => {
     notification.value = {
         show: true,
@@ -190,111 +192,129 @@ const showNotification = (message, type = "info") => {
         type,
         position: "derecha",
     };
+    // Oculta la notificación después de 3 segundos
     setTimeout(() => {
         notification.value.show = false;
     }, 3000);
 };
 
-// Función para volver a inicio
-const backToHome = (type, message = "Ha ocurrido un error desconocido.") => {
-    if (type) {
+// Redirige al usuario a la página de inicio, opcionalmente mostrando un error
+const backToHome = (
+    showError,
+    message = "Ha ocurrido un error desconocido."
+) => {
+    if (showError) {
         showNotification(message, "error");
+        // Espera a que se vea la notificación antes de redirigir
         setTimeout(() => {
-            router.replace({ path: '/', replace: true });
+            router.replace({ path: "/", replace: true });
         }, 3000);
     } else {
-        router.replace({ path: '/', replace: true });
+        router.replace({ path: "/", replace: true });
     }
 };
 
+// Formatea el tiempo restante en MM:SS
 const formatTime = (seconds) => {
-    return `${Math.floor(seconds / 60)}:${(seconds % 60)
-        .toString()
-        .padStart(2, "0")}`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
+// Inicia la cuenta atrás del temporizador
 const startTimer = () => {
     timerInterval.value = setInterval(() => {
         if (timeLeft.value > 0) {
             timeLeft.value--;
         } else {
             clearInterval(timerInterval.value);
-            // Aquí puedes manejar qué sucede cuando se acaba el tiempo
+            // Si se acaba el tiempo, confirma la colocación automáticamente
             confirmPlacement();
         }
-    }, 1000);
+    }, 1000); // Se ejecuta cada segundo
 };
 
-// Función sleep que devuelve una promesa
+// Función de utilidad para pausar la ejecución
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Al montar el componente...
 onMounted(() => {
-    // console.log("SHIP PLACEMENT.");
-    // console.log("Game code:", gameStore.matchCode);
-    // console.log("User: ", authStore().user);
+    // console.log("Iniciando fase de colocación de barcos.");
+    // console.log("Código de partida:", gameStore.matchCode);
+    // console.log("Usuario:", authStore().user);
 
-    loadShips();
-    startTimer();
+    loadShips(); // Carga los barcos
+    startTimer(); // Inicia el temporizador
 });
 
+// Al desmontar el componente...
 onUnmounted(() => {
+    // Limpia el intervalo del temporizador para evitar fugas de memoria
     if (timerInterval.value) {
         clearInterval(timerInterval.value);
     }
 });
 
-// Computed para verificar si todos los barcos están colocados
+// Propiedad computada: ¿Están todos los barcos colocados?
 const isPlacementComplete = computed(() => {
+    // Verifica si la propiedad 'placed' es true para todos los barcos
     return availableShips.value.every((ship) => ship.placed);
 });
 
-// Métodos para el manejo de la colocación
+// Métodos para manejar la colocación de barcos
+
+// Selecciona un barco de la lista (si no está ya colocado)
 const selectShip = (ship) => {
     if (!ship.placed) {
         selectedShip.value = ship;
     }
 };
 
+// Cambia la orientación del barco seleccionado
 const rotateShip = () => {
     isVertical.value = !isVertical.value;
 };
 
+// Verifica si la posición actual (row, col) es válida para colocar el barco seleccionado
 const isValidPlacement = (row, col) => {
-    if (!selectedShip.value) return false;
+    if (!selectedShip.value) return false; // No hay barco seleccionado
 
     const size = selectedShip.value.size;
 
-    // Verificar límites del tablero
+    // Comprueba si el barco cabe dentro del tablero
     if (isVertical.value) {
-        if (row + size > 10) return false;
+        if (row + size > 10) return false; // Se sale por abajo
     } else {
-        if (col + size > 10) return false;
+        if (col + size > 10) return false; // Se sale por la derecha
     }
 
-    // Verificar superposición con otros barcos
+    // Comprueba si alguna casilla ya está ocupada
     for (let i = 0; i < size; i++) {
         if (isVertical.value) {
-            if (board.value[row + i][col] !== null) return false;
+            if (board.value[row + i][col] !== null) return false; // Casilla ocupada (vertical)
         } else {
-            if (board.value[row][col + i] !== null) return false;
+            if (board.value[row][col + i] !== null) return false; // Casilla ocupada (horizontal)
         }
     }
 
-    return true;
+    return true; // La posición es válida
 };
 
+// Maneja el evento 'drop' (soltar) sobre una celda del tablero
 const handleDrop = (event, row, col) => {
+    // Si hay un barco seleccionado y la posición es válida...
     if (selectedShip.value && isValidPlacement(row, col)) {
-        placeShip(row, col);
+        placeShip(row, col); // Coloca el barco
     }
 };
 
+// Coloca el barco seleccionado en la posición (row, col)
 const placeShip = (row, col) => {
-    if (!selectedShip.value) return;
+    if (!selectedShip.value) return; // No debería pasar si isValidPlacement es true, pero por si acaso
 
     const ship = selectedShip.value;
 
-    // Colocar el barco en el tablero
+    // Marca las casillas correspondientes en el tablero con el nombre del barco
     for (let i = 0; i < ship.size; i++) {
         if (isVertical.value) {
             board.value[row + i][col] = ship.name;
@@ -303,143 +323,202 @@ const placeShip = (row, col) => {
         }
     }
 
-    // Marcar el barco como colocado
+    // Marca el barco como colocado y deselecciónalo
     ship.placed = true;
     selectedShip.value = null;
 };
 
+// Reinicia el tablero y el estado de los barcos
 const resetPlacement = () => {
+    // Vacía el tablero
     board.value = Array(10)
         .fill(null)
         .map(() => Array(10).fill(null));
+    // Marca todos los barcos como no colocados
     availableShips.value.forEach((ship) => (ship.placed = false));
+    // Deselecciona cualquier barco
     selectedShip.value = null;
 };
 
+// Obtiene las posiciones de todos los barcos colocados en formato JSON
 const getShipsPositions = () => {
-    const shipsInfo = {};
+    const shipsInfo = {}; // Objeto para almacenar la información
 
-    // Recorremos el tablero buscando barcos
+    // Recorre el tablero buscando el inicio de cada barco
     for (let row = 0; row < 10; row++) {
         for (let col = 0; col < 10; col++) {
             const shipName = board.value[row][col];
+            // Si es una casilla de barco y aún no hemos procesado este barco...
             if (shipName && !shipsInfo[shipName]) {
-                const positions = [];
+                const positions = []; // Array para guardar las coordenadas de este barco
 
-                // Verificar dirección horizontal
+                // Detecta la orientación (asume horizontal si no es vertical)
                 let isHorizontal =
                     col + 1 < 10 && board.value[row][col + 1] === shipName;
 
                 if (isHorizontal) {
-                    // Recolectar todas las posiciones horizontalmente (+1 para empezar desde 1)
+                    // Recorre hacia la derecha para encontrar todas las partes
                     for (
                         let c = col;
                         c < 10 && board.value[row][c] === shipName;
                         c++
                     ) {
+                        // Guarda la posición como "fila,columna" (empezando en 1)
                         positions.push(`${row + 1},${c + 1}`);
                     }
                 } else {
-                    // Recolectar todas las posiciones verticalmente (+1 para empezar desde 1)
+                    // Recorre hacia abajo para encontrar todas las partes
                     for (
                         let r = row;
                         r < 10 && board.value[r][col] === shipName;
                         r++
                     ) {
+                        // Guarda la posición como "fila,columna" (empezando en 1)
                         positions.push(`${r + 1},${col + 1}`);
                     }
                 }
 
+                // Guarda las posiciones del barco en el objeto principal
                 shipsInfo[shipName] = positions;
             }
         }
     }
+    // Devuelve la información como una cadena JSON
     return JSON.stringify(shipsInfo);
 };
 
+// Verifica si todos los barcos definidos están presentes en la información de posiciones
 const verifyAllShipsPlaced = (shipsInfo) => {
-    // Convertir el JSON string a objeto
+    // Convierte la cadena JSON a un objeto
     const placedShips = JSON.parse(shipsInfo);
 
-    // Obtener nombres de los barcos colocados
+    // Obtiene los nombres de los barcos que se han colocado
     const placedShipNames = Object.keys(placedShips);
 
-    // Obtener nombres de los barcos disponibles
+    // Obtiene los nombres de los barcos que deberían estar
     const availableShipNames = availableShips.value.map((ship) => ship.name);
 
-    // Verificar que todos los barcos disponibles están colocados
+    // Comprueba si cada barco disponible está en la lista de barcos colocados
     return availableShipNames.every((shipName) =>
         placedShipNames.includes(shipName)
     );
 };
 
+// Acción del botón de confirmar: solo muestra la pantalla de carga
 const confirmPlacementButton = () => {
-    // Mostrar pantalla de carga
     isLoading.value = true;
+    // La lógica real se ejecuta en confirmPlacement (llamado por el temporizador o después)
+    confirmPlacement();
 };
 
+// Lógica principal para confirmar la colocación y pasar a la siguiente fase
 const confirmPlacement = async () => {
+    // Solo procede si todos los barcos están colocados o si se acabó el tiempo
     if (isPlacementComplete.value || timeLeft.value <= 0) {
-        const shipsInfo = getShipsPositions();
+        const shipsInfo = getShipsPositions(); // Obtiene las posiciones
 
+        // Comprueba si se colocó algún barco
         if (shipsInfo === "{}") {
-            backToHome(true, "No se han colocado barcos en el tablero.");
-        } else {
-            if (!verifyAllShipsPlaced(shipsInfo)) {
-                backToHome(true, "No se han colocado todos los barcos correctamente.");
-                return;
-            }
+            backToHome(true, "No has colocado ningún barco.");
+            return; // Detiene la ejecución
+        }
 
-            try {
-                const response = await axios.post("/api/games/store-ship-placement", {
+        // Comprueba si se colocaron *todos* los barcos necesarios
+        if (!verifyAllShipsPlaced(shipsInfo)) {
+            backToHome(true, "Faltan barcos por colocar o hay un error.");
+            return; // Detiene la ejecución
+        }
+
+        // Si todo está bien, intenta guardar la colocación en el servidor
+        try {
+            const response = await axios.post(
+                "/api/games/store-ship-placement",
+                {
                     gameCode: gameStore.matchCode,
                     user: authStore().user,
-                    shipsInfo: shipsInfo,
-                });
+                    shipsInfo: shipsInfo, // Envía las posiciones como JSON string
+                }
+            );
 
-                if (response.data.status == "success") {
-                    isLoading.value = true;
-                    await sleep(5000);
+            // Si el servidor confirma que se guardó...
+            if (response.data.status == "success") {
+                isLoading.value = true; // Muestra carga mientras espera al oponente
+                await sleep(5000); // Espera 5 segundos (simula espera o da tiempo al oponente)
 
-                    const response = await axios.post("/api/games/get-opponent-ship-placement-validation", {
+                // Pregunta al servidor si el oponente ya colocó sus barcos
+                const opponentCheckResponse = await axios.post(
+                    "/api/games/get-opponent-ship-placement-validation",
+                    {
                         gameCode: gameStore.matchCode,
                         user: authStore().user,
-                    });
-
-                    if (response.data.status == "success" && response.data.message == "OK") {
-                        console.log("El oponente ha subido barcos.");
-                        isLoading.value = false;
-                        gameStore.setGamePhase("playing");
-                    } else if (response.data.status == "success" && response.data.message == "NOK") {
-                        backToHome(true, "El oponente no ha colocado sus barcos.");
-                    } else {
-                        backToHome(true, "Error al verificar los barcos del oponente.");
                     }
+                );
+
+                // Analiza la respuesta del servidor sobre el oponente
+                if (
+                    opponentCheckResponse.data.status == "success" &&
+                    opponentCheckResponse.data.message == "OK"
+                ) {
+                    // ¡El oponente está listo! Pasa a la fase de juego.
+                    console.log(
+                        "El oponente ha colocado sus barcos. ¡A jugar!"
+                    );
+                    isLoading.value = false; // Oculta la carga
+                    gameStore.setGamePhase("playing"); // Cambia la fase en el store
+                } else if (
+                    opponentCheckResponse.data.status == "success" &&
+                    opponentCheckResponse.data.message == "NOK"
+                ) {
+                    // El oponente no ha terminado o ha habido un problema
+                    backToHome(
+                        true,
+                        "El oponente no ha colocado sus barcos a tiempo."
+                    );
                 } else {
-                    backToHome(true, "Error al guardar la posición de los barcos.");
+                    // Error inesperado al verificar al oponente
+                    backToHome(
+                        true,
+                        "Error al verificar el estado del oponente."
+                    );
                 }
-            } catch (error) {
-                backToHome(true, "Error al conectar con el servidor.");
+            } else {
+                // Error al guardar la colocación en el servidor
+                backToHome(
+                    true,
+                    "No se pudo guardar la posición de los barcos."
+                );
             }
+        } catch (error) {
+            // Error de red o del servidor
+            backToHome(true, "Error de conexión con el servidor.");
         }
     } else {
-        backToHome(false, "No se han colocado los barcos");
+        // Intento de confirmar sin haber terminado (no debería ser posible si el botón está desactivado)
+        showNotification("Aún no has colocado todos los barcos.", "info");
+        isLoading.value = false; // Asegúrate de ocultar la carga si se mostró
     }
 };
 
-// Event handlers para drag and drop
+// Manejadores de eventos para Drag and Drop
+
+// Cuando se empieza a arrastrar un barco
 const handleDragStart = (event, ship) => {
     if (!ship.placed) {
-        selectedShip.value = ship;
+        selectShip(ship); // Selecciónalo (si no está colocado)
+        // Podrías añadir datos al evento de arrastre si fuera necesario
+        // event.dataTransfer.setData('text/plain', ship.name);
+    } else {
+        event.preventDefault(); // Evita arrastrar barcos ya colocados
     }
 };
 
-// Modificar la función getCellContent
+// Devuelve el contenido visual de una celda (actualmente vacío)
 const getCellContent = (row, col) => {
-    return ""; // Ya no necesitamos retornar el emoji
+    // Podría usarse para mostrar iconos o información de depuración
+    return "";
 };
 
-// Corregir la definición de emit
+// Define los eventos que este componente puede emitir (aunque no se usa actualmente)
 const emit = defineEmits(["placement-confirmed"]);
 </script>
 
@@ -470,7 +549,7 @@ const emit = defineEmits(["placement-confirmed"]);
     width: 100%;
     background: var(--background-primary);
     border-radius: 12px;
-    padding-top: 3rem; /* Añadido padding-top para mejor visualización */
+    padding-top: 3rem;
 }
 
 .ships-dock {
@@ -482,7 +561,7 @@ const emit = defineEmits(["placement-confirmed"]);
     border: 2px solid var(--primary-color);
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Añadido para contener los hijos */
+    overflow: hidden;
 }
 
 .ships-dock h3 {
@@ -507,8 +586,8 @@ const emit = defineEmits(["placement-confirmed"]);
     align-items: center;
     flex-grow: 1;
     padding: 0.25rem;
-    overflow-y: auto; /* Permitir scroll vertical si es necesario */
-    max-height: calc(100% - 35px); /* Restar espacio de título y separador */
+    overflow-y: auto;
+    max-height: calc(100% - 35px);
 }
 
 .board-container {
@@ -567,12 +646,12 @@ const emit = defineEmits(["placement-confirmed"]);
 
 .ship-item {
     cursor: grab;
-    padding: 0.25rem; /* Reducido para ahorrar espacio */
+    padding: 0.25rem;
     border-radius: 8px;
     transition: all 0.3s ease;
     background: transparent;
     border: none;
-    margin: 0.15rem; /* Reducido para ahorrar espacio */
+    margin: 0.15rem;
 }
 
 .ship-item:hover {
@@ -685,8 +764,8 @@ const emit = defineEmits(["placement-confirmed"]);
     text-align: center;
     margin-bottom: 0.25rem;
     color: var(--white-color);
-    font-size: 16px; /* Reducido para mejor ajuste */
-    white-space: nowrap; /* Evitar saltos de línea */
+    font-size: 16px;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -732,7 +811,6 @@ const emit = defineEmits(["placement-confirmed"]);
     color: var(--secondary-color);
 }
 
-/* Clases base de visibilidad */
 .desktop-only {
     display: none;
 }
@@ -754,7 +832,7 @@ const emit = defineEmits(["placement-confirmed"]);
 
     .game-layout {
         gap: 0.5rem;
-        padding: 1rem 0.5rem 0.5rem 0.5rem; /* Ajustado padding para móviles */
+        padding: 1rem 0.5rem 0.5rem 0.5rem;
         flex-direction: column;
     }
 }
@@ -763,13 +841,12 @@ const emit = defineEmits(["placement-confirmed"]);
     .ship-placement {
         padding-top: 1rem;
     }
-    
+
     .timer-container {
         margin-bottom: 0;
     }
 }
 
-/* Estilos para la pantalla de carga */
 .loading-state {
     position: fixed;
     top: 0;
@@ -813,7 +890,6 @@ const emit = defineEmits(["placement-confirmed"]);
     }
 }
 
-/* Estilos para las notificaciones */
 .notification {
     position: fixed;
     top: 20px;
@@ -969,7 +1045,6 @@ const emit = defineEmits(["placement-confirmed"]);
     }
 }
 
-/* Ajustes específicos para alturas pequeñas */
 @media (max-height: 800px) {
     .ship-placement {
         padding: 4rem 1rem 1rem 1rem;
@@ -1093,7 +1168,6 @@ const emit = defineEmits(["placement-confirmed"]);
     }
 }
 
-/* Para pantallas simultáneamente pequeñas y estrechas */
 @media (max-height: 650px) and (max-width: 768px) {
     .ship-placement {
         padding: 2rem 0.5rem 0.5rem 0.5rem;
@@ -1104,7 +1178,7 @@ const emit = defineEmits(["placement-confirmed"]);
         flex-wrap: wrap;
         gap: 0.5rem;
         justify-content: center;
-        padding-top: 1rem; /* Ajustado para pantallas pequeñas */
+        padding-top: 1rem;
     }
 
     .ships-dock {
@@ -1152,7 +1226,6 @@ const emit = defineEmits(["placement-confirmed"]);
     }
 }
 
-/* Ajustes extremos para pantallas muy pequeñas */
 @media (max-width: 360px) {
     .board-container,
     .ships-dock {

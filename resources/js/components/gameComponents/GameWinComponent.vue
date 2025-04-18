@@ -4,7 +4,9 @@
             <div class="game-win-modal neutral-background">
                 <h2 class="white-color h2">¡VICTORIA!</h2>
                 <div class="points-container">
-                    <span class="points white-color h3">+{{ gameStore.points }}</span>
+                    <span class="points white-color h3"
+                        >+{{ gameStore.points }}</span
+                    >
                     <svg
                         width="40"
                         height="40"
@@ -113,43 +115,47 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['cleanup']);
+const emit = defineEmits(["cleanup"]);
 
 const router = useRouter();
 const gameStore = useGameStore();
-const isGameActive = ref(true); // Estado del juego
+const isGameActive = ref(true); // Controla si el juego está activo
 
 const goToHome = () => {
-    
-    // Detener el juego
+    // Marca el juego como inactivo
     isGameActive.value = false;
-    
-    // Navegar al inicio
+    // Redirige al inicio
     router.push("/");
 };
 
 const handlePlayAgain = async () => {
-    
     try {
-        const response = await axios.post('/api/games/check-user-requirements', {
-            gameType: gameStore.gameMode,
-            gameCode: 'null',
-            user: authStore().user ?? null
-        });
+        // Verifica si el usuario puede iniciar una nueva partida
+        const response = await axios.post(
+            "/api/games/check-user-requirements",
+            {
+                gameType: gameStore.gameMode, // Usa el modo de juego actual
+                gameCode: "null", // No aplica código para jugar de nuevo (asume pública o crear)
+                user: authStore().user ?? null, // Envía datos del usuario si está logueado
+            }
+        );
 
-        // Limpiar el estado actual y resetear el juego
+        // Limpia el estado del juego actual y resetea el store
         console.log("Reseteando el juego.");
-        emit('cleanup');
-        await gameStore.resetGame();
+        emit("cleanup"); // Emite evento para que el componente padre limpie lo necesario
+        await gameStore.resetGame(); // Resetea el store del juego
 
-        if (response.data.status === 'success') {
+        // Si la verificación es exitosa, redirige a una nueva partida pública
+        if (response.data.status === "success") {
             router.push(`/game/public/null`);
         } else {
-            console.error("Failed:", response.data.message);
+            // Si falla la verificación, muestra error y redirige a inicio
+            console.error("Fallo:", response.data.message);
             goToHome();
         }
     } catch (error) {
-        console.error("Error checking requirements:", error);
+        // Si hay un error en la llamada, muestra error y redirige a inicio
+        console.error("Error al verificar requisitos:", error);
         goToHome();
     }
 };
@@ -169,29 +175,27 @@ const handlePlayAgain = async () => {
 }
 
 .game-win-modal {
-    padding: 4rem; /* Aumentar padding general */
+    padding: 4rem;
     border-radius: 8px;
     text-align: center;
-    border: 1px solid var(--white-color); /* Cambiar de 2px a 1px */
+    border: 1px solid var(--white-color);
     transform-origin: center;
     animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .buttons {
-    margin-top: 3rem; /* Aumentar margen superior de botones */
+    margin-top: 3rem;
     display: flex;
     flex-direction: column;
-    gap: 2rem; /* Aumentar espacio entre botones */
+    gap: 2rem;
     align-items: center;
 }
-
-/* Eliminar los estilos personalizados de botones ya que usamos primary-button */
 
 .button-icon {
     margin-left: 10px;
     vertical-align: middle;
-    width: 24px; /* Reducir de 32px a 24px */
-    height: 24px; /* Mantener proporción cuadrada */
+    width: 24px;
+    height: 24px;
 }
 
 .primary-button {
@@ -202,7 +206,6 @@ const handlePlayAgain = async () => {
     text-transform: uppercase;
 }
 
-/* Botón de jugar de nuevo mantiene el color primario por defecto */
 button:first-child {
     background: var(--primary-color);
 }
@@ -210,7 +213,6 @@ button:first-child:hover {
     background: var(--primary-v2-color);
 }
 
-/* Botón de volver al inicio usa el color secundario */
 button:last-child {
     background: var(--secondary-color);
 }
@@ -222,28 +224,25 @@ button:last-child:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 25px; /* Aumentar espacio entre número y trofeo */
-    margin: 3rem 0; /* Aumentar margen vertical */
+    gap: 25px;
+    margin: 3rem 0;
 }
 
 .points {
     color: var(--white-color);
-    font-size: 50px; /* Aumentar tamaño de fuente */
-    line-height: 1; /* Ajustar line-height para mejor alineación */
-    margin-top: 8px; /* Ajuste fino de alineación vertical */
+    font-size: 50px;
+    line-height: 1;
+    margin-top: 8px;
 }
 
 .h2 {
-    margin-top: 2rem; /* Aumentar margen superior del título */
+    margin-top: 2rem;
 }
 
 svg {
-    transform: translateY(
-        -2px
-    ); /* Ajuste fino de alineación vertical del SVG */
+    transform: translateY(-2px);
 }
 
-/* Animaciones de popup */
 .modal-enter-active,
 .modal-leave-active {
     transition: all 0.3s ease;

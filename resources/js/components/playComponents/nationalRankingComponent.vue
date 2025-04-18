@@ -10,9 +10,9 @@
         <!-- Contenedor del ranking -->
         <div id="globalRankingContainer">
             <div id="globalRankingInternContainer">
-                <!-- Condición SESIÓN INICIADA -->
+                <!-- Si el usuario ha iniciado sesión -->
                 <div v-if="authStore().user?.id">
-                    <!-- Condición HAY RANKING -->
+                    <!-- Si hay datos de ranking disponibles -->
                     <div v-if="rankingData && rankingData.length">
                         <div
                             v-for="(user, index) in rankingData"
@@ -40,14 +40,14 @@
                                         >{{ user.points }}
                                         <img
                                             src="../../../../public/images/icons/trophy-icon-dark.svg"
-                                            alt="Trophy icon"
+                                            alt="Icono de trofeo"
                                             height="70%"
                                     /></span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Condición SIN RANKING -->
+                    <!-- Si no hay datos de ranking -->
                     <p
                         v-else
                         id="textoCargandoDatosRanking"
@@ -56,7 +56,7 @@
                         No hay datos de ranking nacional disponibles.
                     </p>
                 </div>
-                <!-- Condición SIN SESIÓN -->
+                <!-- Si el usuario no ha iniciado sesión -->
                 <div v-else id="peticionInicioSesion" class="white-color">
                     <p class="p3">
                         Para ver el ranking nacional, debes iniciar sesión y
@@ -74,52 +74,63 @@ import useRankings from "@/composables/rankings.js";
 import useUsers from "@/composables/users.js";
 import { authStore } from "../../store/auth";
 
-// Props
+// Propiedades recibidas del componente padre
 const props = defineProps({
     rankingData: {
         type: Array,
-        default: () => [],
+        default: () => [], // Por defecto, un array vacío
     },
     nationality: {
         type: String,
-        default: "Global",
+        default: "Global", // Por defecto, 'Global'
     },
 });
 
 /* -- VARIABLES -- */
-const { getUser } = useUsers();
+const { getUser } = useUsers(); // Función para obtener datos de usuario
 
-/* -- FUNCTIONS -- */
+/* -- FUNCIONES -- */
+// Construye la URL del avatar del usuario
 const getAvatarUrl = (user) => {
     if (user.user && user.user.avatar) {
+        // Si la URL ya es absoluta (empieza con http)
         if (user.user.avatar.startsWith("http")) {
             return user.user.avatar;
         }
+        // Si es una ruta relativa, la completa con el origen
         return `${window.location.origin}${user.user.avatar}`;
     }
+    // Si no hay avatar, devuelve la imagen por defecto
     return `${window.location.origin}/images/icons/user-icon-dark.svg`;
 };
 
+// Carga los datos del usuario asociado a una entrada del ranking
 const loadUserData = async (rankingUser) => {
     try {
         const userData = await getUser(rankingUser.user_id);
-        rankingUser.user = userData;
+        rankingUser.user = userData; // Asigna los datos cargados al objeto del ranking
         return userData;
     } catch (error) {
-        return null;
+        console.error("Error al cargar datos del usuario:", error);
+        return null; // Devuelve null si hay un error
     }
 };
 
+// Se ejecuta cuando el componente se monta en el DOM
 onMounted(async () => {
+    // Si el usuario está logueado y hay datos de ranking
     if (authStore().user?.id && props.rankingData.length) {
+        // Itera sobre cada usuario en el ranking para cargar sus datos completos
         for (let rankUser of props.rankingData) {
             await loadUserData(rankUser);
         }
     }
 });
 
+// Maneja errores al cargar la imagen del avatar
 const handleAvatarError = (e) => {
-    e.target.src = "/images/icons/user-icon-dark.svg"; // Cambiado a ruta absoluta
+    // Si falla la carga, muestra la imagen por defecto
+    e.target.src = "/images/icons/user-icon-dark.svg";
 };
 </script>
 
@@ -131,7 +142,7 @@ const handleAvatarError = (e) => {
 
 #nationalRankingMenuTitle {
     padding: 0;
-    margin-bottom: 1rem; /* Added margin-bottom to match global ranking title */
+    margin-bottom: 1rem;
 }
 
 #globalRankingContainer {
@@ -214,7 +225,6 @@ const handleAvatarError = (e) => {
     padding: 20px;
 }
 
-/* Estilos responsivos */
 @media (max-width: 1200px) {
     #nationalRankingMenuContainer {
         padding: 1rem;

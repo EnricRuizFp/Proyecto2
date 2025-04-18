@@ -136,28 +136,29 @@ const infoMessage = ref("");
 // Verificar requisitos del usuario y navegar a la página del juego
 const checkAndNavigate = async (gameType, gameCode = null) => {
     try {
-        const response = await axios.post('/api/games/check-user-requirements', {
-            gameType: gameType,
-            gameCode: gameCode,
-            user: authStore().user ?? null
-        });
+        const response = await axios.post(
+            "/api/games/check-user-requirements",
+            {
+                gameType: gameType,
+                gameCode: gameCode,
+                user: authStore().user ?? null,
+            }
+        );
 
-        if (response.data.status === 'success') {
-            console.log('OK: User ready to play.');
-            // Modificar la navegación para usar la ruta correcta
-            router.push(`/game/${gameType}/${gameCode || 'null'}`);
+        if (response.data.status === "success") {
+            console.log("OK: User ready to play.");
+            router.push(`/game/${gameType}/${gameCode || "null"}`);
         } else {
-
-            if(response.data.message == 'Your user is leaving the game. Wait a few seconds.'){
-
+            if (
+                response.data.message ==
+                "Your user is leaving the game. Wait a few seconds."
+            ) {
                 console.log("Failed without error: ", response.data.message);
                 infoMessage.value = response.data.message;
-
-            }else{
+            } else {
                 console.log("Failed with error:", response.data.message);
                 errorMessage.value = response.data.message;
             }
-            
         }
     } catch (error) {
         errorMessage.value = "Error al verificar requisitos del juego";
@@ -172,7 +173,7 @@ const irAlJuego = async () => {
 
 // Crear partida privada
 const crearPartidaPrivada = async () => {
-    gameStore.resetGame(); // Añadido para mantener consistencia con irAlJuego
+    gameStore.resetGame();
     await checkAndNavigate("private", null);
 };
 
@@ -184,17 +185,20 @@ const handleJoinMatch = async (code) => {
     await checkAndNavigate("private", code);
 };
 
-// Nueva función para verificar requisitos antes de mostrar el modal
+// Función para verificar requisitos antes de mostrar el modal
 const showJoinMatchModal = async () => {
     try {
-        const response = await axios.post('/api/games/check-user-requirements', {
-            gameType: 'private',
-            gameCode: null,
-            user: authStore().user ?? null
-        });
+        const response = await axios.post(
+            "/api/games/check-user-requirements",
+            {
+                gameType: "private",
+                gameCode: null,
+                user: authStore().user ?? null,
+            }
+        );
 
-        if (response.data.status === 'success') {
-            console.log('OK: User ready to play.');
+        if (response.data.status === "success") {
+            console.log("OK: User ready to play.");
             showJoinModal.value = true;
         } else {
             console.log("FAILED:", response.data.message);
@@ -229,13 +233,13 @@ const showJoinMatchModal = async () => {
     background-color: var(--primary-color);
     border: none;
     border-radius: 10px;
-    padding: 20px 35px; /* Aumentado el padding vertical */
+    padding: 20px 35px;
     display: flex;
     align-items: center;
-    justify-content: center; /* Centrar contenido */
-    gap: 15px; /* Aumentar espacio entre texto e icono */
-    margin: 2rem 0 4rem 0; /* Aumentado el margin-bottom a 4rem */
-    min-width: 250px; /* Asegurar ancho mínimo */
+    justify-content: center;
+    gap: 15px;
+    margin: 2rem 0 4rem 0;
+    min-width: 250px;
     transition: all 0.3s ease;
 }
 
@@ -254,7 +258,7 @@ const showJoinMatchModal = async () => {
 }
 
 .botonPartida svg {
-    margin-left: 0 !important; /* Eliminar margen inline */
+    margin-left: 0 !important;
 }
 
 .botonPartida {
@@ -265,8 +269,8 @@ const showJoinMatchModal = async () => {
     padding: 0 35px;
     display: flex;
     align-items: center;
-    justify-content: center; /* Centrar contenido */
-    gap: 15px; /* Aumentar espacio entre texto e icono */
+    justify-content: center;
+    gap: 15px;
     transition: all 0.3s ease;
     flex: 1;
     width: calc(50% - 0.5rem);
@@ -275,10 +279,10 @@ const showJoinMatchModal = async () => {
 }
 
 .botonPartida img {
-    height: 32px; /* Aumentado el tamaño del icono */
-    width: 32px; /* Aseguramos que el ancho sea igual */
-    filter: brightness(0) invert(1) opacity(0.9); /* Hacer el icono más grueso */
-    margin-left: 0 !important; /* Eliminar margen inline */
+    height: 32px;
+    width: 32px;
+    filter: brightness(0) invert(1) opacity(0.9);
+    margin-left: 0 !important;
 }
 
 .botonPartida:hover {
@@ -290,8 +294,8 @@ const showJoinMatchModal = async () => {
 /* Ajustar la altura de los botones */
 #botonJugarPartida,
 .botonPartida {
-    height: 65px; /* Reducido de 80px a 65px */
-    padding: 0 35px; /* Mantener el padding horizontal pero quitar el vertical */
+    height: 65px;
+    padding: 0 35px;
 }
 
 #tituloPartidaPrivada h2 {
@@ -301,7 +305,6 @@ const showJoinMatchModal = async () => {
     white-space: nowrap;
 }
 
-/* Responsive layout */
 #partidasPrivadasComponent {
     width: 100%;
     padding: 0;
@@ -328,9 +331,9 @@ const showJoinMatchModal = async () => {
     #botonJugarPartida {
         min-width: 200px;
         padding: 0 25px;
-        margin: 2rem 0 3rem 0; /* Reducido el margin-bottom de 4rem a 3rem */
+        margin: 2rem 0 3rem 0;
         height: 60px;
-        font-size: 22px; /* Igualado al tamaño de los otros botones */
+        font-size: 22px;
     }
 
     #tituloPlayComponent h1 {
@@ -339,24 +342,24 @@ const showJoinMatchModal = async () => {
 
     .botonPartida {
         width: 100%;
-        height: 60px !important; /* Reducido de 65px a 60px */
-        min-height: 60px; /* Reducido de 65px a 60px */
-        font-size: 22px; /* Reducido el tamaño de fuente */
-        gap: 10px; /* Reducir espacio entre texto e ícono */
+        height: 60px !important;
+        min-height: 60px;
+        font-size: 22px;
+        gap: 10px;
     }
 
     .botonPartida svg {
-        height: 24px; /* Reducir tamaño del ícono */
+        height: 24px;
         width: 24px;
     }
 
     #botonesPartidaPrivada {
         flex-direction: column;
-        gap: 1rem; /* Reducido de 1.5rem */
+        gap: 1rem;
     }
 
     #tituloPartidaPrivada h2 {
-        margin-bottom: 1rem; /* Reducido de 1.5rem */
+        margin-bottom: 1rem;
     }
 
     #espacio4 {
@@ -371,8 +374,8 @@ const showJoinMatchModal = async () => {
 
     #botonJugarPartida,
     .botonPartida {
-        height: 60px; /* Mantener altura consistente */
-        font-size: 20px; /* Mantener el mismo tamaño en todas las resoluciones */
+        height: 60px;
+        font-size: 20px;
     }
 
     #tituloPlayComponent h1 {
@@ -385,7 +388,7 @@ const showJoinMatchModal = async () => {
     }
 
     .botonPartida {
-        height: 60px !important; /* Reducido aún más para pantallas más pequeñas */
+        height: 60px !important;
         font-size: 20px;
     }
 
@@ -396,10 +399,11 @@ const showJoinMatchModal = async () => {
 }
 
 @media (max-width: 360px) {
-    #botonJugarPartida, .botonPartida {
+    #botonJugarPartida,
+    .botonPartida {
         min-width: 180px;
         padding: 0 20px;
-        font-size: 22px; /* Mantener el mismo tamaño */
+        font-size: 22px;
     }
 }
 

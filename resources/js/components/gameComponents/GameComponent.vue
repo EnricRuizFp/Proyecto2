@@ -32,7 +32,10 @@
         <div class="boards-container">
             <!-- Tablero del usuario -->
             <div class="board-section">
-                <ViewUserComponent v-if="currentUserId" :userId="currentUserId" />
+                <ViewUserComponent
+                    v-if="currentUserId"
+                    :userId="currentUserId"
+                />
                 <div class="board-container">
                     <div class="board-grid">
                         <div
@@ -197,7 +200,7 @@
 
             <div class="chat-container" :class="{ 'chat-open': isChatOpen }">
                 <div class="chat-header">
-                    <h3>Chat con {{ opponent?.username || 'Oponente' }}</h3>
+                    <h3>Chat con {{ opponent?.username || "Oponente" }}</h3>
                 </div>
 
                 <div class="chat-messages" ref="chatMessages">
@@ -251,44 +254,48 @@ import ViewUserComponent from "../viewGameComponents/ViewUserComponent.vue";
 const route = useRoute();
 const router = useRouter();
 const gameStore = useGameStore();
-const yourTurn = ref(null);
-const timeLeft = ref(25);
-const isGameActive = ref(true);
+const yourTurn = ref(null); // Indica si es el turno del jugador actual
+const timeLeft = ref(25); // Tiempo restante para el turno
+const isGameActive = ref(true); // Controla si el bucle principal del juego debe seguir
 const userBoard = ref(
+    // Tablero del jugador (dónde están sus barcos)
     Array(10)
         .fill(null)
         .map(() => Array(10).fill(null))
 );
 const attackBoard = ref(
+    // Tablero de ataque (dónde ha disparado el jugador)
     Array(10)
         .fill(null)
         .map(() => Array(10).fill(null))
 );
 const notification = ref({
+    // Para mostrar mensajes flotantes
     show: false,
     message: "",
-    type: "info",
-    position: "derecha",
+    type: "info", // 'info', 'success', 'error', 'water'
+    position: "derecha", // 'derecha', 'izquierda'
 });
-const currentUserId = ref(null);
-const opponentId = ref(null);
-const isInitialLoading = ref(true);
-const opponent = ref(null); // Añadir esta nueva variable
+const currentUserId = ref(null); // ID del jugador actual
+const opponentId = ref(null); // ID del oponente
+const isInitialLoading = ref(true); // Para mostrar el spinner al cargar
+const opponent = ref(null); // Datos del oponente
 
 // Variables para el chat
-const isChatOpen = ref(false);
-const messages = ref([]);
-const newMessage = ref("");
-const chatMessages = ref(null);
-const unreadMessages = ref(0);
-const lastMessageId = ref(0);
-const pollingInterval = ref(null);
+const isChatOpen = ref(false); // ¿Está visible la ventana del chat?
+const messages = ref([]); // Array con los mensajes del chat
+const newMessage = ref(""); // Mensaje que se está escribiendo
+const chatMessages = ref(null); // Referencia al contenedor de mensajes (para scroll)
+const unreadMessages = ref(0); // Contador de mensajes no leídos
+const lastMessageId = ref(0); // ID del último mensaje recibido (para detectar nuevos)
+const pollingInterval = ref(null); // ID del intervalo para refrescar el chat
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// Función de utilidad para pausar la ejecución
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/* -- FUNCTIONS -- */
+/* -- FUNCIONES -- */
 
-// Función para mostrar notificaciones
+// Muestra una notificación temporal
 const showNotification = (message, type = "info") => {
     notification.value = {
         show: true,
@@ -297,33 +304,40 @@ const showNotification = (message, type = "info") => {
         position: "derecha",
     };
 
-    setTimeout(() => {
-        notification.value.show = false;
-    }, message === "El oponente ha abandonado la partida" ? 6500 : 3000);
+    // Duración diferente si es el mensaje de abandono
+    setTimeout(
+        () => {
+            notification.value.show = false;
+        },
+        message === "El oponente ha abandonado la partida" ? 6500 : 3000
+    );
 };
 
-// Función para manejar el ataque
+// Gestiona el clic en una celda del tablero de ataque
 const handleAttack = async (row, col) => {
+    // Validaciones: ¿Es tu turno? ¿Ya has disparado ahí?
     if (!isGameActive.value || !yourTurn.value || attackBoard.value[row][col]) {
-        // console.log("Ataque inválido.");
         showNotification("Espera tu turno.", "error");
         return;
     }
 
     try {
-        // console.log("Atacando a:", row, "/", col);
+        // Envía la coordenada atacada a la API
         const response = await axios.post("/api/games/attack", {
             gameCode: gameStore.matchCode,
             user: authStore().user,
-            coordinates: `${row + 1},${col + 1}`,
+            coordinates: `${row + 1},${col + 1}`, // Formato "fila,columna" (base 1)
         });
 
         if (response.data.status === "success") {
-            const result = response.data.message;
+            const result = response.data.message; // 'hit' o 'miss'
+            // Marca la celda en el tablero de ataque
             attackBoard.value[row][col] = result === "hit" ? "✓" : "✗";
 
+            // Muestra notificación según el resultado
             if (result === "hit") {
                 if (response.data.is_sunk) {
+                    // ¿Hundiste un barco?
                     showNotification("¡Tocado y hundido!", "success");
                 } else {
                     showNotification("¡Tocado!", "success");
@@ -332,7 +346,9 @@ const handleAttack = async (row, col) => {
                 showNotification("¡Agua!", "water");
             }
 
+            // Comprueba si este movimiento te ha hecho ganar
             await checkMatchWinner();
+            // Cede el turno
             yourTurn.value = false;
         }
     } catch (error) {
@@ -340,10 +356,10 @@ const handleAttack = async (row, col) => {
     }
 };
 
-// Función para verificar si el usuario ha ganado la partida
+// Comprueba si el jugador actual ha ganado la partida
 const checkMatchWinner = async () => {
     try {
-        // Obtener las coordenadas de los barcos del oponente
+        // Pide al servidor si ya has ganado (basado en tus ataques)
         const response = await axios.post(
             "/api/games/get-opponent-ship-placement-game",
             {
@@ -352,25 +368,24 @@ const checkMatchWinner = async () => {
             }
         );
 
-        // Validación de ganador de la partida
+        // Analiza la respuesta
         if (response.data.has_winned == false) {
+            // Aún no has ganado
             if (response.data.move_count < 100) {
-                //showNotification("Te quedan " + response.data.ships_left + " barcos por hundir.", "info");
+                // Podrías mostrar cuántos barcos quedan, pero está comentado
+                // showNotification(`Te quedan ${response.data.ships_left} barcos por hundir.`, "info");
             } else {
+                // Se alcanzó el límite de movimientos (empate)
                 console.log("Límite de movimientos alcanzado.");
-
-                // Finalizar el juego
-                await endGame("draw", true);
+                await endGame("draw", true); // Finaliza como empate
             }
         } else if (response.data.has_winned == true) {
-            // console.log("Ganador de la partida.");
-
-            // Mostrar notificación de victoria
+            // ¡Has ganado!
+            console.log("Ganador de la partida.");
             showNotification("¡Has ganado la partida!", "success");
-
-            // Finalizar el juego
-            await endGame("winner", true);
+            await endGame("winner", true); // Finaliza como ganador
         } else {
+            // Respuesta inesperada
             console.log("No se ha podido determinar el ganador.");
         }
     } catch (error) {
@@ -378,155 +393,157 @@ const checkMatchWinner = async () => {
     }
 };
 
-// Función para finalizar la partida (ganando)
+// Finaliza la partida y actualiza el estado en el servidor y localmente
 const endGame = async (status, subirDato) => {
+    // status: 'winner', 'loser', 'draw'
     try {
-
-        // Detener todas las funciones estableciendo isGameActive a false
+        // Detiene el bucle principal y los turnos
         isGameActive.value = false;
         yourTurn.value = false;
 
-        // Si subirDato es true, subir el dato, si es false (el oponente debe haberlo subido ya)
-        if(subirDato){
-            // console.log("Setteando el STATUS de la partida...");
-            // console.log("Status: ", status);
-            
-
+        // 'subirDato' indica si este cliente debe informar al servidor del resultado
+        // (normalmente true si tú causas el fin, false si lo causa el oponente)
+        if (subirDato) {
+            // Informa al servidor del resultado final
             const response = await axios.post("/api/games/set-game-ending", {
                 gameCode: gameStore.matchCode,
                 user: authStore().user,
                 status: status,
             });
 
-            // console.log("Respuesta del servidor:", response.data);
-
             if (response.data.status === "success") {
-                // console.log("Partida finalizada con éxito.");
-
+                // Actualiza el estado global (store) para mostrar la pantalla correcta
                 if (status == "winner") {
                     console.log("Ganador.");
                     gameStore.setPoints(response.data.points_earned);
                     gameStore.setShowWin(true);
-                }else if(status == "loser") {
+                } else if (status == "loser") {
                     console.log("Perdedor.");
                     gameStore.setPoints(response.data.points_lost_by_loser);
                     gameStore.setShowGameOver(true);
-                }else{
+                } else {
+                    // Empate
                     console.log("Empate.");
                     gameStore.setPoints(0);
                     gameStore.setShowDraw(true);
                 }
-
-                // console.log("ENDGAME mostrado.");
             }
-        }else{
-
-            // Obtener el dato de la partida y mostrar el resultado
+        } else {
+            // Si no subes el dato, solo consulta la información final (ya actualizada por el oponente)
             const response = await axios.post("/api/games/get-match-info", {
                 gameCode: gameStore.matchCode,
             });
-
-            // console.log("No has subido ningún dato.");
-            // console.log("Respuesta del servidor:", response.data);
+            // Aquí podrías verificar la respuesta si fuera necesario
         }
-
-        
     } catch (error) {
         console.error("Error al finalizar la partida: ", error);
     }
 };
 
-// Función para manejar el turno de jugar
+// Gestiona la lógica cuando es tu turno
 const playTurn = async () => {
+    if (!isGameActive.value) return; // Sal si el juego ya terminó
 
-    if (!isGameActive.value) return;
-    // console.log("Tu turno. Tienes 25 segundos para atacar.");
-    timeLeft.value = 25;
+    timeLeft.value = 25; // Reinicia el temporizador
 
-    // Esperar 25 segundos o hasta que el usuario ataque
+    // Bucle que espera a que ataques o se acabe el tiempo
     while (timeLeft.value > 0 && yourTurn.value) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await sleep(1000); // Espera 1 segundo
         timeLeft.value--;
     }
 
-    if(timeLeft.value === 0){
-        // console.log("Tiempo agotado.");
+    // Si se acabó el tiempo y no has atacado (yourTurn sigue true)
+    if (timeLeft.value === 0 && yourTurn.value) {
+        console.log("Tiempo agotado.");
         showNotification("Tiempo agotado.", "error");
-        endGame("loser", true);
-
-        // Detener el juego
-        isGameActive.value = false;
+        await endGame("loser", true); // Pierdes por tiempo
+        isGameActive.value = false; // Detiene el juego
     }
-
-    // console.log("Turno finalizado.");
+    // Si atacaste, handleAttack ya puso yourTurn a false y el bucle termina
 };
 
-// Función para manejar el turno de esperar
+// Gestiona la lógica cuando estás esperando al oponente
 const waitTurn = async () => {
-    if (!isGameActive.value) return;
-    let opponentMoved = false;
-    let attempts = 0;
+    if (!isGameActive.value) return; // Sal si el juego ya terminó
 
+    let opponentMoved = false; // ¿Ha movido ya el oponente?
+    let attempts = 0; // Contador para evitar espera infinita
+
+    // Bucle que consulta al servidor por el movimiento del oponente
     while (!opponentMoved && attempts < 12 && isGameActive.value) {
         attempts++;
-        // console.log(`Verificando movimientos: ${attempts}/12.`);
 
         try {
-            // Verificar estado de la partida
-            const matchResponse = await axios.post("/api/games/get-match-info",
+            // 1. Comprueba el estado general de la partida (¿ha terminado?)
+            const matchResponse = await axios.post(
+                "/api/games/get-match-info",
                 {
                     gameCode: gameStore.matchCode,
                 }
             );
 
-            // Verificar si hay un ganador que no es el usuario actual
-            if (matchResponse.data.data.game.is_finished && matchResponse.data.data.game.winner && matchResponse.data.data.game.winner !== authStore().user.id)
-            {
+            const gameData = matchResponse.data.data.game;
 
-                // Detener todas las funciones estableciendo isGameActive a false
+            // ¿La partida ha terminado y el ganador NO eres tú? (Perdiste o empataste)
+            if (
+                gameData.is_finished &&
+                gameData.winner &&
+                gameData.winner !== authStore().user.id
+            ) {
                 isGameActive.value = false;
                 yourTurn.value = false;
-
-                // Mostrar notificación de derrota
                 console.log("Perdedor.");
-                gameStore.setPoints(matchResponse.data.data.game.points);
+                gameStore.setPoints(gameData.points); // Asumiendo que 'points' son los perdidos
                 gameStore.setShowGameOver(true);
-
-            } else if (matchResponse.data.data.game.is_finished && matchResponse.data.data.game.winner)
-            {
-                // console.log("Oponente ha abandonado la partida.");
-                
-                // Mostrar notificación
-                showNotification("El oponente ha abandonado la partida", "error");
-
-                // Esperar 2 segundos para que se vea la notificación
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                
-                // Detener el juego
+                return; // Salimos de la función waitTurn
+            }
+            // ¿La partida ha terminado y el ganador ERES tú? (Oponente abandonó)
+            else if (
+                gameData.is_finished &&
+                gameData.winner === authStore().user.id
+            ) {
+                console.log("Oponente ha abandonado la partida.");
+                showNotification(
+                    "El oponente ha abandonado la partida",
+                    "error"
+                );
+                await sleep(3000); // Pausa para ver la notificación
                 isGameActive.value = false;
                 yourTurn.value = false;
-                await endGame("winner", false);
+                await endGame("winner", false); // Finaliza como ganador (sin subir dato)
+                return; // Salimos de la función waitTurn
+            }
+            // ¿La partida ha terminado SIN ganador? (Empate por límite de movimientos)
+            else if (gameData.is_finished && !gameData.winner) {
+                isGameActive.value = false;
+                yourTurn.value = false;
+                console.log("Empate por límite.");
+                gameStore.setPoints(0);
+                gameStore.setShowDraw(true);
+                return; // Salimos de la función waitTurn
             }
 
-            // Si la partida sigue activa, verificar el último movimiento
+            // 2. Si la partida sigue, consulta el último movimiento del oponente
             const moveResponse = await axios.post("/api/games/get-last-move", {
                 gameCode: gameStore.matchCode,
-                user: authStore().user,
+                user: authStore().user, // Para saber qué movimiento buscar
             });
 
+            // Si la API devuelve un movimiento válido...
             if (
                 moveResponse.data.status === "success" &&
                 moveResponse.data.move
             ) {
                 const move = moveResponse.data.move;
+                // Convierte coordenadas "fila,col" a índices [fila-1][col-1]
                 const [row, col] = move.coordinate
                     .split(",")
                     .map((num) => parseInt(num) - 1);
+                // Actualiza TU tablero con el resultado del ataque del oponente
                 userBoard.value[row][col] = move.result === "hit" ? "X" : "O";
-                opponentMoved = true;
-                // console.log("Movimiento del oponente:", move);
+                opponentMoved = true; // Marcamos que ya movió
             } else {
-                // console.log("No se detectó movimiento del oponente.");
+                // Aún no hay movimiento nuevo del oponente
             }
         } catch (error) {
             console.error(
@@ -535,29 +552,28 @@ const waitTurn = async () => {
             );
         }
 
+        // Si no ha movido, esperamos antes de volver a preguntar
         if (!opponentMoved) {
-            await new Promise((resolve) => setTimeout(resolve, 2500));
+            await sleep(2500);
         }
-    }
+    } // Fin del bucle while
 
-    if (!opponentMoved) {
-        // console.log("El oponente no realizó ningún movimiento en 30 segundos.");
-        // showNotification("El oponente no realizó ningún movimiento en 30 segundos", "error");
-
-        // Finalizar loop de juego
-        isGameActive.value = false;
-
-        // Finalizar el juego
-        await endGame("winner", true);
-    } else {
-        // console.log("Movimiento del oponente procesado. Cambiando al estado de jugar.");
+    // Si después de los intentos el oponente no movió...
+    if (!opponentMoved && isGameActive.value) {
+        // Añadido chequeo de isGameActive
+        console.log(
+            "El oponente no realizó ningún movimiento en el tiempo esperado."
+        );
+        isGameActive.value = false; // Detiene el juego
+        await endGame("winner", true); // Ganas porque el oponente no jugó
+    } else if (opponentMoved) {
+        // Si movió, ahora es tu turno
         yourTurn.value = true;
     }
 };
 
-// Función principal del juego
+// Bucle principal que alterna entre playTurn y waitTurn
 const gameLoop = async () => {
-    // console.log("Iniciando el bucle del juego...");
     while (isGameActive.value) {
         if (yourTurn.value) {
             await playTurn();
@@ -568,21 +584,22 @@ const gameLoop = async () => {
     console.log("El juego ha terminado.");
 };
 
-// Función loadShips (cargar los barcos del jugador)
+// Carga la disposición inicial de los barcos del jugador
 const loadShips = async () => {
     isInitialLoading.value = true;
-    
-    // Verificación de usuario autenticado y código de partida
-    if (authStore().user == null) {
-        // backToHome(true, "No tienes permiso para acceder a esta página (user)");
-    } else if (gameStore.matchCode == "null") {
-        // backToHome(false, "No tienes permiso para acceder a esta página (code)");
+
+    // Validaciones básicas
+    if (!authStore().user) {
+        // Redirigir si no hay usuario
+        return;
+    }
+    if (!gameStore.matchCode || gameStore.matchCode === "null") {
+        // Redirigir si no hay código de partida
+        return;
     }
 
-    // console.log("Obteniendo coordenadas de los barcos del jugador");
-
-    // Obtener los barcos del jugador
     try {
+        // Pide al servidor la posición de los barcos de este usuario
         const response = await axios.post(
             "/api/games/get-user-ship-placement",
             {
@@ -592,92 +609,112 @@ const loadShips = async () => {
         );
 
         if (response.data.status === "failed") {
-            // backToHome(true, "Error al cargar la partida.");
-            // console.log("Error al cargar la partida. [respuesta es failed]");
+            // Error devuelto por la API
+            console.log("Error al cargar la partida. [API devolvió failed]");
+            // Redirigir o mostrar error
             return;
         }
 
-        // Posicionar los barcos en el tablero
+        // Parsea los datos JSON y actualiza el tablero visual
         setUserBoard(JSON.parse(response.data.data));
-        isInitialLoading.value = false;
+        isInitialLoading.value = false; // Oculta el spinner
     } catch (error) {
-        // backToHome(true, "Error al cargar la partida.");
         console.log("Error al cargar la partida: ", error);
+        // Redirigir o mostrar error
     }
 };
 
-// Función para colocar los barcos en el tablero
+// Actualiza la matriz 'userBoard' con los datos de los barcos
 const setUserBoard = (shipsData) => {
-    // Resetear el tablero
+    // Reinicia el tablero a null
     userBoard.value = Array(10)
         .fill(null)
         .map(() => Array(10).fill(null));
 
-    // Recorrer cada barco y sus posiciones
+    // Itera sobre cada tipo de barco y sus coordenadas
     Object.entries(shipsData).forEach(([shipName, positions]) => {
         positions.forEach((pos) => {
-            // Split la posición en coordenadas X,Y y restar 1 para ajustar al índice 0
+            // Convierte "fila,col" a índices [fila-1][col-1]
             const [row, col] = pos.split(",").map((num) => parseInt(num) - 1);
-            userBoard.value[row][col] = shipName;
+            // Marca la celda con el nombre del barco (o un identificador)
+            userBoard.value[row][col] = shipName; // Podría ser solo 'S' si no necesitas el nombre
         });
     });
 };
 
 // --- FUNCIONES DE CHAT ---
 
-// Mostrar u ocultar el chat
+// Abre o cierra la ventana del chat
 const toggleChat = () => {
     isChatOpen.value = !isChatOpen.value;
-    // Si abrimos el chat, resetear los mensajes no leídos
     if (isChatOpen.value) {
-        unreadMessages.value = 0;
-        // Hacer scroll hasta el último mensaje
-        scrollToBottom();
+        unreadMessages.value = 0; // Resetea contador al abrir
+        scrollToBottom(); // Baja el scroll
     }
 };
 
-// Cargar mensajes del chat
+// Pide los mensajes nuevos al servidor
 const loadChatMessages = async () => {
+    // Solo carga si el juego está activo
+    if (!isGameActive.value) {
+        if (pollingInterval.value) clearInterval(pollingInterval.value); // Detiene el polling si el juego acabó
+        return;
+    }
     try {
         const response = await axios.post("/api/games/chat/get-messages", {
             gameCode: gameStore.matchCode,
+            // Podrías enviar lastMessageId.value para optimizar y solo pedir nuevos
         });
 
         if (response.data.status === "success") {
             const newMessages = response.data.data;
 
-            // Comprobar si hay nuevos mensajes
-            if (newMessages.length > messages.value.length) {
-                // Calcular los nuevos mensajes
-                const difference = newMessages.length - messages.value.length;
+            // Comprueba si hay mensajes realmente nuevos comparando IDs o longitud
+            if (
+                newMessages.length > 0 &&
+                newMessages[newMessages.length - 1].id > lastMessageId.value
+            ) {
+                const newlyReceived = newMessages.filter(
+                    (msg) => msg.id > lastMessageId.value
+                );
 
-                // Actualizar el contador de mensajes no leídos si el chat está cerrado
-                if (!isChatOpen.value) {
-                    unreadMessages.value += difference;
+                if (!isChatOpen.value && newlyReceived.length > 0) {
+                    unreadMessages.value += newlyReceived.length; // Incrementa no leídos
                 }
 
-                // Obtener el ID del último mensaje
+                // Actualiza el ID del último mensaje
+                lastMessageId.value = newMessages[newMessages.length - 1].id;
+
+                // Actualiza la lista completa de mensajes
+                messages.value = newMessages;
+
+                // Si el chat está abierto, baja el scroll
+                if (isChatOpen.value) {
+                    await nextTick(); // Espera a que Vue actualice el DOM
+                    scrollToBottom();
+                }
+            } else if (messages.value.length === 0 && newMessages.length > 0) {
+                // Caso inicial: cargar mensajes por primera vez
+                messages.value = newMessages;
                 if (newMessages.length > 0) {
                     lastMessageId.value =
                         newMessages[newMessages.length - 1].id;
                 }
-            }
-
-            messages.value = newMessages;
-
-            // Hacer scroll hacia abajo si el chat está abierto
-            if (isChatOpen.value) {
-                await nextTick();
-                scrollToBottom();
+                if (isChatOpen.value) {
+                    await nextTick();
+                    scrollToBottom();
+                }
             }
         }
     } catch (error) {
         console.error("Error cargando mensajes:", error);
+        // Podrías detener el polling si hay errores repetidos
     }
 };
 
-// Enviar un nuevo mensaje
+// Envía el mensaje escrito al servidor
 const sendMessage = async () => {
+    // No enviar mensajes vacíos
     if (!newMessage.value.trim()) return;
 
     try {
@@ -688,13 +725,13 @@ const sendMessage = async () => {
         });
 
         if (response.data.status === "success") {
-            // Añadir el mensaje a la lista
-            messages.value.push(response.data.data);
-            // Limpiar el input
-            newMessage.value = "";
-            // Hacer scroll hacia abajo
+            // Optimista: añade el mensaje localmente (la API debería devolverlo también)
+            // messages.value.push(response.data.data); // Comentado si loadChatMessages lo trae
+            newMessage.value = ""; // Limpia el input
             await nextTick();
-            scrollToBottom();
+            scrollToBottom(); // Baja el scroll
+            // Forzar una recarga inmediata para ver el mensaje enviado
+            await loadChatMessages();
         }
     } catch (error) {
         console.error("Error enviando mensaje:", error);
@@ -702,74 +739,80 @@ const sendMessage = async () => {
     }
 };
 
-// Función para hacer scroll hasta el último mensaje
+// Mueve el scroll del chat hasta el final
 const scrollToBottom = () => {
     if (chatMessages.value) {
         chatMessages.value.scrollTop = chatMessages.value.scrollHeight;
     }
 };
 
-// Iniciar el polling para cargar mensajes
-const startChatPolling = async () => {
-
-    // console.log("Cargando los mensajes...");
-
-    while(isGameActive.value) {
-
-        await loadChatMessages();
-        // console.log("Chats obtenidos.");
-        await sleep(2000);
-    }
-    // // Configurar el intervalo para polling (cada 3 segundos)
-    // pollingInterval.value = setInterval(loadChatMessages, 3000);
+// Inicia la consulta periódica de mensajes del chat
+const startChatPolling = () => {
+    // Carga inicial
+    loadChatMessages();
+    // Configura el intervalo para repetir la carga cada 3 segundos
+    pollingInterval.value = setInterval(loadChatMessages, 3000);
 };
 
-// Inicialización del juego
+// Código que se ejecuta al montar el componente
 onMounted(async () => {
-    // Montar el tablero del usuario
+    // Carga la posición de tus barcos
     await loadShips();
-    
-    // Obtener los datos de la partida
+
+    // Obtiene información inicial de la partida (quién empieza, IDs)
     const response = await axios.post("/api/games/get-match-info", {
         gameCode: gameStore.matchCode,
     });
 
-    // Establecer IDs de los jugadores
     currentUserId.value = authStore().user.id;
+    // Encuentra al oponente en la lista de jugadores
     opponent.value = response.data.data.players.find(
         (player) => player.user_id !== authStore().user.id
     );
-    opponentId.value = opponent.value.user_id;
+    opponentId.value = opponent.value?.user_id; // Usa optional chaining por si acaso
 
-    // Definir quién empieza
+    // Determina quién empieza (el creador de la partida)
     yourTurn.value = response.data.data.game.created_by === authStore().user.id;
-    // Iniciar el bucle del juego
+
+    // Inicia el bucle principal del juego
     gameLoop();
 
-    // Iniciar el polling del chat
+    // Inicia la consulta periódica del chat
     startChatPolling();
 });
 
-// Vigilar cambios en la ruta para limpiar cuando se navega fuera
-watch(() => route.path, (newPath, oldPath) => {
-    if (oldPath.includes('/game') && !newPath.includes('/game')) {
-        console.log("Saliendo de la pantalla de juego.");
-        // Detener el juego y el chat
-        isGameActive.value = false;
-        yourTurn.value = false;
-        
-        // Ahora sí detenemos el polling del chat al salir de la pantalla
-        if (pollingInterval.value) {
-            clearInterval(pollingInterval.value);
-            pollingInterval.value = null;
-        }
+// Limpieza al desmontar el componente (salir de la página)
+onUnmounted(() => {
+    console.log("Desmontando GameComponent: Deteniendo juego y chat.");
+    isGameActive.value = false; // Detiene el bucle gameLoop
+    if (pollingInterval.value) {
+        clearInterval(pollingInterval.value); // Detiene la consulta del chat
+        pollingInterval.value = null;
     }
+    // Aquí podrías añadir lógica para informar al servidor si abandonas
 });
 
-// Vigilar cuando cambia lastMessageId para reproducir sonido si es un mensaje nuevo
+// Observa cambios en la ruta para limpiar si se navega fuera
+watch(
+    () => route.path,
+    (newPath, oldPath) => {
+        // Si estabas en /game y te vas a otra ruta...
+        if (oldPath.includes("/game") && !newPath.includes("/game")) {
+            console.log("Saliendo de la pantalla de juego (watch route.path).");
+            isGameActive.value = false; // Detiene el juego
+            if (pollingInterval.value) {
+                clearInterval(pollingInterval.value); // Detiene el chat
+                pollingInterval.value = null;
+            }
+        }
+    }
+);
+
+// Observa si llega un mensaje nuevo para reproducir sonido
 watch(lastMessageId, (newVal, oldVal) => {
+    // Si el ID ha cambiado (y no es la carga inicial)
     if (oldVal !== 0 && newVal > oldVal) {
-        // Reproducir sonido de notificación
+        // Reproduce sonido (asegúrate que el archivo existe en /public/sounds)
         const audio = new Audio("/sounds/notification.mp3");
         audio
             .play()
@@ -790,7 +833,7 @@ watch(lastMessageId, (newVal, oldVal) => {
 
 .boards-container {
     display: flex;
-    gap: 8rem; /* Espacio grande entre tableros para pantallas anchas */
+    gap: 8rem;
     justify-content: center;
     align-items: center;
     width: 100%;
@@ -799,11 +842,7 @@ watch(lastMessageId, (newVal, oldVal) => {
 }
 
 .board-container {
-    /* Tamaño base para pantallas grandes */
-    width: min(
-        450px,
-        calc((100vw - 6rem) / 2)
-    ); /* Aumentado el tamaño máximo y ajustado el cálculo */
+    width: min(450px, calc((100vw - 6rem) / 2));
     height: min(450px, calc((100vw - 6rem) / 2));
     padding: 0.25rem;
     border-radius: 8px;
@@ -883,12 +922,10 @@ watch(lastMessageId, (newVal, oldVal) => {
     transform: translate(-50%, -50%);
 }
 
-/* Asegurarse que el SVG esté por encima del fondo del barco */
 .board-cell.ship.hit::after {
     background-color: transparent;
 }
 
-/* Nuevos estilos */
 .clickable {
     cursor: pointer;
     transition: background-color 0.2s ease;
@@ -898,7 +935,6 @@ watch(lastMessageId, (newVal, oldVal) => {
     background-color: #7048ec33;
 }
 
-/* Media query para dispositivos móviles */
 @media (max-width: 1000px) {
     .game {
         padding: 4rem 0.25rem 0.25rem 0.25rem;
@@ -911,7 +947,6 @@ watch(lastMessageId, (newVal, oldVal) => {
     }
 
     .board-container {
-        /* Aumentado el tamaño para pantallas estrechas */
         width: min(85vw, calc(100vh - 320px));
         height: min(85vw, calc(100vh - 320px));
         max-width: 350px;
@@ -964,7 +999,6 @@ watch(lastMessageId, (newVal, oldVal) => {
     }
 }
 
-/* Para pantallas muy pequeñas */
 @media (max-width: 400px) or (max-height: 600px) {
     .game {
         padding: 2.5rem 0.25rem 0.25rem 0.25rem;
@@ -1001,7 +1035,6 @@ watch(lastMessageId, (newVal, oldVal) => {
         height: min(calc(100vh - 450px), 85vw, 400px);
     }
 
-    /* Reordena los tableros en móvil */
     .board-section:first-child {
         order: 2;
     }
@@ -1059,7 +1092,6 @@ watch(lastMessageId, (newVal, oldVal) => {
     font-size: 1.2rem;
 }
 
-/* Estilos para las notificaciones */
 .notification {
     position: fixed;
     top: 20px;
@@ -1101,7 +1133,6 @@ watch(lastMessageId, (newVal, oldVal) => {
     }
 }
 
-/* Estilos para el chat */
 .game-chat {
     position: fixed;
     bottom: 1rem;
@@ -1262,7 +1293,6 @@ watch(lastMessageId, (newVal, oldVal) => {
     cursor: not-allowed;
 }
 
-/* Media query para dispositivos móviles */
 @media (max-width: 1000px) {
     .chat-container {
         width: 280px;
@@ -1290,7 +1320,6 @@ watch(lastMessageId, (newVal, oldVal) => {
     }
 }
 
-/* Estilos para la pantalla de carga */
 .loading-state {
     position: fixed;
     top: 0;

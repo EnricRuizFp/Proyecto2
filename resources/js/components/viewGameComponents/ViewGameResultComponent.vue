@@ -2,27 +2,40 @@
     <Transition name="modal">
         <div v-if="visible" class="game-result-overlay">
             <div class="game-result-modal neutral-background">
+                <!-- Si es empate -->
                 <template v-if="isDraw">
                     <h2 class="white-color h2">¡EMPATE!</h2>
                     <div class="result-message white-color">
                         No hubo un ganador en esta partida
                     </div>
                 </template>
+                <!-- Si hay un ganador -->
                 <template v-else>
                     <h2 class="white-color h2">¡GANADOR!</h2>
                     <div class="winner-name white-color">
                         {{ winnerName }}
                     </div>
                 </template>
-                
+
                 <div class="buttons">
+                    <!-- Botón para volver a observar (recarga la página) -->
                     <button class="primary-button light" @click="watchAgain">
                         VOLVER A OBSERVAR
-                        <svg class="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 5C7 5 2.73 8.11 1 12.5C2.73 16.89 7 20 12 20C17 20 21.27 16.89 23 12.5C21.27 8.11 17 5 12 5ZM12 17.5C9.24 17.5 7 15.26 7 12.5C7 9.74 9.24 7.5 12 7.5C14.76 7.5 17 9.74 17 12.5C17 15.26 14.76 17.5 12 17.5ZM12 9.5C10.34 9.5 9 10.84 9 12.5C9 14.16 10.34 15.5 12 15.5C13.66 15.5 15 14.16 15 12.5C15 10.84 13.66 9.5 12 9.5Z" 
-                                fill="#ffffff"/>
+                        <svg
+                            class="button-icon"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                d="M12 5C7 5 2.73 8.11 1 12.5C2.73 16.89 7 20 12 20C17 20 21.27 16.89 23 12.5C21.27 8.11 17 5 12 5ZM12 17.5C9.24 17.5 7 15.26 7 12.5C7 9.74 9.24 7.5 12 7.5C14.76 7.5 17 9.74 17 12.5C17 15.26 14.76 17.5 12 17.5ZM12 9.5C10.34 9.5 9 10.84 9 12.5C9 14.16 10.34 15.5 12 15.5C13.66 15.5 15 14.16 15 12.5C15 10.84 13.66 9.5 12 9.5Z"
+                                fill="#ffffff"
+                            />
                         </svg>
                     </button>
+                    <!-- Botón para volver al inicio -->
                     <button class="primary-button light" @click="goToHome">
                         VOLVER AL INICIO
                         <svg
@@ -55,29 +68,33 @@
 <script setup>
 import { useRouter } from "vue-router";
 
+// Propiedades recibidas
 const props = defineProps({
     visible: {
         type: Boolean,
-        default: false,
+        default: false, // Controla la visibilidad del modal
     },
     winnerName: {
         type: String,
-        default: '',
+        default: "", // Nombre del ganador
     },
     isDraw: {
         type: Boolean,
-        default: false,
-    }
+        default: false, // Indica si la partida fue un empate
+    },
 });
 
-const emit = defineEmits(['cleanup']);
+// Evento emitido para limpiar el estado en el componente padre
+const emit = defineEmits(["cleanup"]);
 const router = useRouter();
 
+// Navega a la página de inicio
 const goToHome = () => {
-    emit('cleanup');
+    emit("cleanup"); // Avisa al padre para limpiar
     router.push("/");
 };
 
+// Recarga la página para volver a observar
 const watchAgain = () => {
     window.location.reload();
 };
@@ -133,7 +150,6 @@ const watchAgain = () => {
     margin: 2rem 0;
 }
 
-/* Animaciones */
 .modal-enter-active,
 .modal-leave-active {
     transition: all 0.3s ease;
@@ -156,7 +172,6 @@ const watchAgain = () => {
     }
 }
 
-/* Estilos específicos para los botones */
 .primary-button {
     display: flex;
     align-items: center;
@@ -166,7 +181,6 @@ const watchAgain = () => {
     width: 100%;
 }
 
-/* El primer botón (Volver a observar) usa el color primario */
 button:first-child {
     background: var(--primary-color);
 }
@@ -174,7 +188,6 @@ button:first-child:hover {
     background: var(--primary-v2-color);
 }
 
-/* El segundo botón (Volver al inicio) usa el color secundario */
 button:last-child {
     background: var(--secondary-color);
 }
