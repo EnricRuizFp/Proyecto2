@@ -72,7 +72,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/rankings/user-points', [RankingController::class, 'getUserPoints']);
 
     // Route for getting the national ranking list (NEW)
-    Route::get('/rankings/national', [RankingController::class, 'getNationalRankingList']);
+    Route::get('/rankings/national', [RankingController::class, 'getNationalRanking']);
 
     // Rankings - Admin specific route
     Route::get('rankings/admin', [RankingController::class, 'indexAdmin']);
