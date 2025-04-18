@@ -32,7 +32,7 @@
         <div class="boards-container">
             <!-- Tablero del usuario -->
             <div class="board-section">
-                <h2 class="title">{{ username }}</h2>
+                <ViewUserComponent v-if="currentUserId" :userId="currentUserId" />
                 <div class="board-container">
                     <div class="board-grid">
                         <div
@@ -115,7 +115,7 @@
 
             <!-- Tablero de ataque -->
             <div class="board-section">
-                <h2 class="title">{{ opponentUsername }}</h2>
+                <ViewUserComponent v-if="opponentId" :userId="opponentId" />
                 <div class="board-container">
                     <div class="board-grid">
                         <div
@@ -197,7 +197,7 @@
 
             <div class="chat-container" :class="{ 'chat-open': isChatOpen }">
                 <div class="chat-header">
-                    <h3>Chat con {{ opponentUsername }}</h3>
+                    <h3>Chat con {{ opponent?.username || 'Oponente' }}</h3>
                 </div>
 
                 <div class="chat-messages" ref="chatMessages">
@@ -245,6 +245,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { authStore } from "../../store/auth";
 import { useRoute, useRouter } from "vue-router";
 import { useGameStore } from "../../store/game";
+import ViewUserComponent from "../viewGameComponents/ViewUserComponent.vue";
 
 /* -- VARIABLES -- */
 const route = useRoute();
@@ -269,9 +270,10 @@ const notification = ref({
     type: "info",
     position: "derecha",
 });
-const username = ref("Sus barcos");
-const opponentUsername = ref("Tablero de ataque");
+const currentUserId = ref(null);
+const opponentId = ref(null);
 const isInitialLoading = ref(true);
+const opponent = ref(null); // Añadir esta nueva variable
 
 // Variables para el chat
 const isChatOpen = ref(false);
@@ -732,11 +734,12 @@ onMounted(async () => {
         gameCode: gameStore.matchCode,
     });
 
-    // Obtener el nombre del usuario actual y del oponente
-    username.value = authStore().user.username;
-    opponentUsername.value = response.data.data.players.find(
+    // Establecer IDs de los jugadores
+    currentUserId.value = authStore().user.id;
+    opponent.value = response.data.data.players.find(
         (player) => player.user_id !== authStore().user.id
-    ).username;
+    );
+    opponentId.value = opponent.value.user_id;
 
     // Definir quién empieza
     yourTurn.value = response.data.data.game.created_by === authStore().user.id;

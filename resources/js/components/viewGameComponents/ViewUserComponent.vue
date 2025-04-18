@@ -46,34 +46,22 @@ const props = defineProps({
 const { getUser } = useUsers();
 const { getRanking } = useRankings();
 const userData = ref(null);
-const userPoints = ref(null); // Cambiado de 0 a null para distinguir el estado inicial
+const userPoints = ref(null);
 const avatarUrl = ref('/images/icons/user-icon-dark.svg');
 
 const handleAvatarError = (e) => {
     e.target.src = '/images/icons/user-icon-dark.svg';
 };
 
-// Watcher para userId
-watch(() => props.userId, (newUserId) => {
-    if (newUserId) {
-        loadUserData();
-    }
-}, { immediate: true });
-
-// Modificar loadUserData para usar la nueva función
 const loadUserData = async () => {
     if (!props.userId) {
         console.log("No user ID available yet, waiting...");
         return;
     }
 
-    userData.value = null;
-    userPoints.value = null;
-
     try {
         // Obtener datos del usuario
         const user = await getUser(props.userId);
-        console.log("User data received:", user);
         
         if (!user) {
             throw new Error('User not found');
@@ -86,7 +74,6 @@ const loadUserData = async () => {
 
         // Obtener puntos del usuario
         const rankingData = await getRanking(props.userId);
-        console.log("Ranking data received:", rankingData);
         userPoints.value = rankingData?.points ?? 0;
     } catch (error) {
         console.error('Error loading user data:', error);
@@ -95,6 +82,20 @@ const loadUserData = async () => {
         avatarUrl.value = '/images/icons/user-icon-dark.svg';
     }
 };
+
+// Cargar datos cuando el componente se monta
+onMounted(async () => {
+    if (props.userId) {
+        await loadUserData();
+    }
+});
+
+// Observar cambios en userId
+watch(() => props.userId, async (newId) => {
+    if (newId) {
+        await loadUserData();
+    }
+});
 </script>
 
 <style scoped>
