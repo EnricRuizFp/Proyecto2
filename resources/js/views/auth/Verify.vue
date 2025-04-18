@@ -1,13 +1,7 @@
 <template>
-<h1>Verify</h1>
+    <h1>Verify</h1>
 </template>
 
-<script>
-export default {
-    name: "Verify"
-}
-</script>
+<script setup></script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -24,37 +24,29 @@
     </div>
 </template>
 
-<script>
-import GameWin from "./GameWin.vue";
-import GameOver from "./GameOver.vue";
+<script setup>
+import { ref } from 'vue'
+import GameWin from "./GameWin.vue"
+import GameOver from "./GameOver.vue"
 
-export default {
-    components: {
-        GameWin,
-        GameOver,
-    },
-    data() {
-        return {
-            showWin: false,
-            showGameOver: false,
-        };
-    },
-    methods: {
-        handleNextLevel() {
-            this.showWin = false;
-            // Lógica para siguiente nivel
-        },
-        handleRestart() {
-            this.showWin = false;
-            this.showGameOver = false;
-            // Lógica para reiniciar
-        },
-        handleMenu() {
-            this.showGameOver = false;
-            // Lógica para volver al menú
-        },
-    },
-};
+const showWin = ref(false)
+const showGameOver = ref(false)
+
+const handleNextLevel = () => {
+    showWin.value = false
+    // Lógica para siguiente nivel
+}
+
+const handleRestart = () => {
+    showWin.value = false
+    showGameOver.value = false
+    // Lógica para reiniciar
+}
+
+const handleMenu = () => {
+    showGameOver.value = false
+    // Lógica para volver al menú
+}
 </script>
 
 <style scoped>

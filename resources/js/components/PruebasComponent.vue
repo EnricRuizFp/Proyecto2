@@ -8,80 +8,82 @@
 
         <h2>PLAY FUNCTION</h2>
         <button style="padding: 10px; background-color: yellow;" @click="checkUserRequirements('public', null)">Play game</button>
-        <button style="padding: 10px; background-color: yellow;" @click="checkUserRequirements('private',this.gameCode)">Private game</button>
-        
+        <button style="padding: 10px; background-color: yellow;" @click="checkUserRequirements('private', gameCode)">Private game</button>
     </div>
 </template>
 
-<script>
-import axios from "axios";
-import { authStore } from "@/store/auth";
+<script setup>
+import { ref } from 'vue'
+import axios from "axios"
+import { authStore } from "@/store/auth"
 
-export default {
-    name: "PruebasComponent",
-    data() {
-        return {
-            gameCode: "",
-            gameType: ""
-        };
-    },
-    methods: {
-        async playPublic() {
-            if (!authStore().user) {
-                console.error("Usuario no autenticado");
-                return;
-            }
-            try {
-                const response = await axios.post("/api/games/play-public", { user: authStore().user });
-                console.log("Respuesta de la API: ", response.data);
-            } catch (error) {
-                console.error("Error al llamar a la API: ", error);
-            }
-        },
-        async createPrivateGame() {
-            if (!authStore().user) {
-                console.error("Usuario no autenticado");
-                return;
-            }
-            try {
-                const response = await axios.post("/api/games/create-private", { user: authStore().user });
-                console.log("Respuesta de la API: ", response.data);
-            } catch (error) {
-                console.error("Error al llamar a la API: ", error);
-            }
-        },
-        async joinPrivateGame() {
-            if (!authStore().user) {
-                console.error("Usuario no autenticado");
-                return;
-            }
-            if (this.gameCode.length !== 4) {
-                console.error("El código debe tener 4 caracteres.");
-                return;
-            }
-            try {
-                const response = await axios.post("/api/games/join-private", { user: authStore().user, code: this.gameCode });
-                console.log("Respuesta de la API: ", response.data);
-            } catch (error) {
-                console.error("Error al llamar a la API: ", error);
-            }
-        },
-        async checkUserRequirements(gameType, gameCode) {
-            try {
-                const response = await axios.post("/api/games/check-user-requirements", { gameType: gameType, gameCode: gameCode, user: authStore().user });
-                if(response.data.status == 'success'){
-                    console.log("Usuario preparado para unirse a una partida");
-                    // Llevar al usuario a la pantalla de matchmaking pasando los datos
-                }else{
-                    console.log("No se cumple con los requisitos para empezar una partida")
-                }
-                console.log("Respuesta de la API: ", response.data);
-            } catch (error) {
-                console.error("Error al llamar a la API: ", error);
-            }
+const gameCode = ref("")
+const gameType = ref("")
+
+const playPublic = async () => {
+    if (!authStore().user) {
+        console.error("Usuario no autenticado")
+        return
+    }
+    try {
+        const response = await axios.post("/api/games/play-public", { user: authStore().user })
+        console.log("Respuesta de la API: ", response.data)
+    } catch (error) {
+        console.error("Error al llamar a la API: ", error)
+    }
+}
+
+const createPrivateGame = async () => {
+    if (!authStore().user) {
+        console.error("Usuario no autenticado")
+        return
+    }
+    try {
+        const response = await axios.post("/api/games/create-private", { user: authStore().user })
+        console.log("Respuesta de la API: ", response.data)
+    } catch (error) {
+        console.error("Error al llamar a la API: ", error)
+    }
+}
+
+const joinPrivateGame = async () => {
+    if (!authStore().user) {
+        console.error("Usuario no autenticado")
+        return
+    }
+    if (gameCode.value.length !== 4) {
+        console.error("El código debe tener 4 caracteres.")
+        return
+    }
+    try {
+        const response = await axios.post("/api/games/join-private", { 
+            user: authStore().user, 
+            code: gameCode.value 
+        })
+        console.log("Respuesta de la API: ", response.data)
+    } catch (error) {
+        console.error("Error al llamar a la API: ", error)
+    }
+}
+
+const checkUserRequirements = async (gameType, gameCode) => {
+    try {
+        const response = await axios.post("/api/games/check-user-requirements", { 
+            gameType: gameType, 
+            gameCode: gameCode, 
+            user: authStore().user 
+        })
+        if(response.data.status == 'success'){
+            console.log("Usuario preparado para unirse a una partida")
+            // Llevar al usuario a la pantalla de matchmaking pasando los datos
+        }else{
+            console.log("No se cumple con los requisitos para empezar una partida")
         }
-    },
-};
+        console.log("Respuesta de la API: ", response.data)
+    } catch (error) {
+        console.error("Error al llamar a la API: ", error)
+    }
+}
 </script>
 
 <style scoped>

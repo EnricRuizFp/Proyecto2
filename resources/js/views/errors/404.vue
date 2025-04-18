@@ -11,12 +11,6 @@
     </div>
 </template>
 
-<script>
-export default {
-    name: "404"
-}
-</script>
+<script setup></script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
