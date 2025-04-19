@@ -898,19 +898,38 @@ watch(lastMessageId, (newVal, oldVal) => {
     min-height: 100vh;
 }
 
+/* --- Base Styles (> 1200px) --- */
 .boards-container {
     display: flex;
-    gap: 8rem;
+    /* Layout horizontal por defecto */
+    flex-direction: row;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    /* No usar wrap aquí, controlaremos el cambio con media query */
+    /* flex-wrap: wrap; */
+    gap: 8rem; /* Espacio horizontal */
     width: 100%;
-    padding: 0.5rem;
+    /* Aumentamos max-width para acomodar el gap grande y los tableros */
+    max-width: 1100px;
+    padding: 1rem;
+    margin: 0 auto;
     flex: 1;
 }
 
+.board-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    /* Definimos un ancho fijo para el layout horizontal */
+    width: 420px;
+    max-width: 420px; /* Coincide con el board-container */
+    /* Quitamos flex-grow/shrink/basis para un control más directo */
+}
+
 .board-container {
-    width: min(450px, calc((100vw - 6rem) / 2));
-    height: min(450px, calc((100vw - 6rem) / 2));
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 420px;
     padding: 0.25rem;
     border-radius: 8px;
     border: 2px solid var(--primary-color);
@@ -918,6 +937,55 @@ watch(lastMessageId, (newVal, oldVal) => {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* ... other base styles like .board-grid, .board-cell ... */
+
+/* --- Vertical Layout (< 1200px) --- */
+@media (max-width: 1200px) {
+    .boards-container {
+        flex-direction: column; /* Fuerza el layout vertical */
+        align-items: center; /* Centra los tableros apilados */
+        gap: 2.5rem; /* Espacio vertical entre tableros */
+        max-width: 95%; /* Permite que el contenedor se ajuste */
+    }
+
+    .board-section {
+        /* Ajustamos el ancho para el layout vertical */
+        width: 90%; /* Ocupa la mayor parte del contenedor */
+        /* Mantenemos el max-width por si el 90% es muy grande */
+        max-width: 420px;
+        /* Reseteamos flex por si acaso */
+        flex: none;
+    }
+
+    /* Ordenamiento: Tu tablero (primero en HTML) va abajo */
+    .board-section:first-child {
+        order: 2;
+    }
+
+    /* Ordenamiento: Tablero oponente (segundo en HTML) va arriba */
+    .board-section:last-child {
+        order: 1;
+    }
+}
+
+/* --- Ajustes para pantallas muy pequeñas (< 600px) --- */
+@media (max-width: 600px) {
+    .boards-container {
+        gap: 1.5rem; /* Reduce más el espacio vertical */
+    }
+
+    .board-section {
+        /* Reducimos el tamaño máximo en móviles */
+        max-width: 330px;
+        width: 95%; /* Ajusta el ancho si es necesario */
+    }
+
+    /* Aseguramos que el contenedor interno también se ajuste */
+    .board-container {
+        max-width: 330px;
+    }
 }
 
 .board-grid {
@@ -1000,133 +1068,6 @@ watch(lastMessageId, (newVal, oldVal) => {
 
 .clickable:hover {
     background-color: #7048ec33;
-}
-
-@media (max-width: 1000px) {
-    .game {
-        padding: 4rem 0.25rem 0.25rem 0.25rem;
-    }
-
-    .boards-container {
-        flex-direction: column;
-        gap: 0.25rem;
-        padding: 0.15rem;
-    }
-
-    .board-container {
-        width: min(85vw, calc(100vh - 320px));
-        height: min(85vw, calc(100vh - 320px));
-        max-width: 350px;
-        max-height: 350px;
-        padding: 0.15rem;
-    }
-
-    .game-status {
-        padding: 0.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .timer,
-    .waiting-message {
-        padding: 0.35rem 0.75rem;
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-height: 700px) {
-    .board-container {
-        width: min(60vw, calc(100vh - 300px));
-        height: min(60vw, calc(100vh - 300px));
-        max-width: 250px;
-        max-height: 250px;
-    }
-}
-
-@media (max-height: 800px) {
-    .game {
-        padding: 3.5rem 0.5rem 0.5rem 0.5rem;
-    }
-
-    .boards-container {
-        gap: 0.25rem;
-    }
-
-    .board-container {
-        padding: 0.15rem;
-    }
-
-    .board-cell {
-        border-width: 1px;
-    }
-}
-
-@media (max-height: 700px) {
-    .game {
-        padding: 3rem 0.5rem 0.5rem 0.5rem;
-    }
-}
-
-@media (max-width: 400px) or (max-height: 600px) {
-    .game {
-        padding: 2.5rem 0.25rem 0.25rem 0.25rem;
-    }
-
-    .boards-container {
-        gap: 0.15rem;
-    }
-
-    .board-container {
-        width: min(95vw, calc(100vh - 200px));
-        height: min(95vw, calc(100vh - 200px));
-    }
-
-    .game-status {
-        padding: 0.25rem;
-    }
-
-    .timer,
-    .waiting-message {
-        font-size: 1rem;
-        padding: 0.25rem 0.75rem;
-    }
-}
-
-@media (max-width: 960px) {
-    .boards-container {
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .board-container {
-        width: min(calc(100vh - 450px), 85vw, 400px);
-        height: min(calc(100vh - 450px), 85vw, 400px);
-    }
-
-    .board-section:first-child {
-        order: 2;
-    }
-
-    .board-section:last-child {
-        order: 1;
-    }
-}
-
-@media (max-height: 900px) {
-    .game {
-        padding: 0.5rem;
-    }
-
-    .boards-container {
-        padding: 0.5rem;
-    }
-
-    .board-container {
-        padding: 0.5rem;
-    }
-
-    .game-status {
-        padding: 0.5rem;
-    }
 }
 
 .game-status {

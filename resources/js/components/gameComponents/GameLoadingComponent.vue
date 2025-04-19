@@ -1,5 +1,8 @@
 <template>
-    <div class="create-match app-background-primary game-fullscreen">
+    <div
+        class="create-match app-background-primary game-fullscreen"
+        :class="{ 'is-loading': isLoading }"
+    >
         <h3 class="h3-dark page-title">{{ loadingTitle }}</h3>
 
         <div class="match-setup" :class="{ 'loading-state': isLoading }">
@@ -941,6 +944,10 @@ const pollMatchStatusGuest = async () => {
 
     .ship-loading-animation.small i {
         font-size: 1.4rem !important;
+    }
+
+    .is-loading .page-title {
+        display: none;
     }
 }
 </style>

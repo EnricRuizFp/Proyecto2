@@ -584,6 +584,7 @@ const emit = defineEmits(["placement-confirmed"]);
     flex-direction: column;
     gap: 0.25rem;
     align-items: center;
+    justify-content: center;
     flex-grow: 1;
     padding: 0.25rem;
     overflow-y: auto;
@@ -835,6 +836,83 @@ const emit = defineEmits(["placement-confirmed"]);
         padding: 1rem 0.5rem 0.5rem 0.5rem;
         flex-direction: column;
     }
+
+    .ships-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.25rem;
+        align-items: center;
+        justify-content: center;
+        overflow-y: auto;
+        max-height: calc(100% - 30px);
+        flex-grow: 1;
+    }
+
+    .ship-item {
+        transform: scale(0.8);
+        transform-origin: center;
+        margin: 0;
+        padding: 0.15rem;
+        min-width: min-content;
+        width: auto !important;
+        max-width: 100%;
+    }
+
+    .board-container,
+    .ships-dock {
+        width: 320px;
+        height: 320px;
+        padding: 0.5rem;
+        margin: 0;
+    }
+
+    .board-grid {
+        width: 300px;
+        height: 300px;
+    }
+
+    .board-cell {
+        width: 30px;
+        height: 30px;
+    }
+
+    .ships-dock {
+        min-height: 120px;
+        height: auto;
+        max-height: 320px;
+        overflow: hidden;
+    }
+
+    .controls {
+        width: 320px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .control-button {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 auto;
+    }
+
+    .timer {
+        padding: 0.5rem;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .dock-title {
+        font-size: 14px;
+        margin-bottom: 0.15rem;
+        padding: 0 0.25rem;
+        line-height: 1.2;
+        white-space: normal;
+    }
 }
 
 @media (max-width: 800px) {
@@ -950,98 +1028,6 @@ const emit = defineEmits(["placement-confirmed"]);
 
     .board-container {
         order: 3;
-    }
-}
-
-@media (max-width: 480px) {
-    .ship-placement {
-        padding: 4.5rem 0.5rem 0.5rem 0.5rem;
-        min-height: auto;
-    }
-
-    .game-layout {
-        gap: 0.5rem;
-        padding: 0.5rem;
-        flex-direction: column;
-    }
-
-    .board-container,
-    .ships-dock {
-        width: 320px;
-        height: 320px;
-        padding: 0.5rem;
-        margin: 0;
-    }
-
-    .board-grid {
-        width: 300px;
-        height: 300px;
-    }
-
-    .board-cell {
-        width: 30px;
-        height: 30px;
-    }
-
-    .ships-dock {
-        min-height: 120px;
-        height: auto;
-        max-height: 320px;
-        overflow: hidden;
-    }
-
-    .ships-container {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.25rem;
-        padding: 0.25rem;
-        justify-items: center;
-        align-items: start;
-        overflow-y: auto;
-        max-height: calc(100% - 30px);
-    }
-
-    .ship-item {
-        transform: scale(0.75);
-        transform-origin: center;
-        margin: 0;
-        padding: 0.15rem;
-    }
-
-    .ship-segment {
-        width: 30px;
-        height: 30px;
-        margin: 1px;
-    }
-
-    .controls {
-        width: 320px;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-        padding: 0.5rem;
-    }
-
-    .control-button {
-        width: 36px;
-        height: 36px;
-        flex: 0 0 auto;
-    }
-
-    .timer {
-        padding: 0.5rem;
-        font-size: 16px;
-        margin: 0;
-    }
-
-    .dock-title {
-        font-size: 14px;
-        margin-bottom: 0.15rem;
-        padding: 0 0.25rem;
-        line-height: 1.2;
-        white-space: normal;
     }
 }
 
