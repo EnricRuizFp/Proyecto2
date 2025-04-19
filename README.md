@@ -6,6 +6,7 @@ Desarrollado con Laravel 10 y Vue 3, el juego permite enfrentarte a tus amigos o
 ## 🚀 Demo
 
 Aquí puedes observar el juego:
+
 ![Pantalla de inicio](documentation/screenshots/HomePage.png)
 ![Pantalla de login](documentation/screenshots/Login.png)
 ![Pantalla de juego](documentation/screenshots/InGame.png)
