@@ -99,6 +99,12 @@ npm run dev
 php artisan serve
 ```
 
+### Ejecutar Pruebas
+
+```bash
+php artisan test
+```
+
 ### Lanzar a producción
 
 ```bash
