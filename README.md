@@ -29,6 +29,12 @@ Ejemplo proyecto Laravel 10 + vue3 PAra DAW
 -   ✅ Blog de Frontend
 -   ✅ Boostrap 5
 
+## Descripción del proyecto
+
+El clásico hundir la flota online desarrollado con Laravel 10 y Vue 3, donde puedes enfrentarte a tus amigos o retar a desconocidos de cualquier rincón del mundo.
+Además cuenta con un chat en partida para hablar con los oponentes mientras hundís los barcos.
+Ránking global y nacional para demostrar quién es el verdadero rey de las aguas digitales.
+
 ## Como usar
 
 ### Clonar Repositorio
