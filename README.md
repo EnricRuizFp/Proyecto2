@@ -105,9 +105,7 @@ php artisan serve
 npm run build or yarn build
 ```
 
-=======
-
-# Proyecto2
+## Proyecto2
 
 Hundir la flota.
 
