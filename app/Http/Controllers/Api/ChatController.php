@@ -59,7 +59,6 @@ class ChatController extends Controller
         } catch (\Exception $e) {
 
             // Crear LOG y devolver error
-            Log::error('Error getting chat messages: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error retrieving chat messages'
@@ -129,7 +128,6 @@ class ChatController extends Controller
         } catch (\Exception $e) {
 
             // Crear LOG y devolver error
-            Log::error('Error sending chat message: ' . $e->getMessage());
             return response()->json([
                 'status' => 'failed',
                 'message' => 'Error sending message'

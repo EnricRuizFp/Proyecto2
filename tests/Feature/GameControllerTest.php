@@ -23,11 +23,9 @@ class GameControllerTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->getJson('/api/games');
 
-        // $response->dump(); // You can remove or comment out the dump now
-
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'data' => [ // Check the structure within the 'data' array
+                'data' => [
                     '*' => ['id', 'code', 'creation_date', 'is_public', 'is_finished', 'creator']
                 ],
                 'links', // Check that the 'links' key exists (it's an array)
