@@ -1,7 +1,7 @@
 # 🧨 Hundir la Flota Online
 
 ¡El clásico de los barquitos, ahora online!
-Desarrollado con Laravel 10 y Vue 3, el juego permite enfrentarte a tus amigos o jugadores aleatorios de cualquer parte del mundo. Incluye un chat en partida, ránkings globales y nacionales, sistema de autenticación y permisos y un panel de administración completo.
+Desarrollado con Laravel 10 y Vue 3, el juego permite enfrentarte a tus amigos o jugadores aleatorios de cualquer parte del mundo. Incluye un chat en partida, ránkings globales y nacionales, sistema de autenticación y permisos y un panel de administración completo. Además de compatibilidad completa con varios idiomas.
 
 ## 🚀 Demo
 
