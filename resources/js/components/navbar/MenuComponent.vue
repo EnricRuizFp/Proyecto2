@@ -12,7 +12,7 @@
                 :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
             >
                 <i class="fas fa-home"></i>
-                <span class="menu-text">INICIO</span>
+                <span class="menu-text">{{ $t("home_text") }}</span>
             </a>
         </div>
         <div class="subtituloBarraLateral">
@@ -24,7 +24,7 @@
                     :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                 >
                     <i class="fas fa-globe"></i>
-                    <span class="menu-text">Partida pública</span>
+                    <span class="menu-text">{{ $t("Public_match") }}</span>
                 </a>
             </div>
             <hr class="dropdown-divider" />
@@ -36,7 +36,7 @@
                     :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                 >
                     <i class="fas fa-plus"></i>
-                    <span class="menu-text">Crear partida</span>
+                    <span class="menu-text">{{ $t("Create_match") }}</span>
                 </a>
             </div>
             <hr class="dropdown-divider" />
@@ -48,7 +48,7 @@
                     :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                 >
                     <i class="fas fa-users"></i>
-                    <span class="menu-text">Unirse a partida</span>
+                    <span class="menu-text">{{ $t("Join_match") }}</span>
                 </a>
             </div>
             <hr class="dropdown-divider" />
@@ -60,7 +60,7 @@
                     :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                 >
                     <i class="fas fa-eye"></i>
-                    <span class="menu-text">Observar partida</span>
+                    <span class="menu-text">{{ $t("View_game") }}</span>
                 </a>
             </div>
             <!-- Enlace a Mi Perfil (solo si está logueado) -->
@@ -76,7 +76,7 @@
                         :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                     >
                         <i class="fas fa-user"></i>
-                        <span class="menu-text">MI PERFIL</span>
+                        <span class="menu-text">{{ $t("MY_PROFILE") }}</span>
                     </a>
                 </div>
             </template>
@@ -91,10 +91,24 @@
                     :class="{ 'disabled-menu-item': isCurrentRouteBlocked }"
                 >
                     <i class="fas fa-trophy"></i>
-                    <span class="menu-text">RANKING</span>
+                    <span class="menu-text">{{ $t("RANKING") }}</span>
                 </a>
             </div>
             <hr class="dropdown-divider" />
+            <!-- Selector de idioma movido al final -->
+            <div class="contenidoSubtituloBarraLateral menu-lang-container">
+                <a class="menu-item" title="Cambiar idioma">
+                    <i class="fas fa-language"></i>
+                    <select 
+                        class="language-select menu-text"
+                        :value="currentLocale"
+                        @change="changeLocale"
+                    >
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                    </select>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -120,10 +134,11 @@
 
 <script setup>
 /* -- IMPORTACIONES -- */
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useGameStore } from "../../store/game";
 import { authStore } from "../../store/auth";
+import { langStore } from "../../store/lang";
 import axios from "axios";
 import JoinMatchModal from "../privateMatch/JoinMatchModal.vue";
 
@@ -134,6 +149,25 @@ const gameStore = useGameStore(); // Manejo del estado del juego
 const errorMessage = ref("");
 const infoMessage = ref("");
 const showJoinModal = ref(false);
+const langStoreInstance = langStore();
+
+// Computed property para el idioma actual
+const currentLocale = computed({
+    get: () => langStoreInstance.locale,
+    set: (value) => langStoreInstance.setLocale(value)
+});
+
+// Función para cambiar el idioma
+const changeLocale = (event) => {
+    currentLocale.value = event.target.value;
+};
+
+// Asegurarse de que el idioma por defecto sea español al montar el componente
+onMounted(() => {
+    if (!currentLocale.value) {
+        currentLocale.value = 'es';
+    }
+});
 
 /* -- PROPS -- */
 // Permite al componente padre bloquear el menú externamente
@@ -583,5 +617,61 @@ h2.menu-item {
 
 .menu-blocked::after {
     content: none;
+}
+
+/* Estilos mejorados para el selector de idioma */
+.language-select {
+    background: transparent;
+    border: none;
+    color: var(--white-color);
+    font-size: 1.4rem;
+    padding: 0.2rem 0.5rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.language-select:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.language-select:focus {
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.3);
+}
+
+.language-select option {
+    background-color: var(--neutral-color);
+    color: var(--white-color);
+    padding: 0.5rem;
+}
+
+/* Asegurarse de que el texto sea blanco en todos los navegadores */
+.language-select::-ms-value {
+    color: var(--white-color);
+}
+
+.language-select::-webkit-option {
+    color: var(--white-color);
+}
+
+.language-select:-internal-list-box option {
+    color: var(--white-color);
+}
+
+/* Asegurar que el icono de idioma tenga el mismo color que el texto */
+.menu-item i.fa-font {
+    color: var(--white-color);
+    transition: color 0.3s ease;
+}
+
+.menu-item:hover i.fa-font {
+    color: var(--primary-color);
 }
 </style>

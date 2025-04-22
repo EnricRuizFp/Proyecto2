@@ -2,7 +2,7 @@
     <Transition name="modal">
         <div v-if="visible" class="game-over-overlay">
             <div class="game-over-modal neutral-background">
-                <h2 class="white-color h2">DERROTA</h2>
+                <h2 class="white-color h2">{{$t("LOST")}}</h2>
                 <div class="points-container">
                     <span class="points white-color h3"
                         >-{{ gameStore.points }}</span
@@ -51,7 +51,7 @@
                         class="primary-button light"
                         @click="handlePlayAgain"
                     >
-                        JUGAR DE NUEVO
+                        {{$t("PLAY_AGAIN")}}
                         <svg
                             class="button-icon"
                             width="24"
@@ -73,7 +73,7 @@
                         </svg>
                     </button>
                     <button class="primary-button light" @click="goToHome">
-                        VOLVER AL INICIO
+                        {{$t("BACK_TO_HOME")}}
                         <svg
                             class="button-icon"
                             width="24"

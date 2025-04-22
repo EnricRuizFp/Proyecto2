@@ -4,7 +4,7 @@
         <div v-if="isInitialLoading" class="loading-state">
             <div class="loading-overlay">
                 <i class="fas fa-spinner fa-spin"></i>
-                <p class="p3-dark">Cargando tableros...</p>
+                <p class="p3-dark">{{ $t("LOADING_BOARDS") }}</p>
             </div>
         </div>
 
@@ -16,7 +16,7 @@
             </div>
             <div v-else class="waiting-message">
                 <i class="fas fa-spinner fa-spin"></i>
-                <span>Esperando a que el oponente juegue...</span>
+                <span>{{ $t("Waiting_opponent_play") }}</span>
             </div>
         </div>
 
@@ -200,12 +200,12 @@
 
             <div class="chat-container" :class="{ 'chat-open': isChatOpen }">
                 <div class="chat-header">
-                    <h3>Chat con {{ opponent?.username || "Oponente" }}</h3>
+                    <h3>{{ $t("Chat_with") }} {{ opponent?.username || "Oponente" }}</h3>
                 </div>
 
                 <div class="chat-messages" ref="chatMessages">
                     <div v-if="messages.length === 0" class="no-messages">
-                        No hay mensajes aún. ¡Inicia la conversación!
+                        {{ $t("no_chats") }}
                     </div>
                     <div
                         v-for="(message, index) in messages"

@@ -40,7 +40,7 @@
 
         <!-- Contenedor derecho - Historial -->
         <div class="right-section">
-            <h3 class="section-title h4 white-color">Historial de partidas</h3>
+            <h3 class="section-title h4 white-color">{{ $t("Match_history") }}</h3>
             <div class="match-history-container">
                 <div class="match-list">
                     <!-- Mostrar partidas siempre que haya al menos una -->
@@ -48,9 +48,9 @@
                         <table class="match-history-table">
                             <thead>
                                 <tr>
-                                    <th>Fecha</th>
-                                    <th>Tipo</th>
-                                    <th>Ganador</th>
+                                    <th>{{$t("Date")}}</th>
+                                    <th>{{$t("Type")}}</th>
+                                    <th>{{$t("Winner")}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -73,13 +73,13 @@
 
                         <!-- Mensaje motivacional después de la lista si hay menos de 10 partidas -->
                         <div v-if="matchHistory.length < 10" class="motivational-message">
-                            ¡El mar es grande y tú apenas estás mojando los pies!
+                            {{ $t("motivational_message_1")}}
                         </div>
                     </template>
                     
                     <!-- Mostrar mensaje solo si no hay partidas -->
                     <div v-else class="motivational-message">
-                        ¡Tu barco está tan nuevo que aún tiene el plástico protector!
+                        {{ $t("motivational_message_2")}}
                     </div>
                 </div>
             </div>

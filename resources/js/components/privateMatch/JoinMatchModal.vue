@@ -5,7 +5,7 @@
                 <button class="close-button" @click="$emit('close')">
                     <i class="fas fa-times"></i>
                 </button>
-                <h2 class="h4-dark">ÚNETE A UNA PARTIDA PRIVADA</h2>
+                <h2 class="h4-dark">{{ $t("JOIN_A_PRIVATE_MATCH") }}</h2>
                 <div class="match-form">
                     <input
                         type="text"
@@ -15,15 +15,14 @@
                         maxlength="4"
                     />
                     <p class="p4-dark help-text">
-                        Introduce el código de 4 dígitos que aparece en la
-                        pantalla de tu oponente para unirte
+                        {{ $t("match_digit_code") }}
                     </p>
                     <button
                         class="primary-button"
                         :disabled="!matchCode"
                         @click="joinMatch"
                     >
-                        UNIRSE
+                        {{ $t("JOIN") }}
                         <svg
                             width="24"
                             height="24"

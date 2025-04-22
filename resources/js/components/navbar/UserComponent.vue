@@ -28,7 +28,7 @@
                         </div>
                         <div class="usernameContainer">
                             <div class="username-wrapper">
-                                <span class="username">Inicia sesión</span>
+                                <span class="username">{{ $t("login_message") }}</span>
                             </div>
                         </div>
                     </div>
@@ -44,7 +44,7 @@
                         to="/login"
                         :class="{ 'disabled-menu-item': isMenuBlocked }"
                         @click.prevent="handleNavigation('/login')"
-                        >Login</router-link
+                        >{{ $t("login") }}</router-link
                     >
                 </div>
                 <div>
@@ -53,7 +53,7 @@
                         to="/register"
                         :class="{ 'disabled-menu-item': isMenuBlocked }"
                         @click.prevent="handleNavigation('/register')"
-                        >Register</router-link
+                        >{{$t("register")}}</router-link
                     >
                 </div>
             </div>
@@ -126,7 +126,7 @@
                         to="/profile"
                         :class="{ 'disabled-menu-item': isMenuBlocked }"
                         @click.prevent="handleNavigation('/profile')"
-                        >Mi Perfil</router-link
+                        >{{ $t("my_profile") }}</router-link
                     >
                 </div>
                 <div><hr class="dropdown-divider white-background" /></div>
@@ -136,7 +136,7 @@
                         href="javascript:void(0)"
                         @click="handleLogout"
                         :class="{ 'disabled-menu-item': isMenuBlocked }"
-                        >Logout</a
+                        >{{ $t("logout") }}</a
                     >
                 </div>
             </div>

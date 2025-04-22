@@ -329,12 +329,12 @@ class GameController extends Controller
     public function findMatchFunction(Request $request)
     {
         // Validar los datos recibidos y settearlos en variables separadas
-        $request->validate([
-            'gameType' => 'required|string|in:public,private',
-            'user' => 'required|array',
-            'user.id' => 'required|integer',
-            'gameCode' => 'nullable|string'
-        ]);
+        // $request->validate([
+        //     'gameType' => 'required|string|in:public,private',
+        //     'user' => 'required|array',
+        //     'user.id' => 'required|integer',
+        //     'gameCode' => 'nullable|string'
+        // ]);
 
         // Pasar datos a variables
         $gameType = $request->input('gameType');
@@ -351,12 +351,13 @@ class GameController extends Controller
                 'message' => 'Joined to a game',
                 'game' =>  $response->getData()->data
             ]);
-        } else if ($gameType === "private") {
+        } else if ($gameType == "private") {
 
             if ($gameCode == "null") {
 
                 // Crear una partida privada
                 $response = $this->createPrivateGame(new Request(['user' => $user]));
+
                 return response()->json([
                     'status'  => 'success',
                     'message' => 'Creando partida privada.',
@@ -547,8 +548,9 @@ class GameController extends Controller
      */
     public function createPrivateGame(Request $request)
     {
+
         // Get the authenticated user's ID
-        $userId = $request->user()->id; // Or auth()->id();
+        $userId = $request->user['id'];
 
         // Crear juego privado
         $newPrivateGame = Game::create([
@@ -602,7 +604,7 @@ class GameController extends Controller
         ]);
 
         // Obtener el usuario autenticado y el código de la request
-        $userId = $request->user()->id;
+        $userId = $request->user['id'];
         $code = $request->input('code');
 
         // Buscar partida privada por código

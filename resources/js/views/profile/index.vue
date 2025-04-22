@@ -1,7 +1,7 @@
 <template>
     <div id="myProfilePageContent">
         <div id="myProfilePageContainer" class="col-8 mx-auto container-fluid">
-            <h3 class="h3 white-color">MI CUENTA</h3>
+            <h3 class="h3 white-color">{{ $t("MY_ACCOUNT") }}</h3>
 
             <div id="myProfileBox" class="row">
                 <!-- Barra lateral -->
@@ -12,7 +12,7 @@
                             @click="changePage('myProfile')"
                             :class="{ activeButton: isActive('myProfile') }"
                         >
-                            Perfil
+                            {{ $t("Profile") }}
                         </button>
                     </div>
                     <div class="myProfileLateralBarButtons">
@@ -21,7 +21,7 @@
                             @click="changePage('myCareer')"
                             :class="{ activeButton: isActive('myCareer') }"
                         >
-                            Mi carrera
+                            {{ $t("My_carreer") }}
                         </button>
                     </div>
                     <div class="myProfileLateralBarButtons">
@@ -30,7 +30,7 @@
                             @click="changePage('assistance')"
                             :class="{ activeButton: isActive('assistance') }"
                         >
-                            Asistencia
+                            {{ $t("Assitance") }}
                         </button>
                     </div>
                 </div>

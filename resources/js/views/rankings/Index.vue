@@ -50,7 +50,7 @@
 
                                     <!-- Posición Nacional -->
                                     <div class="ranking-box">
-                                        <div class="h4">Nacional</div>
+                                        <div class="h4">{{ $t("National") }}</div>
                                         <div class="rank-number">
                                             <template v-if="nationalPosition">
                                                 <span

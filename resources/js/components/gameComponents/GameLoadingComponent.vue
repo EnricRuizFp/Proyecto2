@@ -10,14 +10,14 @@
                 <div class="ship-loading-animation">
                     <i class="fas fa-ship"></i>
                 </div>
-                <p class="p3-dark">Cargando...</p>
+                <p class="p3-dark">{{$t("loading_message")}}</p>
             </div>
 
             <div v-else-if="error" class="error-container">
                 <i class="fas fa-exclamation-circle"></i>
                 <p class="p2-dark">{{ error }}</p>
                 <button @click="backToHome" class="primary-button">
-                    Volver a inicio
+                    {{ $t("back_to_home") }}
                 </button>
             </div>
 
@@ -71,7 +71,7 @@
 
                 <!-- Código de la partida (solo si es privada) -->
                 <div v-if="isPrivateGame" class="match-code">
-                    <p class="p3-dark">CÓDIGO DE LA PARTIDA</p>
+                    <p class="p3-dark">{{ $t("GAME_CODE") }}</p>
                     <div class="code-display">
                         <div class="code-number">
                             <span class="code-text">{{ matchCode }}</span>
@@ -143,7 +143,7 @@ const loadingTitle = computed(() => {
 // Te manda de vuelta a la página principal
 const backToHome = (type, message = "Ha ocurrido un error desconocido.") => {
     if (type) {
-        alert(message); // Muestra un mensaje si es necesario
+        //alert(message); // Muestra un mensaje si es necesario
     }
     router.push("/"); // Redirige a la raíz
 };
@@ -252,12 +252,14 @@ const findMatch = async () => {
     loadingStartTime.value = Date.now(); // Guardamos cuándo empezamos a cargar
 
     try {
+
         // Petición a la API para encontrar/crear
         const response = await axios.post("/api/games/find-match", {
             gameType: route.params.gameType,
             gameCode: route.params.gameCode,
             user: authStore().user,
         });
+
         console.log("Código de partida:", response.data.game.code);
 
         // Si la API dice que todo OK...

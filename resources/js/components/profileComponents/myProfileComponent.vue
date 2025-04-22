@@ -2,12 +2,12 @@
     <div id="image&settings">
         <!-- Vista de selección de avatar -->
         <div v-if="isSelectingAvatar">
-            <h3 class="edit-title h4 white-color">Seleccionar avatar</h3>
+            <h3 class="edit-title h4 white-color">{{ $t("Select_avatar")}}</h3>
             <div class="avatar-grid">
                 <!-- Avatar personalizado -->
                 <div v-if="customAvatar" class="avatar-option" @click="selectAvatar(customAvatar)">
                     <img :src="customAvatar.url" alt="Avatar personalizado" class="avatar-preview">
-                    <span class="preview-label">Mi Avatar</span>
+                    <span class="preview-label">{{$t("My_avatar")}}</span>
                 </div>
                 <!-- Avatares predeterminados -->
                 <div v-for="avatar in defaultAvatars" :key="avatar.id" 
@@ -16,7 +16,7 @@
                 </div>
             </div>
             <div class="edit-form-buttons">
-                <button type="button" class="cancel-button p4" @click="toggleAvatarSelection">Cancelar</button>
+                <button type="button" class="cancel-button p4" @click="toggleAvatarSelection">{{$t("cancel")}}</button>
             </div>
         </div>
 
@@ -43,64 +43,64 @@
             <!-- Vista de información -->
             <div v-if="!isEditing" class="user-info-section">
                 <div class="info-field">
-                    <div class="field-label p4">Nombre de usuario</div>
+                    <div class="field-label p4">{{ $t("Username") }}</div>
                     <div class="field-value p4">{{ userData?.username || 'No disponible' }}</div>
                 </div>
 
                 <div class="info-field">
-                    <div class="field-label p4">Correo electrónico</div>
+                    <div class="field-label p4">{{  $t("email") }}</div>
                     <div class="field-value p4">{{ userData?.email || 'No disponible' }}</div>
                 </div>
 
                 <div class="info-field">
-                    <div class="field-label p4">Nombre y apellidos</div>
+                    <div class="field-label p4">{{ $t("name_and_surname") }}</div>
                     <div class="field-value p4">{{ `${userData?.name || ''} ${userData?.surname1 || ''} ${userData?.surname2 || ''}` }}</div>
                 </div>
 
                 <div class="info-field">
-                    <div class="field-label p4">Nacionalidad</div>
+                    <div class="field-label p4">{{$t("Nationality")}}</div>
                     <div class="field-value p4">{{ userData?.nationality || 'No especificada' }}</div>
                 </div>
 
                 <div class="info-field">
-                    <div class="field-label p4">Fecha de registro</div>
+                    <div class="field-label p4">{{$t("Register_date")}}</div>
                     <div class="field-value p4">{{ userData?.created_at || 'No disponible' }}</div>
                 </div>
             </div>
 
             <!-- Formulario de edición -->
             <div v-else class="user-info-section">
-                <h3 class="edit-title h4 white-color">Editar perfil</h3>
+                <h3 class="edit-title h4 white-color">{{ $t("Edit_profile") }}</h3>
                 <form @submit.prevent="handleSubmit" class="edit-form">
                     <div class="info-field">
-                        <div class="field-label p4">Nombre de usuario</div>
+                        <div class="field-label p4">{{$t("Username")}}</div>
                         <input v-model="editForm.name" type="text" class="field-value p4">
                     </div>
 
                     <div class="info-field">
-                        <div class="field-label p4">Correo electrónico</div>
+                        <div class="field-label p4">{{$t("Email")}}</div>
                         <input type="email" :value="userData?.email" class="field-value p4" disabled>
                     </div>
 
                     <div class="info-field">
-                        <div class="field-label p4">Nombre</div>
+                        <div class="field-label p4">{{$t("Name")}}</div>
                         <input v-model="editForm.name" type="text" class="field-value p4">
                     </div>
 
                     <div class="info-field">
-                        <div class="field-label p4">Primer apellido</div>
+                        <div class="field-label p4">{{$t("First_surname")}}</div>
                         <input v-model="editForm.surname1" type="text" class="field-value p4">
                     </div>
 
                     <div class="info-field">
-                        <div class="field-label p4">Segundo apellido</div>
+                        <div class="field-label p4">{{$t("Second_surname")}}</div>
                         <input v-model="editForm.surname2" type="text" class="field-value p4">
                     </div>
 
                     <div class="info-field">
-                        <div class="field-label p4">Nacionalidad</div>
+                        <div class="field-label p4">{{$t("Nationality")}}</div>
                         <select v-model="editForm.nationality" class="field-value p4">
-                            <option value="">Seleccione un continente</option>
+                            <option value="">{{ $t("Select_a_continent") }}</option>
                             <option value="africa">África</option>
                             <option value="america">América</option>
                             <option value="asia">Asia</option>
@@ -110,13 +110,13 @@
                     </div>
 
                     <div class="info-field">
-                        <div class="field-label p4">Nueva contraseña</div>
+                        <div class="field-label p4">{{$t("New_password")}}</div>
                         <input v-model="editForm.password" type="password" class="field-value p4">
                     </div>
 
                     <div class="edit-form-buttons">
-                        <button type="button" class="cancel-button p4" @click="toggleEditMode">Cancelar</button>
-                        <button type="submit" class="primary-button p4">Guardar cambios</button>
+                        <button type="button" class="cancel-button p4" @click="toggleEditMode">{{$t("cancel")}}</button>
+                        <button type="submit" class="primary-button p4">{{$t("Save_changes")}}</button>
                     </div>
                 </form>
             </div>

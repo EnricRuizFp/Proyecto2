@@ -2,7 +2,7 @@
     <div id="myProfileMenuContainer">
         <!-- Titulo -->
         <div id="myProfileMenuTitle">
-            <h4 class="bold white-color">MI PERFIL</h4>
+            <h4 class="bold white-color">{{ $t("MY_PROFILE") }}</h4>
         </div>
         <!-- Contenedor -->
         <div>

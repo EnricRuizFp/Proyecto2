@@ -13,7 +13,7 @@
         <div v-if="isLoading" class="loading-state">
             <div class="loading-overlay">
                 <i class="fas fa-spinner fa-spin"></i>
-                <p class="p3-dark">Esperando al oponente...</p>
+                <p class="p3-dark">{{ $t("Waiting_to_opponent") }}</p>
             </div>
         </div>
 
@@ -28,7 +28,7 @@
             <!-- Lista de barcos para colocar -->
             <div class="ships-dock">
                 <h4 class="h4-dark dock-title">
-                    POSICIONA LOS BARCOS DISPONIBLES
+                    {{ $t("PLACE_ALL_SHIPS") }}
                 </h4>
                 <div class="separator"></div>
                 <div class="ships-container">
@@ -237,7 +237,7 @@ const startTimer = () => {
 // Función de utilidad para pausar la ejecución
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Al montar el componente...
+// Al montar el componente
 onMounted(() => {
     // console.log("Iniciando fase de colocación de barcos.");
     // console.log("Código de partida:", gameStore.matchCode);

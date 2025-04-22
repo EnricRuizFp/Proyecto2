@@ -2,7 +2,7 @@
     <div id="globalRankingMenuContainer">
         <!-- Título -->
         <div id="globalRankingMenuTitle">
-            <h4 class="bold white-color">GLOBAL RANKING</h4>
+            <h4 class="bold white-color">{{ $t("GLOBAL_RANKING") }}</h4>
         </div>
 
         <!-- Contenedor del ranking -->
@@ -48,13 +48,13 @@
                         id="textoCargandoDatosRanking"
                         class="p3 white-color"
                     >
-                        Cargando ranking...
+                        {{ $t("loading_message") }}
                     </p>
                 </div>
                 <!-- Condición SIN SESIÓN -->
                 <div v-else id="peticionInicioSesion" class="white-color">
                     <p class="p3">
-                        Para ver el ranking global, debes iniciar sesión.
+                        {{ $t("login_to_see_ranking") }}
                     </p>
                 </div>
             </div>

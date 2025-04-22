@@ -20,7 +20,7 @@
             class="white-color h4 bold"
             @click="irAlJuego"
         >
-            JUGAR
+            {{ $t("play") }}
             <svg
                 width="35"
                 height="35"
@@ -39,14 +39,14 @@
         </button>
         <div id="partidasPrivadasComponent">
             <div id="tituloPartidaPrivada">
-                <h2 class="bold white-color">PARTIDA PRIVADA</h2>
+                <h2 class="bold white-color">{{ $t("private_match") }}</h2>
             </div>
             <div id="botonesPartidaPrivada">
                 <button
                     class="botonPartida white-color h4 bold"
                     @click="crearPartidaPrivada"
                 >
-                    CREAR
+                    {{ $t("create_match") }}
                     <svg
                         width="35"
                         height="35"
@@ -67,7 +67,7 @@
                     class="botonPartida white-color h4 bold"
                     @click="showJoinMatchModal"
                 >
-                    UNIRSE
+                    {{ $t("join_match") }}
                     <svg
                         width="35"
                         height="35"

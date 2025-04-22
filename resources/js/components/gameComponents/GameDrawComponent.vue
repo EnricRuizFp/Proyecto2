@@ -2,7 +2,7 @@
     <Transition name="modal">
         <div v-if="visible" class="game-win-overlay">
             <div class="game-win-modal neutral-background">
-                <h2 class="white-color h2">EMPATE!</h2>
+                <h2 class="white-color h2">{{ $t("DRAW") }}</h2>
                 <div class="points-container">
                     <span class="points white-color h3">+0</span>
                     <svg
@@ -49,7 +49,7 @@
                         class="primary-button light"
                         @click="handlePlayAgain"
                     >
-                        JUGAR DE NUEVO
+                        {{$t("PLAY_AGAIN")}}
                         <svg
                             class="button-icon"
                             width="24"
@@ -71,7 +71,7 @@
                         </svg>
                     </button>
                     <button class="primary-button light" @click="goToHome">
-                        VOLVER AL INICIO
+                        {{$t("BACK_TO_HOME")}}
                         <svg
                             class="button-icon"
                             width="24"
